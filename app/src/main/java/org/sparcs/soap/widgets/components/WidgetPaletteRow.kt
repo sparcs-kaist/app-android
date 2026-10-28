@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.features.settings.timetable.components.displayName
-import org.sparcs.soap.app.theme.ui.grayBB
 
 /**
  * Palette picker for a widget's own configuration. A widget keeps the theme chosen here, which is
@@ -71,7 +70,7 @@ fun WidgetPaletteRow(
             Text(
                 text = selected.displayName(),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Swatches(selected)

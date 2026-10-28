@@ -1,21 +1,29 @@
 package org.sparcs.soap.app.features.taxiChat
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
@@ -185,8 +193,8 @@ private fun ChatItem(
                     )
 
                     TaxiChat.ChatType.ARRIVAL -> ChatArrivalBubble()
-                    TaxiChat.ChatType.SETTLEMENT -> ChatSettlementBubble(item.chat.settlementMeta)
-                    TaxiChat.ChatType.PAYMENT -> ChatPaymentBubble()
+                    TaxiChat.ChatType.SETTLEMENT -> ChatSettlementBubble(item.chat.settlementMeta, item.sender.isMine)
+                    TaxiChat.ChatType.PAYMENT -> ChatPaymentBubble(item.sender.isMine)
                     TaxiChat.ChatType.ACCOUNT -> ChatAccountBubble(
                         content = item.chat.content,
                         totalAmount = settlementMeta?.total,
@@ -269,4 +277,43 @@ private fun ChatCollectionViewSkeletonPreview() {
             )
         }
     }
+}
+/** The chat while it loads: avatar circles and empty bubbles on both sides, with no text. */
+@Composable
+internal fun ChatLoadingSkeleton(modifier: Modifier = Modifier) {
+    // (mine, bubbles) per group, top to bottom.
+    val groups = listOf(false to 2, true to 1, false to 1, true to 2, false to 3, true to 1, false to 1)
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .clearAndSetSemantics {}
+            .padding(horizontal = 8.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Bottom)
+    ) {
+        groups.forEach { (mine, count) ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                if (!mine) {
+                    Box(
+                        Modifier
+                            .padding(end = 4.dp)
+                            .size(40.dp)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+                    )
+                }
+                Column(horizontalAlignment = if (mine) Alignment.End else Alignment.Start) {
+                    repeat(count) { ChatBubbleSkeleton() }
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChatLoadingSkeletonPreview() {
+    Theme { ChatLoadingSkeleton() }
 }

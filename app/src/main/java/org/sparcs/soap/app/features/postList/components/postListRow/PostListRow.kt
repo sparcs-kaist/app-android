@@ -1,8 +1,6 @@
 package org.sparcs.soap.app.features.postList.components.postListRow
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,8 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.rounded.AttachFile
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.Icon
@@ -30,9 +29,8 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.mocks.ara.mockList
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.gray64
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @Composable
 fun PostListRow(
@@ -65,25 +63,25 @@ fun PostListRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false),
-                color = if (post.isHidden) MaterialTheme.colorScheme.gray64 else MaterialTheme.colorScheme.onSurface
+                color = if (post.isHidden) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.width(4.dp))
 
             if (post.attachmentType == AraPost.AttachmentType.IMAGE || post.attachmentType == AraPost.AttachmentType.BOTH) {
                 Icon(
-                    imageVector = Icons.Rounded.Image,
+                    imageVector = Icons.Outlined.Image,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.grayBB,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
             }
 
             if (post.attachmentType == AraPost.AttachmentType.NON_IMAGE || post.attachmentType == AraPost.AttachmentType.BOTH) {
                 Icon(
-                    imageVector = Icons.Rounded.AttachFile,
+                    imageVector = Icons.Outlined.AttachFile,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.grayBB,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -111,7 +109,7 @@ fun PostListRow(
             Text(
                 text = post.author.profile.nickname,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -131,74 +129,35 @@ fun PostListRow(
     }
 }
 
-@Composable
-fun PostListSkeletonRow() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(listOf(0.dp, 0.dp, 20.dp, 40.dp).random())
-                    .height(16.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
+// Title widths cycle through these so placeholders look like titles without changing between
+// recompositions.
+private val skeletonTitleWidths = listOf(0.7f, 0.45f, 0.85f, 0.6f, 0.5f)
 
-            Box(
-                modifier = Modifier
-                    .width((10..200).random().dp)
-                    .height(16.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
-        }
+/**
+ * Placeholder with the same height as [PostListRow]: each bar sits in a box one text line tall
+ * for the style it stands in for, so swapping to loaded rows doesn't shift the list.
+ */
+@Composable
+fun PostListSkeletonRow(index: Int = 0, modifier: Modifier = Modifier) {
+    val titleStyle = MaterialTheme.typography.titleMedium
+    val metaStyle = MaterialTheme.typography.bodySmall
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        SkeletonLine(titleStyle, Modifier.fillMaxWidth(skeletonTitleWidths[index % skeletonTitleWidths.size]))
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(12.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
-
+            SkeletonLine(metaStyle, Modifier.width(60.dp))
             Spacer(modifier = Modifier.weight(1f))
-
-            Box(
-                modifier = Modifier
-                    .width(40.dp)
-                    .height(12.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
-
-            Box(
-                modifier = Modifier
-                    .width(40.dp)
-                    .height(12.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
+            SkeletonLine(metaStyle, Modifier.width(40.dp))
+            SkeletonLine(metaStyle, Modifier.width(40.dp))
         }
     }
 }
@@ -230,7 +189,7 @@ private fun Preview() {
 private fun PreviewSkeleton() {
     Theme {
         Column {
-            repeat(15) { PostListSkeletonRow() }
+            repeat(15) { PostListSkeletonRow(it) }
         }
     }
 }

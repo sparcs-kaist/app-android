@@ -2,8 +2,8 @@ package org.sparcs.soap.timetableTests
 
 import android.app.Application
 import androidx.datastore.preferences.core.preferencesOf
-import kotlinx.serialization.json.Json
 import org.junit.Assert.*
+import kotlinx.serialization.json.Json
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -20,10 +20,10 @@ import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.wearable.WatchTimetable
 import org.sparcs.soap.wearable.themed
 import org.sparcs.soap.wearable.toWatchModel
+import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.buddyTimetableWidget.WidgetTimetableEntry
 import org.sparcs.soap.widgets.buddyTimetableWidget.toWidgetUiState
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
-import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.themed
 import org.sparcs.soap.widgets.toWidgetHex
 

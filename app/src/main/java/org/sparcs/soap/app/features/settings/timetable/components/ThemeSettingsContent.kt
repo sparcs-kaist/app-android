@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,12 +25,12 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore.State
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,9 +49,11 @@ internal fun ThemeSettingsContent(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.timetable_theme),
-                onDismiss = onBack
+                onDismiss = onBack,
+                containerColor = MaterialTheme.colorScheme.surface
             )
         },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
         ThemeSettingsList(
             padding = padding,
@@ -93,19 +96,17 @@ internal fun ThemeSettingsContent(
                     onShare = { onShare(theme) })
             }
             item(key = "new_theme") {
-                ThemeSettingsAction(
+                SettingsNavigationItem(
                     text = stringResource(R.string.theme_new),
-                    icon = Icons.Default.Add,
-                    onClick = {
-                        onEdit(state.selected.duplicate(newName))
-                    }
+                    onClick = { onEdit(state.selected.duplicate(newName)) },
+                    leadingContent = { Icon(Icons.Default.Add, contentDescription = null) }
                 )
             }
             item(key = "import_theme") {
-                ThemeSettingsAction(
+                SettingsNavigationItem(
                     text = stringResource(R.string.theme_import),
-                    icon = Icons.Outlined.Download,
-                    onClick = { onImport() }
+                    onClick = onImport,
+                    leadingContent = { Icon(Icons.Outlined.Download, contentDescription = null) }
                 )
             }
             item(key = "collections") {
@@ -115,7 +116,7 @@ internal fun ThemeSettingsContent(
                     stringResource(R.string.theme_presets_note),
                     Modifier.padding(start = 8.dp, end = 8.dp, bottom = 12.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             items(TimetableTheme.builtIn, key = { it.id }) { theme ->

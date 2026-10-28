@@ -12,13 +12,13 @@ import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostPage
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.otl.CourseSearchRequest
-import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.domain.models.otl.DepartmentOption
+import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.features.search.SearchViewModel
 import org.sparcs.soap.app.shared.mocks.ara.mockList
-import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.buddyTestSupport.repository.MockTaxiRoomRepository
 import org.sparcs.soap.buddyTestSupport.useCase.MockAraBoardUseCase
 import org.sparcs.soap.buddyTestSupport.useCase.MockCourseUseCase

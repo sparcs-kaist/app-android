@@ -1,29 +1,29 @@
 package org.sparcs.soap
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.navigation.compose.rememberNavController
-import org.sparcs.soap.app.features.timetable.TimetableView
-import org.sparcs.soap.app.features.timetable.components.TimetableGrid
-import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
-import java.io.File
-import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
 import androidx.test.platform.app.InstrumentationRegistry
-import org.junit.Rule
-import org.junit.Test
+import androidx.compose.ui.test.*
 import org.junit.Assert.*
 import org.sparcs.soap.app.domain.models.otl.*
+import org.junit.Rule
+import org.junit.Test
+import org.sparcs.soap.app.features.timetable.TimetableView
 import org.sparcs.soap.app.features.timetable.activity.ActivityCreationView
+import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
+import java.io.File
 
 class ActivityCreationTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
@@ -36,7 +36,7 @@ class ActivityCreationTest {
     }
     private fun text(id: Int) = InstrumentationRegistry.getInstrumentation().targetContext.getString(id)
 
-    @Test fun createUsingNativePickerAndSave() {
+    @Test fun createUsingTimeWheelAndSave() {
         var saved: ActivityDraft? = null
         setContent { Theme { ActivityCreationView(Timetable("12", emptyList()), "Spring", onClose = {}, onSave = { saved = it }, onRefresh = {}) } }
         compose.onNodeWithText(text(R.string.activity_save)).assertIsNotEnabled()
@@ -45,8 +45,10 @@ class ActivityCreationTest {
         screenshot("activity-form")
         compose.onNodeWithText(text(R.string.activity_starts)).performClick()
         screenshot("activity-time-picker")
-        compose.onNodeWithText(text(R.string.activity_keyboard)).assertExists().performClick()
-        compose.onNodeWithText(text(R.string.ok)).performClick()
+        compose.onNodeWithContentDescription(text(R.string.hour)).assertExists()
+        compose.onNodeWithContentDescription(text(R.string.minute)).assertExists()
+        compose.onNodeWithText(text(R.string.activity_starts)).performClick()
+        compose.onNodeWithContentDescription(text(R.string.hour)).assertDoesNotExist()
         compose.onNodeWithText(text(R.string.activity_save)).performClick()
         compose.runOnIdle { assertEquals("Study group", saved?.title); assertEquals("Library", saved?.location); assertTrue(saved!!.isValid) }
     }

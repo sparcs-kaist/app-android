@@ -1,14 +1,5 @@
 package org.sparcs.soap.app.features.reviewCompose
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,16 +9,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -44,7 +38,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -64,11 +57,9 @@ import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.app.features.reviewCompose.components.ReviewComposeNavigationBar
 import org.sparcs.soap.app.networking.responseDTO.otl.ratingToString
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureDetailViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewReviewComposeViewModel
 
@@ -198,7 +189,7 @@ fun ReviewComposeView(
                                     R.string.share_lecture_thoughts,
                                     viewModel.lecture.name
                                 ),
-                                color = MaterialTheme.colorScheme.grayBB,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.titleMedium
                             )
                         inner()
@@ -215,6 +206,7 @@ fun ReviewComposeView(
     )
 }
 
+/** One rating as a label and an elevated chip that opens the grades, like the other pickers. */
 @Composable
 private fun RatingPicker(
     title: String,
@@ -222,62 +214,38 @@ private fun RatingPicker(
     onValueChange: (Int) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var previousValue by remember { mutableIntStateOf(value) }
 
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = title.uppercase(),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.grayBB
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.width(8.dp))
         Box {
-            Row(
-                Modifier
-                    .glassBorder(shape = RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .clickable { expanded = true },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AnimatedContent(
-                    targetState = value,
-                    transitionSpec = {
-                        if (targetState > previousValue) {
-                            (slideInVertically { height -> height } + fadeIn()).togetherWith(
-                                slideOutVertically { height -> -height } + fadeOut())
-                        } else {
-                            (slideInVertically { height -> -height } + fadeIn()).togetherWith(
-                                slideOutVertically { height -> height } + fadeOut())
-                        }.using(SizeTransform(clip = false))
-                    }
-                ) { targetValue ->
-                    Text(
-                        text = ratingToString(targetValue),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+            ElevatedFilterChip(
+                selected = false,
+                onClick = { expanded = true },
+                label = { Text(ratingToString(value)) },
+                trailingIcon = {
+                    Icon(
+                        Icons.Filled.ArrowDropDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(FilterChipDefaults.IconSize)
                     )
                 }
-                Icon(
-                    Icons.Rounded.ArrowDropDown,
-                    contentDescription = null
-                )
-            }
+            )
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                shape = RoundedCornerShape(16.dp)
-            ) {
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 listOf(5, 4, 3, 2, 1).forEach { itValue ->
                     DropdownMenuItem(
                         text = { Text(ratingToString(itValue)) },
+                        trailingIcon = if (itValue == value) {
+                            { Icon(Icons.Filled.Check, contentDescription = null) }
+                        } else null,
                         onClick = {
-                            previousValue = value
                             onValueChange(itValue)
                             expanded = false
                         }

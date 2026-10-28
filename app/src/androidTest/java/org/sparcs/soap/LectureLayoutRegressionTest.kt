@@ -4,27 +4,27 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.compose.rememberNavController
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.runtime.*
+import androidx.compose.ui.test.*
+import org.sparcs.soap.app.domain.models.otl.*
+import org.sparcs.soap.app.features.lectureSearch.*
+import org.sparcs.soap.buddyPreviewSupport.otl.*
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.sparcs.soap.app.domain.models.otl.*
 import org.sparcs.soap.app.features.course.components.CourseHistorySection
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailContent
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
-import org.sparcs.soap.app.features.lectureSearch.*
 import org.sparcs.soap.app.features.lectureSearch.components.LectureCollisionDialog
 import org.sparcs.soap.app.features.lectureSearch.components.LectureTimeRangeContent
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.buddyPreviewSupport.otl.*
 
 class LectureLayoutRegressionTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()

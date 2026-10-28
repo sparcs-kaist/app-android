@@ -1,30 +1,32 @@
 package org.sparcs.soap
 
-import androidx.navigation.compose.rememberNavController
-import androidx.activity.ComponentActivity
 import android.graphics.Bitmap
-import java.io.File
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.ui.test.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toPixelMap
-import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.domain.helpers.TimetableTheme
-import org.sparcs.soap.app.domain.models.otl.LectureItem
-import org.sparcs.soap.app.shared.mocks.otl.mockList
-import org.sparcs.soap.app.features.timetable.components.TimetableGridCell
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.ui.test.*
+import org.junit.Assert.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Assert.*
+import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
-import org.sparcs.soap.app.features.settings.timetable.TimetableThemeSettingsView
+import org.sparcs.soap.app.domain.models.otl.LectureItem
+import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.settings.timetable.timetableThemeGraph
+import org.sparcs.soap.app.features.timetable.components.TimetableGridCell
+import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.theme.ui.Theme
+import java.io.File
 
 class TimetableThemeUiTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
@@ -34,7 +36,16 @@ class TimetableThemeUiTest {
     @Before fun setup() {
         originalPreferences = context.getSharedPreferences("timetable_themes", 0).all.toMap()
         context.getSharedPreferences("timetable_themes", 0).edit().clear().commit()
-        compose.runOnUiThread { compose.activity.setContent { Theme { TimetableThemeSettingsView(rememberNavController()) } } }
+        compose.runOnUiThread {
+            compose.activity.setContent {
+                Theme {
+                    val navController = rememberNavController()
+                    NavHost(navController, startDestination = Channel.TimetableThemeSettings.name) {
+                        timetableThemeGraph(navController)
+                    }
+                }
+            }
+        }
     }
     @After fun restorePreferences() {
         context.getSharedPreferences("timetable_themes", 0).edit().clear().apply {

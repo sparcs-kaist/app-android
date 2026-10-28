@@ -2,6 +2,7 @@ package org.sparcs.soap.app.shared.extensions
 
 import android.text.format.DateFormat
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import org.sparcs.soap.R
@@ -85,9 +86,11 @@ fun isDateInSameDay(date1: Date, date2: Date): Boolean {
     return localDate1 == localDate2
 }
 
+/** "Today at 3:20 PM", "Tomorrow at …", a weekday or a date, in the system's 12- or 24-hour style. */
 @Composable
 fun Date.relativeTimeString(): String {
-    val time = localizedTime(this)
+    val is24Hour = DateFormat.is24HourFormat(LocalContext.current)
+    val time = DateFormat.getTimeFormat(LocalContext.current).format(this)
 
     return when {
         isDateInToday(this) ->
@@ -103,12 +106,7 @@ fun Date.relativeTimeString(): String {
                 stringResource(R.string.weekday_at, weekday, time)
             } else {
                 val locale = Locale.getDefault()
-                val pattern = if (locale.language == "ko") {
-                    "M월 d일 a h:mm"
-                } else {
-                    "MMM d 'at' h:mm a"
-                }
-
+                val pattern = DateFormat.getBestDateTimePattern(locale, if (is24Hour) "MMMdHHmm" else "MMMdhmma")
                 val formatter = DateTimeFormatter.ofPattern(pattern, locale)
 
                 val localDateTime = LocalDateTime.ofInstant(
@@ -134,11 +132,6 @@ fun isDateInTomorrow(date: Date): Boolean {
     val target = Calendar.getInstance().apply { time = date }
     return tomorrow.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
             tomorrow.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)
-}
-
-fun localizedTime(date: Date): String {
-    val formatter = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
-    return formatter.format(date)
 }
 
 fun weekdayNameIfWithinAWeek(date: Date): String? {

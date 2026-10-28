@@ -50,6 +50,7 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
+import org.sparcs.soap.app.shared.extensions.OnPoppedEffect
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.theme.ui.Theme
@@ -86,15 +87,13 @@ fun CourseComposeView(
         label = "searchHeightFraction"
     )
 
-    BackHandler {
-        if (isSearching) {
-            isSearching = false
-            focusManager.clearFocus()
-        } else {
-            timetableViewModel.setCandidateLecture(null)
-            navController.popBackStack()
-        }
+    // Only intercept back to close the search; leaving the screen is a normal pop so the
+    // system can play the predictive back animation.
+    BackHandler(enabled = isSearching) {
+        isSearching = false
+        focusManager.clearFocus()
     }
+    OnPoppedEffect(navController) { timetableViewModel.setCandidateLecture(null) }
 
     Scaffold(
         modifier = Modifier.analyticsScreen("CourseCompose"),

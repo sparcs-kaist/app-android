@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -56,15 +58,16 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
+import org.sparcs.soap.app.features.settings.components.RowElementView
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.feed.viewState.FeedProfileImageState
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedSettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,16 +85,18 @@ fun FeedSettingsView(
         viewModel.fetchUser()
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.feed_settings),
                 onDismiss = { navController.popBackStack() },
-                scrollBehavior = topBarScrollBehavior
+                scrollBehavior = topBarScrollBehavior,
+                containerColor = MaterialTheme.colorScheme.surface
             )
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen("Feed Settings"),
@@ -101,7 +106,6 @@ fun FeedSettingsView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
@@ -109,7 +113,6 @@ fun FeedSettingsView(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 600.dp)
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
                     .then(if (viewModel.isUpdatingProfile) Modifier.alpha(0.5f) else Modifier)
             ) {
                 when (state) {
@@ -163,9 +166,7 @@ fun FeedSettingsView(
 @Composable
 private fun LoadingView() {
     Column {
-        Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
-
-        Spacer(Modifier.height(16.dp))
+        SettingsSectionHeader(stringResource(R.string.profile))
 
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -200,6 +201,7 @@ private fun LoadingView() {
 
         Box(
             modifier = Modifier
+                .padding(horizontal = 16.dp)
                 .fillMaxWidth()
                 .height(56.dp)
                 .clip(RoundedCornerShape(4.dp))
@@ -212,7 +214,7 @@ private fun LoadingView() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp),
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -251,10 +253,7 @@ private fun LoadedView(
     }
 
     Column {
-        //profile
-        Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
-
-        Spacer(Modifier.height(16.dp))
+        SettingsSectionHeader(stringResource(R.string.profile))
 
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -282,31 +281,28 @@ private fun LoadedView(
                 }
             }
             Row(
-                modifier = Modifier.padding(top = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.edit),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.clickable {
+                TextButton(
+                    onClick = {
                         launcher.launch(
                             PickVisualMediaRequest(
                                 ActivityResultContracts.PickVisualMedia.ImageOnly
                             )
                         )
                     }
-                )
-                Text(
-                    text = stringResource(R.string.reset),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.clickable { viewModel.updateProfileImage(null, context) }
-                )
+                ) { Text(stringResource(R.string.edit)) }
+                TextButton(
+                    onClick = { viewModel.updateProfileImage(null, context) },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) { Text(stringResource(R.string.reset)) }
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
 
         OutlinedTextField(
             value = viewModel.nickname,
@@ -315,21 +311,10 @@ private fun LoadedView(
                 viewModel.nicknameError = null
             },
             isError = viewModel.nicknameError != null,
-            supportingText = {
-                viewModel.nicknameError?.let { errorRes ->
-                    Text(
-                        text = stringResource(errorRes),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
+            supportingText = viewModel.nicknameError?.let { errorRes ->
+                { Text(stringResource(errorRes)) }
             },
-            label = {
-                Text(
-                    stringResource(R.string.enter_nickname),
-                    color = MaterialTheme.colorScheme.grayBB
-                )
-            },
+            label = { Text(stringResource(R.string.enter_nickname)) },
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
                 onDone = {
@@ -342,26 +327,19 @@ private fun LoadedView(
                 }
             ),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(stringResource(R.string.karma))
-            Text(
-                text = viewModel.karma.toString(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+                .padding(horizontal = 16.dp)
+        )
+
+        RowElementView(
+            title = stringResource(R.string.karma),
+            content = viewModel.karma.toString(),
+            trailing = true
+        )
     }
 }
+
 @Preview(name = "Loaded State", showBackground = true)
 @Composable
 private fun LoadedPreview() {

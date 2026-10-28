@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,7 +62,7 @@ import org.sparcs.soap.app.domain.enums.taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.taxiPreview.components.InfoRow
+import org.sparcs.soap.app.features.taxiPreview.components.DepartureTimeRow
 import org.sparcs.soap.app.features.taxiPreview.components.RouteHeaderView
 import org.sparcs.soap.app.features.taxiPreview.components.TaxiCarrierIndicator
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -73,7 +74,6 @@ import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiParticipantsIndicator
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.upvote
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 
@@ -214,11 +214,14 @@ fun TaxiPreviewView(
         }
         Column(modifier = Modifier.padding(16.dp)) {
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
 
                 Text(
                     text = room.title,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.weight(1f))
@@ -238,12 +241,9 @@ fun TaxiPreviewView(
                 destination = room.destination.title.localized()
             )
 
-            Spacer(Modifier.padding(4.dp))
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
-            InfoRow(
-                label = stringResource(R.string.depart_at),
-                value = room.departAt.formattedString()
-            )
+            DepartureTimeRow(room.departAt)
 
             Spacer(Modifier.padding(8.dp))
 

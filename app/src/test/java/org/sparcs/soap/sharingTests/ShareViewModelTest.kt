@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
-import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -23,6 +22,7 @@ import org.sparcs.soap.app.shared.sharing.ShareImageStore
 import org.sparcs.soap.app.shared.sharing.ShareTarget
 import org.sparcs.soap.app.shared.sharing.ShareViewModel
 import org.sparcs.soap.testSupport.MainDispatcherRule
+import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)

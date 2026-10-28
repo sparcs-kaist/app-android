@@ -1,22 +1,19 @@
 package org.sparcs.soap.app.features.postList.components.postListRow
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
+import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.features.navigationBar.components.SearchButton
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,21 +25,23 @@ fun BoardNavigationBar(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
-    CenterAlignedTopAppBar(
+    TopAppBar(
         navigationIcon = {
-            DismissButton { navController.popBackStack() }
+            BackButton { navController.popBackStack() }
         },
         title = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = subTitle,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         },
@@ -50,11 +49,8 @@ fun BoardNavigationBar(
             SearchButton(
                 onClick = { onClickSearch() },
                 isSelected = isSelected
-                )
+            )
         },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
         scrollBehavior = scrollBehavior
     )
 }

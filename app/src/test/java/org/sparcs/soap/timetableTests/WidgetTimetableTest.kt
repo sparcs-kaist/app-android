@@ -4,17 +4,17 @@ import android.app.Application
 import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.preferencesOf
+import org.junit.Assert.*
+import org.sparcs.soap.app.domain.models.otl.*
+import org.sparcs.soap.widgets.buddyTimetableWidget.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.sparcs.soap.app.domain.enums.otl.DayType
-import org.sparcs.soap.app.domain.models.otl.*
 import org.sparcs.soap.app.shared.mocks.otl.mockList
-import org.sparcs.soap.widgets.buddyTimetableWidget.*
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)

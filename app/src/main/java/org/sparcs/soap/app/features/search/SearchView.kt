@@ -1,26 +1,18 @@
 package org.sparcs.soap.app.features.search
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,7 +25,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,22 +43,17 @@ import org.sparcs.soap.app.features.search.components.CoursePaginationFooter
 import org.sparcs.soap.app.features.search.components.CourseSection
 import org.sparcs.soap.app.features.search.components.PostSection
 import org.sparcs.soap.app.features.search.components.SearchFilterRow
-import org.sparcs.soap.app.features.search.components.SearchNavigationBar
 import org.sparcs.soap.app.features.search.components.TaxiSection
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewView
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
-import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.viewModelMocks.MockSearchViewModel
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
-import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
+import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,7 +67,6 @@ fun SearchView(
     val searchText by viewModel.searchText.collectAsState()
     val searchScope by viewModel.searchScope.collectAsState()
     val courseFilterState by viewModel.courseFilterState.collectAsState()
-    val scrollState = rememberScrollState()
 
     val coroutineScope = rememberCoroutineScope()
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
@@ -89,60 +74,59 @@ fun SearchView(
     var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
     val filterSheetState = rememberModalBottomSheetState()
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
-
     Scaffold(
         topBar = {
-            SearchNavigationBar(
-                scrollState = scrollState,
-                scrollBehavior = topBarScrollBehavior
-            )
+            // The search bar and scope chips are the top of the screen, in place of a title.
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(top = 8.dp)
+            ) {
+                Column(Modifier.widthIn(max = 600.dp)) {
+                    MaterialSearchField(
+                        query = searchText,
+                        onQueryChange = viewModel::onSearchTextChange,
+                        placeholder = stringResource(R.string.search),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    SearchFilterRow(
+                        searchScope = searchScope,
+                        courseFilterState = courseFilterState,
+                        onScopeChange = viewModel::onScopeChange,
+                        onCategoryClick = { activeFilterCategory = it },
+                        onResetFilters = { viewModel.onFilterChange(CourseFilterState()) },
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+            }
         },
         modifier = Modifier
-            .hideTopBarOnScroll(topBarScrollBehavior)
             .navigationBarsPadding()
             .analyticsScreen("Search")
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 600.dp)
-                    .padding(top = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .widthIn(max = 600.dp),
+                contentAlignment = Alignment.TopCenter
             ) {
-                SearchControlCard(
+                SearchResultContent(
+                    state = state,
                     searchText = searchText,
-                    searchScope = searchScope,
                     courseFilterState = courseFilterState,
-                    onSearchTextChange = viewModel::onSearchTextChange,
-                    onScopeChange = viewModel::onScopeChange,
-                    onCategoryClick = { activeFilterCategory = it },
-                    onResetFilters = { viewModel.onFilterChange(CourseFilterState()) }
+                    viewModel = viewModel,
+                    navController = navController,
+                    coroutineScope = coroutineScope,
+                    onTaxiClick = { selectedRoom = it }
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Box(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    SearchResultContent(
-                        state = state,
-                        searchText = searchText,
-                        courseFilterState = courseFilterState,
-                        viewModel = viewModel,
-                        navController = navController,
-                        coroutineScope = coroutineScope,
-                        onTaxiClick = { selectedRoom = it }
-                    )
-                }
             }
         }
 
@@ -152,20 +136,6 @@ fun SearchView(
                     selectedRoom = null
                 },
                 sheetState = sheetState,
-                dragHandle = {
-                    Column {
-                        Box(
-                            modifier = Modifier
-                                .width(30.dp)
-                                .padding(top = 4.dp, bottom = 4.dp)
-                                .height(4.dp)
-                                .align(Alignment.CenterHorizontally)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(MaterialTheme.colorScheme.grayBB)
-                        )
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 TaxiPreviewView(
                     room = room,
@@ -185,7 +155,6 @@ fun SearchView(
             ModalBottomSheet(
                 onDismissRequest = { activeFilterCategory = null },
                 sheetState = filterSheetState,
-                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 CategoryFilterContent(
                     category = category,
@@ -194,45 +163,6 @@ fun SearchView(
                     options = CourseFilterProvider.getOptions(category)
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun SearchControlCard(
-    searchText: String,
-    searchScope: SearchScope,
-    courseFilterState: CourseFilterState,
-    onSearchTextChange: (String) -> Unit,
-    onScopeChange: (SearchScope) -> Unit,
-    onCategoryClick: (CourseFilterCategory) -> Unit,
-    onResetFilters: () -> Unit
-) {
-    Card(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .glassBorder(shape = RoundedCornerShape(16.dp))
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            SearchCustomBar(
-                value = searchText,
-                onValueChange = onSearchTextChange,
-                onValueClear = { onSearchTextChange("") },
-                placeHolder = stringResource(R.string.search)
-            )
-
-            SearchFilterRow(
-                searchScope = searchScope,
-                courseFilterState = courseFilterState,
-                onScopeChange = onScopeChange,
-                onCategoryClick = onCategoryClick,
-                onResetFilters = onResetFilters
-            )
         }
     }
 }
@@ -298,7 +228,7 @@ fun ResultView(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
     ) {
         // --- Courses ---
         if (searchScope == SearchScope.All) {

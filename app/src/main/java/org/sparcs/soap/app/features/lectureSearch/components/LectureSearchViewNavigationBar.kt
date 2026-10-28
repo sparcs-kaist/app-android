@@ -1,13 +1,10 @@
 package org.sparcs.soap.app.features.lectureSearch.components
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -16,19 +13,10 @@ import org.sparcs.soap.app.theme.ui.Theme
 fun LectureSearchViewNavigationBar(
     title: String
 ) {
-    CenterAlignedTopAppBar(
+    TopAppBar(
         title = {
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
-        )
+            Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     )
 }
 
@@ -39,4 +27,3 @@ private fun Preview(){
     Theme {
        LectureSearchViewNavigationBar("title") }
 }
-

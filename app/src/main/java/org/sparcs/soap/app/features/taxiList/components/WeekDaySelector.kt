@@ -32,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.repositories.taxi.FakeTaxiRoomRepository
@@ -42,7 +41,6 @@ import org.sparcs.soap.app.shared.extensions.toDate
 import org.sparcs.soap.app.shared.extensions.toLocalDate
 import org.sparcs.soap.app.shared.extensions.toShortString
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.gray64
 import java.time.DayOfWeek
 import java.util.Date
 
@@ -83,7 +81,7 @@ fun WeekDaySelector(
             val boxColor = when (day?.dayOfWeek) {
                 DayOfWeek.SUNDAY -> Color(0xFFDA4A45)
                 DayOfWeek.SATURDAY -> Color(0xFF45A7DA)
-                else -> MaterialTheme.colorScheme.gray64
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
             }
 
             Box(
@@ -100,7 +98,8 @@ fun WeekDaySelector(
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val size = if (stringResource(R.string.all) == "All") MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium
+            // "All" and the day numbers share one style; the weekday is a smaller label under the number.
+            val numberStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
 
             Column(
                 modifier = Modifier
@@ -120,7 +119,7 @@ fun WeekDaySelector(
             ) {
                 Text(
                     text = stringResource(R.string.all),
-                    style = size.copy(fontWeight = FontWeight.SemiBold, fontSize = 20.sp),
+                    style = numberStyle,
                     color = if (selectedDate == null) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -155,13 +154,13 @@ fun WeekDaySelector(
                 ) {
                     Text(
                         text = day.dayOfMonth.toString(),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold, fontSize = 20.sp),
+                        style = numberStyle,
                         color = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
-                        text = day.dayOfWeek.toShortString().uppercase(),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                        text = day.dayOfWeek.toShortString(),
+                        style = MaterialTheme.typography.labelSmall,
                         color = if (isSelected) MaterialTheme.colorScheme.background else textColor
                     )
                 }

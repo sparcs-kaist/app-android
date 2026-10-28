@@ -12,12 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -30,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -46,7 +48,6 @@ import org.sparcs.soap.app.features.lectureDetail.components.LectureReviews
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewsSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureSummary
 import org.sparcs.soap.app.features.lectureSearch.components.LectureCollisionDialog
-import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
@@ -116,7 +117,7 @@ fun LectureDetailContent(
     }
 
     Scaffold(
-        containerColor = if (isSearchContext) LectureSearchChrome.background else MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             LectureDetailNavigationBar(
                 navController = navController,
@@ -285,28 +286,39 @@ private fun LectureSummaryAndInfoSection(lecture: Lecture, navController: NavCon
     LectureSummary(lecture)
     Spacer(modifier = Modifier.height(24.dp))
     if (isContained || conflicts.isNotEmpty()) {
-        val statusColor = if (isContained) MaterialTheme.colorScheme.primary else Color(0xFFFF8800)
-        Surface(
-            shape = RoundedCornerShape(50),
-            color = statusColor.copy(alpha = 0.12f),
-            contentColor = statusColor,
-            modifier = Modifier.padding(bottom = 16.dp),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(if (isContained) Icons.Rounded.CheckCircle else Icons.Rounded.Warning, contentDescription = null, modifier = Modifier.size(16.dp))
-                Text(
-                    if (isContained) stringResource(R.string.lecture_in_timetable)
-                    else stringResource(R.string.lecture_conflicts, conflicts.joinToString(", ")),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-        }
+        LectureStatusPill(isContained, conflicts, Modifier.padding(bottom = 8.dp))
     }
     LectureInformation(lecture, navController)
+}
+
+/** Says the lecture is in the selected timetable, or which lectures it would clash with. */
+@Composable
+private fun LectureStatusPill(isContained: Boolean, conflicts: List<String>, modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        shape = CircleShape,
+        color = if (isContained) colors.secondaryContainer else colors.errorContainer,
+        contentColor = if (isContained) colors.onSecondaryContainer else colors.onErrorContainer,
+        modifier = modifier,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                if (isContained) Icons.Filled.CheckCircle else Icons.Outlined.Warning,
+                contentDescription = null,
+                tint = if (isContained) colors.primary else LocalContentColor.current,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                if (isContained) stringResource(R.string.lecture_in_timetable)
+                else stringResource(R.string.lecture_conflicts, conflicts.joinToString(", ")),
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+    }
 }
 
 @Composable

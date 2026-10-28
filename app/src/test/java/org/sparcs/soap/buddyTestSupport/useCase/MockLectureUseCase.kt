@@ -1,10 +1,10 @@
 package org.sparcs.soap.buddyTestSupport.useCase
 
-import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.domain.models.otl.CourseLecture
+import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.domain.models.otl.LectureSearchRequest
-import org.sparcs.soap.app.domain.usecases.otl.LectureUseCaseProtocol
 import org.sparcs.soap.app.domain.models.otl.OTLUserLectureHistory
+import org.sparcs.soap.app.domain.usecases.otl.LectureUseCaseProtocol
 
 class MockLectureUseCase : LectureUseCaseProtocol {
     override suspend fun fetchDepartmentOptions() = emptyList<DepartmentOption>()

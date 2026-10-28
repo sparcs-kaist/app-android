@@ -22,10 +22,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
@@ -53,6 +55,7 @@ import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TimetableOnboarding
 import org.sparcs.soap.app.shared.tips.TipView
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -111,11 +114,16 @@ private fun PreviewCard(
     }
     LaunchedEffect(resizable) { if (!resizable) tipStore?.completeOnboarding(TimetableOnboarding.Step.ResizePreview) }
     Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Card(
+        // The selected timetable theme's background, as on the timetable screen. Elevated while it
+        // floats over the results in its small size.
+        val timetableTheme = LocalTimetableTheme.current
+        ElevatedCard(
             modifier = Modifier.height(displayedHeight)
                 .then(if (compact) Modifier.width(displayedHeight * 0.82f) else Modifier.fillMaxWidth()),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-            elevation = CardDefaults.cardElevation(defaultElevation = if (compact) 8.dp else 0.dp),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = timetableTheme.backgroundColor ?: MaterialTheme.colorScheme.background
+            ),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = if (compact) 6.dp else 0.dp),
         ) {
             Column {
                 Box(Modifier.weight(1f).padding(8.dp)) {
@@ -139,7 +147,8 @@ private fun PreviewCard(
                         ),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Box(Modifier.size(36.dp, 4.dp).background(MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small))
+                    // Sized like the Material bottom sheet drag handle, in the theme's label colour so it shows on its background.
+                    Box(Modifier.size(32.dp, 4.dp).background((timetableTheme.gridLabelColor ?: MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = 0.4f), MaterialTheme.shapes.extraLarge))
                 }
             }
         }
@@ -155,4 +164,27 @@ private fun PreviewCard(
 @Composable
 private fun TimetablePreview() {
     Theme { LectureSearchTimetablePreview(PreviewTimetableViewModel(), 240.dp, 640.dp, {}) }
+}
+
+// A timetable theme with its own dark background, to check the card follows it.
+private val nightTheme = TimetableTheme(
+    id = "preview.night",
+    name = "Night",
+    hexColors = listOf("5E81AC", "BF616A", "A3BE8C", "EBCB8B", "B48EAD"),
+    textColorHex = "FFFFFF",
+    separatorColorHex = "3B4252",
+    backgroundColorHex = "1E222A",
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun ThemedTimetablePreview() {
+    Theme {
+        CompositionLocalProvider(LocalTimetableTheme provides nightTheme) {
+            Column {
+                LectureSearchTimetablePreview(PreviewTimetableViewModel(), 400.dp, 640.dp, {})
+                LectureSearchTimetablePreview(PreviewTimetableViewModel(), 180.dp, 640.dp, {})
+            }
+        }
+    }
 }

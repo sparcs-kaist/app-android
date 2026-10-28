@@ -26,8 +26,8 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
-import org.sparcs.soap.buddyTestSupport.useCase.MockTimetableUseCase
 import org.sparcs.soap.buddyTestSupport.helper.testTipStore
+import org.sparcs.soap.buddyTestSupport.useCase.MockTimetableUseCase
 import org.sparcs.soap.testSupport.MainDispatcherRule
 import java.util.Date
 

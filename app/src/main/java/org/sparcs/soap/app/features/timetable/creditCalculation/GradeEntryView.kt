@@ -13,20 +13,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,8 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
@@ -49,11 +51,9 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.components.LectureListRow
 import org.sparcs.soap.app.features.timetable.components.LectureListRowDetail
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.creditIncompleteColor
 
 @Composable
 internal fun GradeEntryView(
@@ -120,10 +120,11 @@ internal fun GradeEntryView(
 
 @Composable
 private fun GradeEntryTimetable(timetable: Timetable?, modifier: Modifier) {
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = LocalTimetableTheme.current.backgroundColor ?: MaterialTheme.colorScheme.background,
-        modifier = modifier.glassBorder(RoundedCornerShape(28.dp))
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = LocalTimetableTheme.current.backgroundColor ?: MaterialTheme.colorScheme.background
+        ),
+        modifier = modifier
     ) {
         Box(Modifier.padding(8.dp)) { TimetableGrid(timetable = timetable) }
     }
@@ -139,8 +140,8 @@ private fun GradeEntryList(
         val lectures = timetable?.lectures.orEmpty()
         Text(
             pluralStringResource(R.plurals.lectures_count, lectures.size, lectures.size),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.semantics { heading() }
         )
         lectures.forEachIndexed { index, lecture ->
             GradeEntryRow(
@@ -173,35 +174,30 @@ private fun GradeEntryRow(
                 badge = if (isSuperseded) stringResource(R.string.credit_retaken) else null,
             )
             Box {
-                val tint =
-                    if (grade == null) creditIncompleteColor else MaterialTheme.colorScheme.primary
-                TextButton(
-                    onClick = { expanded = true },
-                    modifier = Modifier
-                        .widthIn(min = 48.dp)
-                        .semantics { contentDescription = description },
-                    shape = CircleShape,
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                    colors = ButtonDefaults.textButtonColors(
-                        containerColor = tint.copy(alpha = 0.15f),
-                        contentColor = tint
-                    )
-                ) {
-                    Text(grade?.title ?: "\u2014", fontWeight = FontWeight.SemiBold)
+                // A graded lecture shows its grade as a tonal button; an ungraded one is outlined.
+                val buttonModifier = Modifier
+                    .widthIn(min = 64.dp)
+                    .semantics { contentDescription = description }
+                if (grade != null) {
+                    FilledTonalButton(onClick = { expanded = true }, modifier = buttonModifier) {
+                        Text(grade.title)
+                    }
+                } else {
+                    OutlinedButton(onClick = { expanded = true }, modifier = buttonModifier) {
+                        Text("\u2014")
+                    }
                 }
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    containerColor = MaterialTheme.colorScheme.background,
-                    shape = RoundedCornerShape(24.dp)
                 ) {
                     if (grade != null) DropdownMenuItem(
-                        text = {
-                            Text(
-                                stringResource(R.string.credit_clear_grade),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        },
+                        text = { Text(stringResource(R.string.credit_clear_grade)) },
+                        leadingIcon = { Icon(Icons.Filled.Clear, contentDescription = null) },
+                        colors = MenuDefaults.itemColors(
+                            textColor = MaterialTheme.colorScheme.error,
+                            leadingIconColor = MaterialTheme.colorScheme.error
+                        ),
                         onClick = { onGrade(null); expanded = false }
                     )
                     LectureGrade.options(lecture).forEach { option ->
@@ -209,7 +205,7 @@ private fun GradeEntryRow(
                             text = { Text(gradeTitle(option)) },
                             trailingIcon = {
                                 if (grade == option) Icon(
-                                    Icons.Rounded.Check,
+                                    Icons.Filled.Check,
                                     null,
                                     tint = MaterialTheme.colorScheme.primary
                                 )

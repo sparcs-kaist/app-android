@@ -13,15 +13,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.error.feed.FeedProfileUseCaseError
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.feed.FeedUser
 import org.sparcs.soap.app.domain.services.CrashlyticsService
-import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCaseProtocol
 import org.sparcs.soap.app.features.settings.feed.viewState.FeedProfileImageState
 import org.sparcs.soap.app.shared.extensions.toAlertState
-import org.sparcs.soap.R
 import org.sparcs.soap.app.shared.extensions.toProfileImagePart
 import timber.log.Timber
 import javax.inject.Inject

@@ -1,8 +1,8 @@
 package org.sparcs.soap.app.features.settings.timetable
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -36,20 +36,20 @@ import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeBrief
 import org.sparcs.soap.app.domain.usecases.ThemeGenerationError
 import org.sparcs.soap.app.domain.usecases.ThemeModelStatus
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.timetable.components.ThemePreview
-import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsAction
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
-import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsSectionTitle
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 internal fun ThemeGenerationSection(onOpen: () -> Unit) {
-    ThemeSettingsAction(
+    SettingsNavigationItem(
         text = stringResource(R.string.theme_ai_title),
-        icon = Icons.Outlined.AutoAwesome,
         onClick = onOpen,
+        leadingContent = { Icon(Icons.Outlined.AutoAwesome, contentDescription = null) }
     )
 }
 
@@ -66,22 +66,24 @@ internal fun TimetableThemeGeneratorView(
     onBack: () -> Unit,
     onApply: (TimetableTheme) -> Unit,
 ) {
-    BackHandler(onBack = onBack)
     Scaffold(
         modifier = Modifier.analyticsScreen("TimetableThemeGenerator"),
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.theme_ai_generate),
                 onDismiss = onBack,
+                containerColor = MaterialTheme.colorScheme.surface,
                 isEditable = true,
                 isDoneEnabled = state.ready && !state.generating && !state.downloading && state.preview != null,
                 onClickDone = { if (state.ready) state.preview?.let(onApply) },
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
         ThemeSettingsList(
             padding = padding,
             modifier = Modifier.imePadding(),
+            contentPadding = PaddingValues(vertical = 8.dp),
         ) {
             item(key = "preview") {
                 ThemeGenerationPreview(state.preview ?: baseTheme, state.preview?.name)
@@ -90,7 +92,7 @@ internal fun TimetableThemeGeneratorView(
                 ThemeDescriptionField(state, onDescriptionChange)
             }
             if (state.modelStatus != ThemeModelStatus.AVAILABLE && !state.downloading) item(key = "model") {
-                Column(Modifier.padding(8.dp)) {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     ThemeModelStatusView(
                         state,
                         onDownload,
@@ -113,7 +115,7 @@ internal fun TimetableThemeGeneratorView(
                         text = stringResource(error.messageResource()),
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier
-                            .padding(8.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                             .semantics { liveRegion = LiveRegionMode.Polite },
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -123,7 +125,7 @@ internal fun TimetableThemeGeneratorView(
                 HorizontalDivider(Modifier.padding(vertical = 16.dp))
                 Text(
                     stringResource(R.string.theme_ai_privacy),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -172,12 +174,12 @@ private fun ThemeGenerationError.messageResource(): Int = when (this) {
 @Composable
 private fun ThemeGenerationPreview(theme: TimetableTheme, generatedName: String?) {
     Column(Modifier.padding(bottom = 24.dp)) {
-        ThemeSettingsSectionTitle(stringResource(R.string.theme_preview))
-        ThemePreview(theme)
+        SettingsSectionHeader(stringResource(R.string.theme_preview))
+        ThemePreview(theme, Modifier.padding(horizontal = 16.dp))
         generatedName?.let { name ->
             Text(
                 name,
-                Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -190,11 +192,12 @@ private fun ThemeDescriptionField(
     onDescriptionChange: (String) -> Unit,
 ) {
     val descriptionLabel = stringResource(R.string.theme_ai_describe)
-    ThemeSettingsSectionTitle(stringResource(R.string.theme_ai_describe))
+    SettingsSectionHeader(stringResource(R.string.theme_ai_describe))
     OutlinedTextField(
         value = state.description,
         onValueChange = onDescriptionChange,
         modifier = Modifier
+            .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .semantics { contentDescription = descriptionLabel },
         enabled = !state.generating && !state.downloading,
@@ -213,7 +216,7 @@ private fun ThemeDescriptionField(
     )
     Text(
         stringResource(R.string.theme_ai_description),
-        Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+        Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -246,7 +249,9 @@ private fun ThemeGenerateButton(state: ThemeGeneratorState, onGenerate: (String)
     Button(
         onClick = { onGenerate(prompt) },
         enabled = state.canGenerate,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth(),
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),

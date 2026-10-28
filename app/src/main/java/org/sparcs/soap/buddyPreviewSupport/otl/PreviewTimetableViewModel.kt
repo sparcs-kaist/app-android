@@ -16,7 +16,10 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 
-class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock()) : TimetableViewModelProtocol {
+class PreviewTimetableViewModel(
+    initialTimetable: Timetable? = Timetable.mock(),
+    initialSemester: Semester? = Semester.mockList()[9],
+) : TimetableViewModelProtocol {
     override suspend fun refreshActivityTable(timetableID: Int): Timetable = _selectedTimetable.value ?: Timetable.mock()
     override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Timetable = refreshActivityTable(timetableID)
     override suspend fun deleteActivity(timetableID: Int, activityID: Int): Timetable = refreshActivityTable(timetableID)
@@ -25,7 +28,7 @@ class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock())
     private val _semesters = MutableStateFlow(Semester.mockList())
     override val semesters: StateFlow<List<Semester>> = _semesters.asStateFlow()
 
-    private val _selectedSemester = MutableStateFlow<Semester?>(Semester.mockList()[9])
+    private val _selectedSemester = MutableStateFlow(initialSemester)
     override val selectedSemester: StateFlow<Semester?> = _selectedSemester.asStateFlow()
 
     private val _selectedTimetable = MutableStateFlow(initialTimetable)

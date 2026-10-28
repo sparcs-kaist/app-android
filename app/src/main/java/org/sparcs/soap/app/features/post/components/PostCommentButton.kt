@@ -9,70 +9,83 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Comment
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 
+/** Gray pill with a comment icon and count, matching [PostVoteButton]. */
 @Composable
 fun PostCommentButton(
     commentCount: Int,
     isCompact: Boolean = false,
     onClick: () -> Unit,
 ) {
+    val interaction = remember { MutableInteractionSource() }
     val haptic = LocalHapticFeedback.current
 
-    val shapeRadius = if (isCompact) 14.dp else 16.dp
-    val horizontalPadding = if (isCompact) 8.dp else 10.dp
-    val verticalPadding = if (isCompact) 6.dp else 8.dp
-    val baseStyle = MaterialTheme.typography.bodyMedium
-    val textStyle = if (isCompact) baseStyle.copy(fontSize = 13.sp) else baseStyle
+    CommentPill(
+        commentCount = commentCount,
+        isCompact = isCompact,
+        interaction = interaction,
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+            onClick()
+        }
+    )
+}
 
-    val shape = RoundedCornerShape(shapeRadius)
+@Composable
+private fun CommentPill(
+    commentCount: Int,
+    isCompact: Boolean,
+    interaction: MutableInteractionSource = remember { MutableInteractionSource() },
+    onClick: () -> Unit = {},
+) {
+    val textStyle = pillTextStyle(isCompact)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(if (isCompact) 5.dp else 6.dp),
         modifier = Modifier
-            .glassBorder(shape)
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.background)
-            .clickable {
-                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                onClick()
-            }
-            .padding(horizontal = horizontalPadding, vertical = verticalPadding)
+            .height(pillHeight(isCompact))
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .clickable(
+                interactionSource = interaction,
+                indication = pillRipple(),
+                role = Role.Button,
+                onClick = onClick
+            )
+            .padding(horizontal = if (isCompact) 10.dp else 12.dp)
     ) {
         Icon(
-            imageVector = Icons.AutoMirrored.Outlined.Comment,
+            imageVector = Icons.Outlined.ChatBubbleOutline,
             contentDescription = "Comments",
             tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.adaptiveIconSize(textStyle)
+            modifier = Modifier.size(pillIconSize(isCompact))
         )
-
-        Spacer(Modifier.width(if (isCompact) 5.dp else 6.dp))
 
         AnimatedContent(
             targetState = commentCount,
@@ -89,6 +102,7 @@ fun PostCommentButton(
         ) { targetCount ->
             Text(
                 text = targetCount.toString(),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = textStyle,
             )
         }
@@ -96,13 +110,15 @@ fun PostCommentButton(
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview() {
-    var comment by remember { mutableIntStateOf(1) }
     Theme {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PostCommentButton(comment, isCompact = false, { comment += 1 })
-            PostCommentButton(comment, isCompact = false, { comment += 1 })
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            CommentPill(12, isCompact = false)
+            CommentPill(12, isCompact = true)
         }
     }
 }

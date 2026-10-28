@@ -1,31 +1,25 @@
 package org.sparcs.soap.app.features.search.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.FilterAlt
-import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
@@ -33,7 +27,6 @@ import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
 import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.otl.DepartmentOption
-import org.sparcs.soap.app.shared.views.contentViews.getTagChipColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,43 +46,26 @@ fun CourseFilterRow(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Outlined.FilterAlt,
-            contentDescription = stringResource(R.string.filter_reset),
-            modifier = Modifier.padding(start = 4.dp, end = 8.dp).size(20.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-        )
-
+        // Separates these from the search scope chips before them on the search screen.
         if (showLeadingDivider) {
-            Spacer(
+            VerticalDivider(
                 modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .width(1.dp)
+                    .padding(end = 8.dp)
                     .height(20.dp)
-                    .background(MaterialTheme.colorScheme.outlineVariant)
             )
         }
 
         if (showReset) {
-            FilterChip(
-                selected = false,
+            AssistChip(
                 onClick = onResetFilters,
-                label = {
+                label = { Text(stringResource(R.string.filter_reset)) },
+                leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(R.string.filter_reset),
-                        modifier = Modifier.size(16.dp)
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = null,
+                        modifier = Modifier.size(AssistChipDefaults.IconSize)
                     )
                 },
-                shape = RoundedCornerShape(100.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = Color.Transparent
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    borderColor = MaterialTheme.colorScheme.outlineVariant,
-                    enabled = true,
-                    selected = false
-                ),
                 modifier = Modifier.padding(end = 8.dp)
             )
         }
@@ -105,65 +81,54 @@ fun CourseFilterRow(
                 selectedOptionIds.map { id -> options.find { it.id == id }?.label ?: id }
             }
 
-            FilterChip(
-                selected = isSelected,
-                onClick = { onCategoryClick(category) },
-                label = {
-                    val baseLabel = stringResource(category.labelResId)
-                    val labelText = if (isSelected) {
-                        val displayOptions = selectedOptionLabels.take(2)
-                        val extraCount = selectedOptionLabels.size - 2
-                        val optionsText = displayOptions.joinToString(", ")
-                        if (extraCount > 0) {
-                            val othersText = stringResource(R.string.and_n_others, extraCount)
-                            "$baseLabel: $optionsText $othersText"
-                        } else {
-                            "$baseLabel: $optionsText"
-                        }
-                    } else {
-                        baseLabel
-                    }
-                    Text(
-                        text = labelText,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                    )
-                },
-                trailingIcon = {
-                    Icon(
-                        imageVector = if (isSelected) Icons.Default.Check else Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                },
-                shape = RoundedCornerShape(100.dp),
-                colors = getTagChipColors(),
-                modifier = Modifier.padding(end = 8.dp)
-            )
+            val baseLabel = stringResource(category.labelResId)
+            val labelText = if (isSelected) {
+                val displayOptions = selectedOptionLabels.take(2)
+                val extraCount = selectedOptionLabels.size - 2
+                val optionsText = displayOptions.joinToString(", ")
+                if (extraCount > 0) {
+                    val othersText = stringResource(R.string.and_n_others, extraCount)
+                    "$baseLabel: $optionsText $othersText"
+                } else {
+                    "$baseLabel: $optionsText"
+                }
+            } else {
+                baseLabel
+            }
+            MenuFilterChip(isSelected, labelText) { onCategoryClick(category) }
         }
 
         if (onTimeClick != null) {
-            FilterChip(
-                selected = isTimeSelected,
-                onClick = onTimeClick,
-                label = {
-                    Text(
-                        text = stringResource(R.string.lecture_time_filter),
-                        fontWeight = if (isTimeSelected) FontWeight.Bold else FontWeight.Normal
-                    )
-                },
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.ExpandMore,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                },
-                shape = RoundedCornerShape(100.dp),
-                colors = getTagChipColors(),
-                modifier = Modifier.padding(end = 8.dp)
-            )
+            MenuFilterChip(isTimeSelected, stringResource(R.string.lecture_time_filter), onTimeClick)
         }
     }
+}
+
+/** Filter chip that opens a sheet of options: a check once something is picked, an arrow always. */
+@Composable
+private fun MenuFilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+        leadingIcon = if (selected) {
+            {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            }
+        } else null,
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = null,
+                modifier = Modifier.size(FilterChipDefaults.IconSize)
+            )
+        },
+        modifier = Modifier.padding(end = 8.dp)
+    )
 }
 
 @Preview

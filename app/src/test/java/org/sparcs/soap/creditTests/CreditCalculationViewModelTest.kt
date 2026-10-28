@@ -2,8 +2,8 @@ package org.sparcs.soap.creditTests
 
 import android.app.Application
 import android.content.Context
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,8 +19,8 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.helpers.CreditSummaryPublisher
-import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
+import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.app.domain.models.otl.LectureGrade
 import org.sparcs.soap.app.domain.models.otl.OTLTakenLecture
 import org.sparcs.soap.app.domain.models.otl.OTLUser
@@ -29,10 +29,10 @@ import org.sparcs.soap.app.domain.models.otl.OTLUserLectureSemester
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.usecases.MockUserUseCase
+import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCase
 import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
-import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModel
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList

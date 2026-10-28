@@ -1,7 +1,5 @@
 package org.sparcs.soap.app.shared.extensions
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.size
@@ -11,15 +9,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sparcs.soap.app.domain.enums.Event
 import org.sparcs.soap.app.features.main.LocalAnalytics
@@ -50,30 +43,6 @@ fun Modifier.analyticsScreen(
     }
     this
 }
-
-fun Modifier.glassBorder(
-    shape: Shape,
-    shadowElevation: Dp = 1.dp,
-    borderWidth: Dp = 1.dp,
-    alphaTop: Float = 0.3f,
-    alphaBottom: Float = 0.03f
-) = this
-    .shadow(
-        elevation = shadowElevation,
-        shape = shape
-    )
-    .border(
-        border = BorderStroke(
-            width = borderWidth,
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    Color.White.copy(alpha = alphaTop),
-                    Color.White.copy(alpha = alphaBottom)
-                )
-            )
-        ),
-        shape = shape
-    )
 
 @Composable
 fun Modifier.adaptiveIconSize(

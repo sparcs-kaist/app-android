@@ -112,9 +112,7 @@ fun ThemeRow(
             }
             DropdownMenu(
                 expanded = menu,
-                onDismissRequest = { menu = false },
-                shape = RoundedCornerShape(16.dp),
-                containerColor = MaterialTheme.colorScheme.background
+                onDismissRequest = { menu = false }
             ) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.theme_share)) },

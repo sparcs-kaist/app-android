@@ -1,36 +1,30 @@
 package org.sparcs.soap.app.features.postList
 
 import android.net.Uri
-import androidx.compose.foundation.background
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.rounded.ClearAll
-import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,16 +52,14 @@ import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.postList.components.postList.PostList
 import org.sparcs.soap.app.features.postList.components.postListRow.BoardNavigationBar
-import org.sparcs.soap.app.features.postList.components.postListRow.PostListSkeletonRow
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
-import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
+import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewPostListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +70,8 @@ fun PostListView(
 ) {
     var loadedInitialPost by rememberSaveable { mutableStateOf(false) }
     val searchKeyword by viewModel.searchKeyword.collectAsState()
-    var showSearchBar by remember { mutableStateOf(false) }
+    // Open whenever a search is active, so a keyword never filters the list out of sight.
+    var showSearchBar by rememberSaveable { mutableStateOf(viewModel.searchKeyword.value.isNotEmpty()) }
 
     val scope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -120,40 +113,64 @@ fun PostListView(
         }
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
+    val listState = rememberLazyListState()
+
+    // Closing search also clears it, so the list is never filtered by a hidden keyword.
+    val closeSearch = {
+        showSearchBar = false
+        viewModel.onSearchTextChange("")
+    }
+    BackHandler(enabled = showSearchBar, onBack = closeSearch)
 
     Scaffold(
         topBar = {
             BoardNavigationBar(
                 title = board.name.localized(),
                 subTitle = board.group.name.localized(),
-                onClickSearch = { showSearchBar = !showSearchBar },
+                onClickSearch = { if (showSearchBar) closeSearch() else showSearchBar = true },
                 isSelected = showSearchBar,
                 navController = navController,
                 scrollBehavior = topBarScrollBehavior
             )
         },
-        floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             if (!board.isReadOnly && board.userWritable == true) {
-                ComposeButton(
+                // Shows its label at the top of the list and shrinks to the icon once scrolled.
+                val expanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+                val writeLabel = stringResource(R.string.write)
+                ExtendedFloatingActionButton(
                     onClick = {
                         val json = Uri.encode(Gson().toJson(board))
                         navController.navigate(Channel.PostCompose.name + "?board_json=$json")
-                    }
+                    },
+                    expanded = expanded,
+                    icon = {
+                        Icon(
+                            Icons.Outlined.Edit,
+                            contentDescription = if (expanded) null else writeLabel
+                        )
+                    },
+                    text = { Text(writeLabel) }
                 )
             }
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
-            .navigationBarsPadding()
             .analyticsScreen(name = "Ara Post List")
     ) { innerPadding ->
+        // Edge to edge: the list scrolls behind the gesture bar, with room at the end to clear it
+        // and the Write button.
+        val listPadding = PaddingValues(
+            top = 8.dp,
+            bottom = innerPadding.calculateBottomPadding() + 88.dp
+        )
+        val rowPadding = PaddingValues(horizontal = 16.dp)
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(innerPadding),
+                .padding(top = innerPadding.calculateTopPadding()),
             contentAlignment = Alignment.TopCenter
         ) {
             Column(
@@ -163,20 +180,26 @@ fun PostListView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (showSearchBar) {
-                    Box(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
-                        SearchCustomBar(
-                            value = searchKeyword,
-                            onValueChange = { viewModel.onSearchTextChange(it) },
-                            onValueClear = { viewModel.onSearchTextChange("") },
-                            placeHolder = stringResource(R.string.search)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    MaterialSearchField(
+                        query = searchKeyword,
+                        onQueryChange = { viewModel.onSearchTextChange(it) },
+                        placeholder = stringResource(R.string.search),
+                        autoFocus = true,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                    )
                 }
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     when (state) {
-                        is PostListViewModel.ViewState.Loading -> LoadingView()
+                        is PostListViewModel.ViewState.Loading -> PostList(
+                            posts = null,
+                            onRefresh = {},
+                            onLoadMore = {},
+                            onPostClick = {},
+                            isRefreshing = false,
+                            contentPadding = listPadding,
+                            rowPadding = rowPadding
+                        )
                         is PostListViewModel.ViewState.Loaded -> {
                             val loadedState = state as PostListViewModel.ViewState.Loaded
                             PostList(
@@ -196,12 +219,10 @@ fun PostListView(
                                 },
                                 isRefreshing = isRefreshing,
                                 keyword = searchKeyword,
-                                contentPadding = PaddingValues(
-                                    start = 20.dp,
-                                    end = 20.dp,
-                                    top = 8.dp,
-                                    bottom = 8.dp
-                                )
+                                contentPadding = listPadding,
+                                listState = listState,
+                                rowPadding = rowPadding,
+                                isLoadingMore = viewModel.isLoadingMore
                             )
                         }
 
@@ -240,70 +261,25 @@ private fun EmptyView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
         Icon(
-            imageVector = Icons.Rounded.ErrorOutline,
-            contentDescription = stringResource(R.string.no_result),
+            imageVector = Icons.Outlined.SearchOff,
+            contentDescription = null,
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.no_result),
+            text = stringResource(R.string.no_results_found_for, "\"$searchText\""),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.no_results_found_for, " \"$searchText\""),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = onClear, shape = RoundedCornerShape(12.dp)) {
-            Icon(
-                imageVector = Icons.Rounded.ClearAll,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(end = 4.dp)
-            )
+        TextButton(onClick = onClear) {
             Text(stringResource(R.string.clear_search_text))
         }
-    }
-}
-
-@Composable
-private fun LoadingView() {
-    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-        repeat(15) {
-            PostListSkeletonRow()
-            HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
-        }
-    }
-}
-
-@Composable
-private fun ComposeButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier,
-        shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-        elevation = ButtonDefaults.buttonElevation(4.dp),
-        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 15.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Edit,
-            contentDescription = "Write Button",
-            tint = MaterialTheme.colorScheme.surface
-        )
     }
 }
 
@@ -335,6 +311,17 @@ private fun PreviewPostListError() {
     val viewModel = PreviewPostListViewModel(
         initialState = PostListViewModel.ViewState.Error(Exception()),
         board = AraBoard.mock()
+    )
+    Theme { PostListView(viewModel = viewModel, rememberNavController()) }
+}
+
+@Preview(name = "Empty Board", showBackground = true)
+@Composable
+private fun PreviewPostListEmptyBoard() {
+    val viewModel = PreviewPostListViewModel(
+        initialState = PostListViewModel.ViewState.Loaded(emptyList()),
+        board = AraBoard.mock(),
+        posts = emptyList()
     )
     Theme { PostListView(viewModel = viewModel, rememberNavController()) }
 }

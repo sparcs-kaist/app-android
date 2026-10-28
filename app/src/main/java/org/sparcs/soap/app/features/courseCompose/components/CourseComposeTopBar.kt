@@ -1,23 +1,13 @@
 package org.sparcs.soap.app.features.courseCompose.components
 
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import org.sparcs.soap.R
+import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,27 +17,14 @@ fun CourseComposeTopBar(
     onClose: () -> Unit,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    CenterAlignedTopAppBar(
+    TopAppBar(
         title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis)
         },
         navigationIcon = {
-            IconButton(onClick = onClose) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
-                    contentDescription = stringResource(R.string.back),
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
+            CloseButton(onClick = onClose)
         },
-        actions = actions,
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        actions = actions
     )
 }
 

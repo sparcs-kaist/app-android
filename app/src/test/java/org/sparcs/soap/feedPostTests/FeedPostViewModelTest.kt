@@ -2,7 +2,6 @@ package org.sparcs.soap.feedPostTests
 
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -10,8 +9,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.sparcs.soap.app.domain.models.feed.FeedComment
-import org.sparcs.soap.app.domain.models.feed.FeedPost
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult

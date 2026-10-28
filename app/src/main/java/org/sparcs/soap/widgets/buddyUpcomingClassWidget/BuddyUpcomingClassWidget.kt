@@ -38,9 +38,6 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.util.Calendar
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
@@ -61,6 +58,9 @@ import org.sparcs.soap.widgets.timetableWidgetIntent
 import org.sparcs.soap.widgets.toWidgetHex
 import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
+import java.util.Calendar
+import javax.inject.Inject
+import javax.inject.Singleton
 
 class BuddyUpcomingClassWidget : GlanceAppWidget() {
     override val stateDefinition = PreferencesGlanceStateDefinition

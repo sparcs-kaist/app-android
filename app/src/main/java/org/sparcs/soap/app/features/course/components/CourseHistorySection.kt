@@ -3,29 +3,32 @@ package org.sparcs.soap.app.features.course.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,8 +36,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,6 +47,7 @@ import org.sparcs.soap.app.domain.models.otl.CourseHistory
 import org.sparcs.soap.app.domain.models.otl.CourseHistoryClass
 import org.sparcs.soap.app.domain.models.otl.Professor
 import org.sparcs.soap.app.domain.models.otl.sectionLabel
+import org.sparcs.soap.app.features.lectureDetail.components.DetailSectionHeader
 import org.sparcs.soap.app.shared.extensions.bleedHorizontally
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
@@ -77,11 +81,7 @@ fun CourseHistorySection(
 
 @Composable
 private fun CourseHistoryHeader(historySize: Int) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(
-            text = stringResource(R.string.course_history),
-            style = MaterialTheme.typography.titleMedium
-        )
+    DetailSectionHeader(stringResource(R.string.course_history)) {
         Text(
             text = stringResource(R.string.course_offered_count, historySize),
             style = MaterialTheme.typography.bodySmall,
@@ -98,31 +98,27 @@ private fun CourseHistoryCard(
 ) {
     val isMatched = selectedProfessorID == null || entry.containsProfessor(selectedProfessorID)
 
-    Surface(
+    Card(
         modifier = Modifier
             .width(190.dp)
             .alpha(if (isMatched) 1f else 0.45f),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.background,
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-        ) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
             ) {
                 Text(
                     text = "${entry.year} ${stringResource(entry.semester.rawValue)}",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    modifier = Modifier.weight(1f)
                 )
-                Spacer(Modifier.weight(1f))
                 if (entry.myLectureID != null) {
                     Icon(
-                        imageVector = Icons.Rounded.CheckCircle,
-                        contentDescription = null,
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = stringResource(R.string.course_taken),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
@@ -139,6 +135,7 @@ private fun CourseHistoryCard(
     }
 }
 
+/** A section of one semester; tapping it filters the reviews to its professor. */
 @Composable
 private fun CourseHistoryClassRow(
     section: CourseHistoryClass,
@@ -150,68 +147,66 @@ private fun CourseHistoryClassRow(
     val label = section.sectionLabel
     val canSelect = section.professors.isNotEmpty()
 
-    CompositionLocalProvider(
-        LocalMinimumInteractiveComponentSize provides 32.dp
+    Surface(
+        selected = isMatch,
+        enabled = canSelect,
+        onClick = { onSelectProfessor(if (isMatch) null else section.professors.first().id) },
+        shape = MaterialTheme.shapes.small,
+        color = if (isMatch) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+        contentColor = if (isMatch) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Surface(
-            enabled = canSelect,
-            onClick = { onSelectProfessor(if (isMatch) null else section.professors.first().id) },
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .heightIn(min = 48.dp)
+                .padding(horizontal = 8.dp, vertical = 6.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = if (label.professors != null) 6.dp else 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                if (section.section.isNotEmpty()) {
+            if (section.section.isNotEmpty()) {
+                Text(
+                    text = section.section,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = label.title ?: stringResource(R.string.unknown),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                label.professors?.let {
                     Text(
-                        text = section.section,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                if (isMySection) {
                     Text(
-                        text = label.title ?: stringResource(R.string.unknown),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (isMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        text = stringResource(R.string.course_your_section),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
                     )
-
-                    label.professors?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    if (isMySection) {
-                        Text(
-                            text = stringResource(R.string.course_your_section),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
             }
         }
     }
 }
 
-
 private fun CourseHistory.containsProfessor(selectedProfessorID: Int?): Boolean {
     if (selectedProfessorID == null) return false
     return classes.any { section -> section.professors.any { it.id == selectedProfessorID } }
 }
 
+/** Filter chip that narrows the reviews to one professor, picked from a menu; sits in the reviews header. */
 @Composable
 fun CourseProfessorPicker(
     professors: List<Professor>,
@@ -219,69 +214,66 @@ fun CourseProfessorPicker(
     onSelectProfessor: (Int?) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val selected = professors.find { it.id == selectedProfessorID }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
+    Box {
+        // Elevated rather than outlined, so "All professors" doesn't sit in the header as an empty box.
+        ElevatedFilterChip(
+            selected = selected != null,
             onClick = { expanded = true },
-            modifier = Modifier.align(Alignment.CenterEnd),
-            color = MaterialTheme.colorScheme.background,
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+            label = {
                 Text(
-                    text = professors.find { it.id == selectedProfessorID }?.name
-                        ?: stringResource(R.string.course_all_professors),
+                    text = selected?.name ?: stringResource(R.string.course_all_professors),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium
+                    overflow = TextOverflow.Ellipsis
                 )
+            },
+            trailingIcon = {
                 Icon(
-                    imageVector = Icons.Rounded.ExpandMore,
+                    imageVector = Icons.Filled.ArrowDropDown,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
                 )
-            }
+            },
+            // Leaves room for the header's title and count beside it.
+            modifier = Modifier.widthIn(max = 200.dp)
+        )
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                shape = RoundedCornerShape(16.dp),
-                containerColor = MaterialTheme.colorScheme.background
-            ) {
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(R.string.course_all_professors),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    },
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            ProfessorMenuItem(
+                name = stringResource(R.string.course_all_professors),
+                selected = selected == null,
+                onClick = {
+                    onSelectProfessor(null)
+                    expanded = false
+                }
+            )
+            professors.forEach { professor ->
+                ProfessorMenuItem(
+                    name = professor.name,
+                    selected = professor.id == selectedProfessorID,
                     onClick = {
-                        onSelectProfessor(null)
+                        onSelectProfessor(professor.id)
                         expanded = false
                     }
                 )
-                professors.forEach { professor ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = professor.name,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
-                        onClick = {
-                            onSelectProfessor(professor.id)
-                            expanded = false
-                        }
-                    )
-                }
             }
         }
     }
+}
+
+@Composable
+private fun ProfessorMenuItem(name: String, selected: Boolean, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(name) },
+        onClick = onClick,
+        trailingIcon = if (selected) {
+            { Icon(Icons.Filled.Check, contentDescription = null) }
+        } else null
+    )
 }
 
 @Preview(showBackground = true)
@@ -306,5 +298,9 @@ private fun CourseHistorySectionPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun CourseProfessorPickerPreview() {
-    Theme { CourseProfessorPicker(listOf(Professor(1, "Professor")), null, {}) }
+    Theme {
+        DetailSectionHeader("Reviews", Modifier.padding(horizontal = 16.dp), count = 12) {
+            CourseProfessorPicker(listOf(Professor(1, "Professor")), null, {})
+        }
+    }
 }

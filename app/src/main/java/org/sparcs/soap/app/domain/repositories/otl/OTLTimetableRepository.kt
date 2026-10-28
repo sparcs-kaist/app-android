@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.domain.repositories.otl
 
 import com.google.gson.Gson
-import javax.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
@@ -19,6 +18,7 @@ import org.sparcs.soap.app.networking.retrofitAPI.otl.CreateTableRequest
 import org.sparcs.soap.app.networking.retrofitAPI.otl.DeleteTableRequest
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLTimetableApi
 import org.sparcs.soap.app.networking.retrofitAPI.otl.RenameTableRequest
+import javax.inject.Inject
 
 interface OTLTimetableRepositoryProtocol {
     suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>): List<Int>

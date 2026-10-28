@@ -30,7 +30,7 @@ import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomList
 import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomListSkeleton
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
@@ -48,7 +48,7 @@ fun TaxiChatListView(
         viewModel.fetchData()
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -76,7 +76,7 @@ fun TaxiChatListView(
             ) {
                 when (state) {
                     is TaxiChatListViewModel.ViewState.Loading -> {
-                        TaxiChatRoomListSkeleton(contentPadding = PaddingValues(16.dp))
+                        TaxiChatRoomListSkeleton(contentPadding = PaddingValues(vertical = 8.dp))
                     }
 
                     is TaxiChatListViewModel.ViewState.Loaded -> {
@@ -89,7 +89,7 @@ fun TaxiChatListView(
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
                             },
-                            contentPadding = PaddingValues(16.dp)
+                            contentPadding = PaddingValues(vertical = 8.dp)
                         )
                     }
 

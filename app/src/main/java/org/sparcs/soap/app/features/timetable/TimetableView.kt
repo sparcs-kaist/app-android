@@ -18,12 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -72,7 +70,8 @@ import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSheet
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.escapeHash
-import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.sharing.ScreenshotEffect
 import org.sparcs.soap.app.shared.sharing.navigateToShareFeed
 import org.sparcs.soap.app.shared.tips.BuddyTip
@@ -154,19 +153,23 @@ fun TimetableView(
         ) onShareClick()
     }
 
+    val topBarScrollBehavior = topAppBarScrollBehavior()
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
                 if (!isLandscape) {
                     TimetableViewNavigationBar(
-                        scrollState = scrollState,
                         isButtonEnabled = isEditable,
                         onClick = openLectureSearch,
-                        onActivityClick = openActivityCreation
+                        onActivityClick = openActivityCreation,
+                        scrollBehavior = topBarScrollBehavior
                     )
                 }
             },
-            modifier = Modifier.analyticsScreen("Timetable")
+            modifier = Modifier
+                .hideTopBarOnScroll(topBarScrollBehavior.takeUnless { isLandscape })
+                .analyticsScreen("Timetable")
         ) { innerPadding ->
             PullToRefreshBox(
                 isRefreshing = loadState.isRefreshing,
@@ -238,8 +241,7 @@ fun TimetableView(
                             lectureToDelete!!.name
                         )
                     )
-                },
-                containerColor = MaterialTheme.colorScheme.background
+                }
             )
         }
 
@@ -333,10 +335,8 @@ private fun TimetableLandscapeLayout(
                     Card(
                         modifier = Modifier
                             .weight(1.2f)
-                            .height(contentHeight)
-                            .glassBorder(shape = RoundedCornerShape(28.dp)),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = CardDefaults.elevatedCardColors(
+                            .height(contentHeight),
+                        colors = CardDefaults.cardColors(
                             containerColor = LocalTimetableTheme.current.backgroundColor
                                 ?: MaterialTheme.colorScheme.background
                         ),
@@ -362,16 +362,8 @@ private fun TimetableLandscapeLayout(
                             },
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        ElevatedCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .glassBorder(shape = RoundedCornerShape(28.dp)),
-                            shape = RoundedCornerShape(28.dp),
-                            colors = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.background
-                            )
-                        ) {
-                            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                                 LectureList(
                                     lectures = selectedTimetable?.lectures ?: emptyList(),
                                     onLectureSelected = { lecture ->
@@ -448,10 +440,8 @@ private fun TimetablePortraitLayout(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .glassBorder(shape = RoundedCornerShape(28.dp))
                 .height(screenHeight * 0.66f),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.elevatedCardColors(
+            colors = CardDefaults.cardColors(
                 containerColor = LocalTimetableTheme.current.backgroundColor
                     ?: MaterialTheme.colorScheme.background
             ),
@@ -469,16 +459,8 @@ private fun TimetablePortraitLayout(
             }
         }
 
-        ElevatedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .glassBorder(shape = RoundedCornerShape(28.dp)),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.background
-            )
-        ) {
-            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                 LectureList(
                     lectures = selectedTimetable?.lectures ?: emptyList(),
                     onLectureSelected = { lecture ->

@@ -34,11 +34,10 @@ import org.sparcs.soap.app.features.postList.components.postListRow.PostListSkel
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
-import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
+import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
-import org.sparcs.soap.app.theme.ui.lightGray0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +74,7 @@ fun AraMyPostView(
         }
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -102,15 +101,12 @@ fun AraMyPostView(
                 .padding(horizontal = 20.dp)
         ) {
             if (showSearchBar && type != AraMyPostViewModel.PostType.BOOKMARK) {
-                SearchCustomBar(
-                    value = searchKeyword,
-                    onValueChange = { value ->
-                        viewModel.onSearchTextChange(value)
-                    },
-                    onValueClear = {
-                        viewModel.onSearchTextChange("")
-                    },
-                    placeHolder = stringResource(R.string.search)
+                MaterialSearchField(
+                    query = searchKeyword,
+                    onQueryChange = { viewModel.onSearchTextChange(it) },
+                    placeholder = stringResource(R.string.search),
+                    autoFocus = true,
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
 
@@ -211,8 +207,8 @@ private fun BookmarkPostView(
 private fun LoadingView() {
     Column {
         repeat(15) {
-            PostListSkeletonRow()
-            HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
+            PostListSkeletonRow(it)
+            HorizontalDivider()
         }
     }
 }

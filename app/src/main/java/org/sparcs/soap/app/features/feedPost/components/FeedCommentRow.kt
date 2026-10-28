@@ -18,7 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,7 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -73,8 +73,6 @@ import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.darkGray
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @Composable
 fun FeedCommentRow(
@@ -224,7 +222,7 @@ private fun Header(
                 Spacer(Modifier.width(4.dp))
                 InfoTooltip(
                     tooltipText = stringResource(R.string.kaist_ip_verified),
-                    icon = painterResource(R.drawable.checkmark_seal_fill),
+                    imageVector = Icons.Filled.Verified,
                     tint = MaterialTheme.colorScheme.primary,
                     iconSize = 15.dp
                 )
@@ -234,7 +232,7 @@ private fun Header(
 
             Text(
                 text = comment.createdAt.timeAgoDisplay(),
-                color = MaterialTheme.colorScheme.grayBB,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
                 softWrap = false
@@ -243,9 +241,9 @@ private fun Header(
 
         if (comment.downVotes >= 15 && !isHiddenCommentExpanded) {
             Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                imageVector = Icons.Filled.ExpandMore,
                 contentDescription = stringResource(R.string.expand),
-                tint = MaterialTheme.colorScheme.darkGray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .size(20.dp)
                     .clickable {
@@ -300,7 +298,7 @@ private fun Content(comment: FeedComment) {
     val text =
         if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
     val color =
-        if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+        if (comment.isDeleted) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
     val scope = rememberCoroutineScope()
 
     var expanded by remember { mutableStateOf(false) }
@@ -309,7 +307,7 @@ private fun Content(comment: FeedComment) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     val moreText = stringResource(R.string.more)
-    val moreColor = MaterialTheme.colorScheme.grayBB
+    val moreColor = MaterialTheme.colorScheme.onSurfaceVariant
     val linkColor = MaterialTheme.colorScheme.primary
 
     val displayText = remember(text, expanded, isOverflowing, textLayoutResult) {

@@ -64,13 +64,12 @@ import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.components.WidgetPaletteRow
+import org.sparcs.soap.widgets.components.WidgetPreviewStage
 import org.sparcs.soap.widgets.ownsAppWidget
 import org.sparcs.soap.widgets.updateInstalledWidgets
 import javax.inject.Inject
@@ -201,53 +200,53 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
             )
-            Theme(darkTheme = isDark) {
-                Box(
-                    modifier = Modifier
-                        .size(170.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .glassBorder(shape = RoundedCornerShape(28.dp))
-                        .background(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(28.dp)
-                        )
-                ) {
+            WidgetPreviewStage {
+                Theme(darkTheme = isDark) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .size(170.dp)
                             .background(
-                                color = surfaceColor.copy(alpha = transparency),
+                                color = MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(28.dp)
                             )
-                            .padding(12.dp)
                     ) {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            Text(
-                                text = stringResource(R.string.up_next),
-                                color = accentColor,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = stringResource(R.string.preview_lecture_title),
-                                maxLines = 2,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.weight(1f))
-                            Text(
-                                text = stringResource(R.string.preview_lecture_time),
-                                color = accentColor,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = stringResource(R.string.preview_lecture_location),
-                                maxLines = 1,
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    color = surfaceColor.copy(alpha = transparency),
+                                    shape = RoundedCornerShape(28.dp)
+                                )
+                                .padding(12.dp)
+                        ) {
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                Text(
+                                    text = stringResource(R.string.up_next),
+                                    color = accentColor,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = stringResource(R.string.preview_lecture_title),
+                                    maxLines = 2,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                                Text(
+                                    text = stringResource(R.string.preview_lecture_time),
+                                    color = accentColor,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = stringResource(R.string.preview_lecture_location),
+                                    maxLines = 1,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -285,7 +284,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                 Text(
                     text = currentModeText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -353,7 +352,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                 Text(
                     text = "${(transparency * 100).toInt()}%",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Slider(

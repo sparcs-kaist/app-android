@@ -3,8 +3,8 @@ package org.sparcs.soap.timetableTests
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.sparcs.soap.app.cache.CachedTimetable
 import org.sparcs.soap.app.cache.TimetableCache
@@ -15,10 +15,10 @@ import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
+import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
 import org.sparcs.soap.app.shared.mocks.otl.mockList
-import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 
 class BackgroundTimetableTest {
     private val repository = TestRepository()

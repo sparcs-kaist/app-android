@@ -1,35 +1,30 @@
 package org.sparcs.soap.app.features.taxiReport
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,15 +35,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,15 +55,13 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.domain.usecases.MockUserUseCase
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
+import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import org.sparcs.soap.app.features.taxiChat.TaxiChatViewModel
 import org.sparcs.soap.app.features.taxiReport.components.TaxiReportUser
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiReportViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,17 +89,11 @@ fun TaxiReportView(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.report),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+            TopAppBar(
+                title = { Text(stringResource(R.string.report)) },
                 navigationIcon = {
-                    DismissButton { navController.popBackStack() }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.surface)
+                    CloseButton { navController.popBackStack() }
+                }
             )
         },
         modifier = Modifier.analyticsScreen("Taxi Report")
@@ -182,31 +167,29 @@ fun TaxiReportView(
     )
 }
 
+/** A heading in the form, in the style of the settings section headers. */
 @Composable
 fun SectionTitle(title: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.grayBB
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.semantics { heading() }
     )
 }
 
+/** The other people in the room, one radio row each. */
 @Composable
 fun ParticipantsCard(
     participants: List<TaxiParticipant>,
     selectedUser: TaxiParticipant?,
     onUserSelected: (TaxiParticipant) -> Unit,
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .glassBorder(shape = RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .selectableGroup()
         ) {
             participants.forEach { participant ->
                 TaxiReportUser(
@@ -218,6 +201,9 @@ fun ParticipantsCard(
         }
     }
 }
+
+/** The reason as a Material dropdown field; "Other" adds a field for the details. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReasonCard(
     room: TaxiRoom,
@@ -229,80 +215,49 @@ fun ReasonCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .glassBorder(shape = RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            OutlinedTextField(
+                value = selectedReason?.let { stringResource(it.text) }.orEmpty(),
+                onValueChange = {},
+                readOnly = true,
+                singleLine = true,
+                label = { Text(stringResource(R.string.reason)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(stringResource(R.string.reason))
-                Spacer(Modifier.weight(1f))
-
-                Box {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = stringResource(selectedReason?.text ?: R.string.didnot_send_the_money),
-                            color = MaterialTheme.colorScheme.grayBB
-                        )
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowDropDown,
-                            contentDescription = null
-                        )
-                    }
-
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.didnot_send_the_money)) },
-                            enabled = room.isDeparted,
-                            onClick = {
-                                onReasonSelected(TaxiReport.Reason.NO_SETTLEMENT)
-                                expanded = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.didnot_come_on_time)) },
-                            enabled = room.isDeparted,
-                            onClick = {
-                                onReasonSelected(TaxiReport.Reason.NO_SHOW)
-                                expanded = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.etc)) },
-                            onClick = {
-                                onReasonSelected(TaxiReport.Reason.ETC_REASON)
-                                expanded = false
-                            }
-                        )
-                    }
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                listOf(
+                    TaxiReport.Reason.NO_SETTLEMENT to room.isDeparted,
+                    TaxiReport.Reason.NO_SHOW to room.isDeparted,
+                    TaxiReport.Reason.ETC_REASON to true,
+                ).forEach { (reason, enabled) ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(reason.text)) },
+                        enabled = enabled,
+                        onClick = {
+                            onReasonSelected(reason)
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    )
                 }
             }
+        }
 
-            if (selectedReason == TaxiReport.Reason.ETC_REASON) {
-                EtcTextField(
-                    text = etcText,
-                    maxLength = maxEtcLength,
-                    onTextChange = onEtcChanged
-                )
-            }
+        if (selectedReason == TaxiReport.Reason.ETC_REASON) {
+            EtcTextField(
+                text = etcText,
+                maxLength = maxEtcLength,
+                onTextChange = onEtcChanged
+            )
         }
     }
 }
 
+/** Details for "Other", with a character count that turns red at the limit. */
 @Composable
 fun EtcTextField(
     text: String,
@@ -311,49 +266,19 @@ fun EtcTextField(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        ) {
-            BasicTextField(
-                value = text,
-                onValueChange = { if (it.length <= maxLength) onTextChange(it) },
-                textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done,
-                    keyboardType = KeyboardType.Text
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { keyboardController?.hide() }
-                ),
-                decorationBox = { innerTextField ->
-                    if (text.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.report_details),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                        )
-                    }
-                    innerTextField()
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "${text.length}/$maxLength",
-            style = MaterialTheme.typography.labelSmall,
-            color = if (text.length >= maxLength) Color(0xFFEE8146) else MaterialTheme.colorScheme.grayBB,
-            modifier = Modifier.align(Alignment.End)
-        )
-    }
+    OutlinedTextField(
+        value = text,
+        onValueChange = { if (it.length <= maxLength) onTextChange(it) },
+        label = { Text(stringResource(R.string.report_details)) },
+        supportingText = {
+            Text("${text.length}/$maxLength", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+        },
+        isError = text.length >= maxLength,
+        minLines = 3,
+        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable

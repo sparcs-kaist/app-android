@@ -14,10 +14,13 @@
     <string name="search">검색</string>
     <string name="to_bookmark">담아두기</string>
     <string name="share">공유</string>
+    <string name="copy">복사</string>
     <string name="write">글쓰기</string>
     <string name="submit">올리기</string>
     <string name="terms_of_use">이용약관</string>
     <string name="anonymous">익명</string>
+    <string name="post_option_anonymous">익명</string>
+    <string name="post_options">게시글 옵션</string>
     <string name="nsfw">성인</string>
     <string name="political">정치</string>
     <string name="enter_the_title">제목을 입력해 주세요.</string>
@@ -84,6 +87,7 @@
     <string name="widget_timetable">시간표</string>
     <string name="ara">Ara</string>
     <string name="sign_out">로그아웃</string>
+    <string name="sign_out_confirm_message">로그아웃하시겠어요?</string>
     <string name="settings">설정</string>
     <string name="services">서비스</string>
     <string name="change_language">언어 변경</string>
@@ -112,6 +116,9 @@
     <string name="no_settlement">송금하지 않음</string>
     <string name="nickname">닉네임</string>
     <string name="date">날짜</string>
+    <string name="time">시간</string>
+    <string name="hour">시</string>
+    <string name="minute">분</string>
     <string name="report_reason">신고 사유</string>
     <string name="taxi_reports">신고 내역</string>
     <string name="no_reports">신고 내역이 없습니다.</string>
@@ -126,6 +133,7 @@
     <string name="delete_post">게시글 삭제</string>
     <string name="are_you_sure_you_want_to_delete_this_post">이 게시물을 삭제하시겠습니까?</string>
     <string name="more">더 보기</string>
+    <string name="lecture_details">상세 정보</string>
     <string name="show_spoiler">스포일러 보기</string>
     <string name="deleted_successfully">삭제가 완료되었습니다.</string>
     <string name="reported_successfully">신고가 성공적으로 접수되었습니다.</string>
@@ -297,6 +305,11 @@
     <string name="meeting_point">출발지</string>
     <string name="popular_location">자주 찾는 장소</string>
     <string name="where_to">어디로 갈까요?</string>
+    <string name="swap_route">출발지와 도착지 바꾸기</string>
+    <string name="taxi_route_from">출발지</string>
+    <string name="taxi_route_to">도착지</string>
+    <string name="taxi_route_choose">장소 선택</string>
+    <string name="taxi_route_none">선택 안 함</string>
     <string name="select_location">장소 선택</string>
     <string name="new_room">새 방</string>
     <string name="not_paid_message">
@@ -571,6 +584,10 @@
     <string name="attachments">첨부파일</string>
     <string name="downloading">다운로드 중…</string>
     <string name="download">다운로드</string>
+    <string name="attachment_saved">다운로드 폴더에 저장했어요</string>
+    <string name="attachment_open">열기</string>
+    <string name="attachment_download_failed">%1$s을(를) 다운로드하지 못했어요</string>
+    <string name="attachment_no_app">이 파일을 열 수 있는 앱이 없어요</string>
     <string name="favorite_routes">즐겨찾는 경로</string>
     <string name="add_to_favorites">즐겨찾기에 추가</string>
     <string name="delete_favorite">즐겨찾기 삭제</string>
@@ -665,8 +682,6 @@
     <string name="activity_saved_refresh">변경 사항은 저장되었지만 시간표를 불러오지 못했어요. 새로고침을 눌러 주세요.</string>
     <string name="activity_save_error">활동을 저장할 수 없습니다. 다시 시도해 주세요.</string>
     <string name="activity_delete_error">활동을 삭제할 수 없습니다. 다시 시도해 주세요.</string>
-    <string name="activity_clock">시계로 입력</string>
-    <string name="activity_keyboard">키보드로 입력</string>
     <string name="activity_midnight">24:00</string>
     <string name="activity_earlier">15분 앞으로 이동</string>
     <string name="activity_later">15분 뒤로 이동</string>
@@ -687,9 +702,8 @@
     <string name="theme_share">테마 공유</string>
     <string name="theme_import">코드로 테마 가져오기</string>
     <string name="theme_share_code">6자리 코드</string>
-    <string name="theme_find">테마 찾기</string>
     <string name="theme_retry">다시 시도</string>
-    <string name="theme_loading">테마 불러오는 중…</string>
+    <string name="theme_reenter_code">코드 다시 입력</string>
     <string name="theme_share_error">테마를 공유하지 못했습니다. 다시 시도해 주세요.</string>
     <string name="theme_import_error">테마를 불러오지 못했습니다. 다시 시도해 주세요.</string>
     <string name="theme_code_not_found">이 코드에 해당하는 테마가 없습니다.</string>
@@ -704,7 +718,12 @@
     <string name="theme_share_instagram_failed">인스타그램으로 공유할 수 없습니다.</string>
     <string name="theme_share_feed_content">시간표 테마를 공유합니다! 🎨\n테마 이름: %1$s\n테마 코드: %2$s\n\n[설정 > 시간표 테마 > 가져오기]에서 코드를 입력하면 이 테마를 사용할 수 있어요!</string>
     <string name="theme_import_note">내 테마에 추가하고 바로 적용합니다.</string>
-    <string name="theme_save_import">저장하고 테마 적용</string>
+    <string name="theme_import_title">테마 가져오기</string>
+    <string name="theme_import_looking">“%1$s” 찾는 중…</string>
+    <string name="theme_add">테마 추가</string>
+    <string name="theme_continue">계속</string>
+    <string name="theme_sharing_title">“%1$s” 공유</string>
+    <string name="theme_sharing_progress">“%1$s” 공유 중…</string>
     <string name="theme_photo_generate">사진으로 테마 만들기</string>
     <string name="theme_photo_description">배경화면이나 사진으로 팔레트, 글자 및 고급 색상을 어울리는 테마로 바꿉니다.</string>
     <string name="theme_photo_generating">색상 생성 중…</string>
@@ -739,5 +758,6 @@
     <string name="activity_quick_fill_failed">활동을 채우지 못했습니다. 다시 시도하세요.</string>
     <string name="summarization_unsafe">이 글은 요약할 수 없어요.</string>
     <string name="activity_add_time">시간 추가</string>
+    <string name="activity_time_number">시간 %1$d</string>
     <string name="activity_remove_time">시간 삭제</string>
 </resources>

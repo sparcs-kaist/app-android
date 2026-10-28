@@ -76,8 +76,8 @@ import org.sparcs.soap.app.features.feedPost.components.FeedPostNavigationBar
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.mocks.feed.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostViewModel
@@ -87,7 +87,6 @@ import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -167,7 +166,7 @@ private fun FeedPostContent(
     var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
 
     val pullState = rememberPullToRefreshState()
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
@@ -324,10 +323,7 @@ private fun FeedPostContent(
                                 viewModel = viewModel,
                             )
                             if (commentItems.getOrNull(index + 1)?.parentCommentID == null) {
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.lightGray0,
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                )
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                             }
                         }
                     }

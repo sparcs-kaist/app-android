@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Schedule
@@ -26,10 +25,10 @@ import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -51,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.reviewDigest.LectureReviewDigest
 import org.sparcs.soap.app.domain.models.reviewDigest.LectureReviewDigestError
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.views.contentViews.SummarizationSkeleton
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.creditCompleteColor
@@ -102,7 +100,7 @@ private fun ReviewDigestPhase.kind(isAutomatic: Boolean): DigestKind = when (thi
 
 @Composable
 private fun SummariseButton(onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+    OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
         Text(stringResource(R.string.review_digest_summarise), modifier = Modifier.padding(start = 8.dp))
     }
@@ -110,13 +108,7 @@ private fun SummariseButton(onClick: () -> Unit) {
 
 @Composable
 private fun DigestSurface(content: @Composable () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.background,
-        modifier = Modifier
-            .fillMaxWidth()
-            .glassBorder(shape = RoundedCornerShape(16.dp))
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .padding(16.dp)

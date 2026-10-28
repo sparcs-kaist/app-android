@@ -1,22 +1,23 @@
 package org.sparcs.soap.app.features.boardList
 
 import android.net.Uri
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Chat
-import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
-import androidx.compose.material.icons.rounded.Drafts
-import androidx.compose.material.icons.rounded.Group
-import androidx.compose.material.icons.rounded.LocalOffer
-import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
+import androidx.compose.material.icons.outlined.Drafts
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.LocalOffer
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,41 +36,39 @@ import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraBoard
-import org.sparcs.soap.app.domain.models.ara.AraBoardGroup
-import org.sparcs.soap.app.features.boardList.components.BoardList
 import org.sparcs.soap.app.features.boardList.components.BoardListNavigationBar
-import org.sparcs.soap.app.features.boardList.components.BoardListSectionItem
-import org.sparcs.soap.app.features.boardList.components.BoardListSkeleton
+import org.sparcs.soap.app.features.boardList.components.boardListSkeleton
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewBoardListViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BoardListView(
     viewModel: BoardListViewModelProtocol = hiltViewModel<BoardListViewModel>(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
-    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchBoards()
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {
             BoardListNavigationBar(
-                scrollState = scrollState,
                 scrollBehavior = topBarScrollBehavior
             )
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen(name = "Board List")
@@ -77,7 +76,6 @@ fun BoardListView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
@@ -94,29 +92,42 @@ fun BoardListView(
                     )
                 }
             } else {
-                Column(
+                val onBoardClick: (AraBoard) -> Unit = { board ->
+                    val json = Uri.encode(Gson().toJson(board))
+                    navController.navigate(Channel.BoardList.name + "?board_json=$json")
+                }
+
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .widthIn(max = 600.dp)
-                        .verticalScroll(scrollState),
-                    verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .widthIn(max = 600.dp),
+                    contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
-                    val onBoardClick: (AraBoard) -> Unit = { board ->
-                        val json = Uri.encode(Gson().toJson(board))
-                        navController.navigate(Channel.BoardList.name + "?board_json=$json")
-                    }
-
-                    if (state is BoardListViewModel.ViewState.Loading) {
-                        BoardListSkeleton(4)
-                        BoardListSkeleton(1)
-                        BoardListSkeleton(2)
-                        BoardListSkeleton(3)
-                    } else if (state is BoardListViewModel.ViewState.Loaded) {
-                        val loaded = state as BoardListViewModel.ViewState.Loaded
-                        loaded.groups.forEach { group ->
-                            BoardGroupItem(group, loaded.boards, onBoardClick)
+                    when (val current = state) {
+                        is BoardListViewModel.ViewState.Loading -> boardListSkeleton(listOf(4, 1, 2, 3))
+                        is BoardListViewModel.ViewState.Loaded -> current.groups.forEach { group ->
+                            // Each group's header stays pinned while its boards scroll beneath it.
+                            stickyHeader(key = "group-${group.id}") {
+                                SettingsSectionHeader(
+                                    text = group.name.localized(),
+                                    icon = systemImage(group.slug),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.surface)
+                                )
+                            }
+                            items(
+                                current.boards.filter { it.group.id == group.id },
+                                key = { "board-${it.id}" }
+                            ) { board ->
+                                SettingsNavigationItem(
+                                    text = board.name.localized(),
+                                    onClick = { onBoardClick(board) }
+                                )
+                            }
                         }
+
+                        else -> Unit
                     }
                 }
             }
@@ -124,36 +135,14 @@ fun BoardListView(
     }
 }
 
-@Composable
-private fun BoardGroupItem(
-    group: AraBoardGroup,
-    boards: List<AraBoard>,
-    onBoardClick: (AraBoard) -> Unit
-) {
-    val boardsInGroup = boards.filter { it.group.id == group.id }
-    BoardList(
-        title = group.name.localized(),
-        icon = systemImage(group.slug),
-        sections = listOf({
-            boardsInGroup.forEach { board ->
-                BoardListSectionItem(
-                    text = board.name.localized(),
-                    onClick = { onBoardClick(board) }
-                )
-            }
-        })
-    )
-}
-
-@Composable
 fun systemImage(slug: String): ImageVector {
     return when (slug) {
-        "notice" -> Icons.Rounded.NotificationsActive
-        "talk" -> Icons.AutoMirrored.Rounded.Chat
-        "club" -> Icons.Rounded.Group
-        "trade" -> Icons.Rounded.LocalOffer
-        "communication" -> Icons.Rounded.Drafts
-        else -> Icons.AutoMirrored.Rounded.FormatListBulleted
+        "notice" -> Icons.Outlined.NotificationsActive
+        "talk" -> Icons.AutoMirrored.Outlined.Chat
+        "club" -> Icons.Outlined.Group
+        "trade" -> Icons.Outlined.LocalOffer
+        "communication" -> Icons.Outlined.Drafts
+        else -> Icons.AutoMirrored.Outlined.FormatListBulleted
     }
 }
 

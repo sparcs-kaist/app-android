@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.features.lectureSearch
 
 import android.net.Uri
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -14,9 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -42,6 +42,7 @@ import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchTimetablePreview
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
+import org.sparcs.soap.app.shared.extensions.OnPoppedEffect
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
@@ -73,7 +74,7 @@ fun LectureSearchPage(
         else navController.popBackStack()
         Unit
     }
-    BackHandler(enabled = inspector == null, onBack = close)
+    if (inspector == null) OnPoppedEffect(navController) { timetableViewModel.setCandidateLecture(null) }
 
     val tipStore = LocalTipStore.current
     BoxWithConstraints(modifier.fillMaxSize()) {
@@ -81,7 +82,7 @@ fun LectureSearchPage(
         LaunchedEffect(isWide) { if (isWide) tipStore?.skipPreviewSteps() }
         Scaffold(
             modifier = if (inspector == null) Modifier.analyticsScreen("Lecture Search") else Modifier,
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.surface,
             topBar = {
                 if (inspector == null) CourseComposeTopBar(
                     title = stringResource(R.string.add_to_timetable, timetableName),
@@ -170,15 +171,17 @@ fun LectureSearchPage(
 fun LecturePreviewToggle(session: LectureSearchSession) {
     val focusManager = LocalFocusManager.current
     val tipStore = LocalTipStore.current
-    IconButton(onClick = {
-        focusManager.clearFocus()
-        tipStore?.invalidate(BuddyTip.TogglePreview)
-        session.showPreview(!session.showPreview)
-    }) {
+    IconToggleButton(
+        checked = session.showPreview,
+        onCheckedChange = {
+            focusManager.clearFocus()
+            tipStore?.invalidate(BuddyTip.TogglePreview)
+            session.showPreview(it)
+        }
+    ) {
         Icon(
-            Icons.Outlined.CalendarMonth,
+            if (session.showPreview) Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth,
             stringResource(if (session.showPreview) R.string.hide_timetable_preview else R.string.show_timetable_preview),
-            tint = if (session.showPreview) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

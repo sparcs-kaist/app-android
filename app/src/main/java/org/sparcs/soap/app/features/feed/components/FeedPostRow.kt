@@ -19,7 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -65,7 +65,6 @@ import org.sparcs.soap.app.features.fullscreenImage.FullscreenImagesViewer
 import org.sparcs.soap.app.features.post.components.PostCommentButton
 import org.sparcs.soap.app.features.post.components.PostVoteButton
 import org.sparcs.soap.app.features.settings.components.InfoTooltip
-import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.extensions.relativeTimeString
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.extensions.toDetectedAnnotatedString
@@ -73,9 +72,6 @@ import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.mocks.feed.mockList
 import org.sparcs.soap.app.shared.views.contentViews.SummarizationView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.darkGray
-import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
 
 @Composable
@@ -95,7 +91,7 @@ fun FeedPostRow(
     Column(
         Modifier
             .fillMaxWidth()
-            .noRippleClickable { onComment() }
+            .clickable(onClick = onComment)
     ) {
         Header(
             post = post,
@@ -131,7 +127,7 @@ private fun ProfileImage(post: FeedPost) {
             modifier = Modifier
                 .size(24.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.lightGray0)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
         )
     } else {
         Box(
@@ -139,7 +135,7 @@ private fun ProfileImage(post: FeedPost) {
             modifier = Modifier
                 .size(24.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
         ) {
             Text("😀", style = MaterialTheme.typography.labelSmall)
         }
@@ -181,7 +177,7 @@ private fun Header(
             if (post.isKaistIP) {
                 InfoTooltip(
                     tooltipText = stringResource(R.string.kaist_ip_verified),
-                    icon = painterResource(R.drawable.checkmark_seal_fill),
+                    imageVector = Icons.Filled.Verified,
                     tint = MaterialTheme.colorScheme.primary,
                     iconSize = 15.dp
                 )
@@ -190,16 +186,16 @@ private fun Header(
 
             Text(// onPostDeleted == null here means FeedPostRow is in the FeedPostView.
                 text = if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
-                color = MaterialTheme.colorScheme.grayBB,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall
             )
         }
 
         if (post.downVotes >= 15 && !isHiddenPostExpanded && onPostDeleted != null) {
             Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                imageVector = Icons.Filled.ExpandMore,
                 contentDescription = stringResource(R.string.expand),
-                tint = MaterialTheme.colorScheme.darkGray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .size(20.dp)
@@ -222,7 +218,6 @@ private fun Header(
             dismissButton = {
                 TextButton(onClick = { setShowDelete(false) }) { Text(stringResource(R.string.cancel)) }
             },
-            containerColor = MaterialTheme.colorScheme.background,
             title = { Text(stringResource(R.string.delete_post)) },
             text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
         )
@@ -241,7 +236,7 @@ private fun Content(
 
     val context = LocalContext.current
     val linkColor = MaterialTheme.colorScheme.primary
-    val moreColor = MaterialTheme.colorScheme.grayBB
+    val moreColor = MaterialTheme.colorScheme.onSurfaceVariant
     val moreText = stringResource(R.string.more)
 
     val scope = rememberCoroutineScope()

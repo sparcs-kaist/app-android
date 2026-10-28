@@ -6,7 +6,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,20 +27,22 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,6 +65,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -75,14 +76,11 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.feedPostCompose.components.FeedPostComposeNavigationBar
 import org.sparcs.soap.app.features.postCompose.TermsOfUseButton
-import org.sparcs.soap.app.features.postCompose.components.AnimatedAlphabetText
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostComposeViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @Composable
 fun FeedPostComposeView(
@@ -124,7 +122,7 @@ fun FeedPostComposeView(
         topBar = {
             FeedPostComposeNavigationBar(
                 navController = navController,
-                isDoneEnabled = viewModel.text.isNotEmpty() && viewModel.text.length <= 280,
+                isDoneEnabled = viewModel.text.isNotEmpty() && viewModel.text.length <= MAX_CHARACTERS,
                 onDoneClick = {
                     scope.launch {
                         val success = viewModel.submitPost()
@@ -142,7 +140,8 @@ fun FeedPostComposeView(
         modifier = Modifier
             .analyticsScreen(name = "Feed Compose"),
     ) { innerPadding ->
-        Box(
+        // The text scrolls above a toolbar that sits on the keyboard, as in other Android compose screens.
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -151,7 +150,8 @@ fun FeedPostComposeView(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(16.dp)
                     .verticalScroll(scrollState)
                     .focusRequester(contentFocusRequester)
@@ -173,21 +173,13 @@ fun FeedPostComposeView(
                         if (viewModel.text.isEmpty())
                             Text(
                                 text = stringResource(R.string.enter_the_description),
-                                color = MaterialTheme.colorScheme.grayBB,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         inner()
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(stringResource(R.string.feed_character_count, viewModel.text.length, 280), style = MaterialTheme.typography.bodySmall)
-                }
                 if (viewModel.selectedImages.isNotEmpty()) {
                     LazyRow(
                         modifier = Modifier.padding(vertical = 8.dp),
@@ -242,15 +234,12 @@ fun FeedPostComposeView(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(80.dp))
             }
 
-            FeedPostOptionsRow(
+            FeedComposeToolbar(
+                characterCount = viewModel.text.length,
                 isUploading = viewModel.isUploading,
-                onPhotoButton = { showPhotosPicker = true },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 16.dp)
+                onPhotoButton = { showPhotosPicker = true }
             )
         }
         if (showPhotosPicker) {
@@ -317,7 +306,6 @@ private fun ProfileImage(viewModel: FeedPostComposeViewModelProtocol) {
 @Composable
 private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
     var expanded by remember { mutableStateOf(false) }
-    var previousType by remember { mutableStateOf(viewModel.selectedComposeType) }
 
     val selectedType = viewModel.selectedComposeType
     val typeLabels = mapOf(
@@ -325,58 +313,35 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
         FeedPostComposeViewModel.ComposeType.Anonymously to stringResource(R.string.anonymous)
     )
 
-    if (previousType != selectedType) {
-        previousType = selectedType
-    }
-
     val displayText = typeLabels[selectedType] ?: stringResource(R.string.select_type)
-    val previousText = typeLabels[previousType] ?: stringResource(R.string.select_type)
 
     Box {
-        Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier
-                .clickable { expanded = !expanded }
-                .glassBorder(shape = RoundedCornerShape(20.dp)),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Box(modifier = Modifier.weight(1f, fill = false)) {
-                    AnimatedAlphabetText(
-                        from = previousText,
-                        to = displayText,
-                        singleLine = true
-                    )
-                }
-                Spacer(modifier = Modifier.width(4.dp))
+        // The same elevated chip as the course screen's professor filter: no outline, menu arrow.
+        ElevatedFilterChip(
+            selected = false,
+            onClick = { expanded = !expanded },
+            label = {
+                Text(displayText, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            },
+            trailingIcon = {
                 Icon(
-                    imageVector = Icons.Rounded.ArrowDropDown,
-                    contentDescription = stringResource(R.string.change_type)
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = stringResource(R.string.change_type),
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
                 )
-            }
-        }
+            },
+        )
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+            onDismissRequest = { expanded = false }
         ) {
             typeLabels.forEach { (type, label) ->
                 DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = label ?: stringResource(R.string.unknown),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (selectedType == type)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurface
-                        )
-                    },
+                    text = { Text(label ?: stringResource(R.string.unknown)) },
+                    trailingIcon = if (selectedType == type) {
+                        { Icon(Icons.Filled.Check, contentDescription = null) }
+                    } else null,
                     onClick = {
                         viewModel.selectedComposeType = type
                         expanded = false
@@ -387,35 +352,39 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
     }
 }
 
+/** Attachment actions on the left and the character count on the right, above the keyboard. */
 @Composable
-private fun FeedPostOptionsRow(
+private fun FeedComposeToolbar(
+    characterCount: Int,
     isUploading: Boolean,
     onPhotoButton: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    Surface(
-        shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.surface,
-        modifier = modifier
-            .glassBorder(shape = RoundedCornerShape(50.dp))
-    ) {
+    Column(Modifier.fillMaxWidth()) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
         ) {
-            IconButton(
-                onClick = onPhotoButton,
-                enabled = !isUploading
-            ) {
+            IconButton(onClick = onPhotoButton, enabled = !isUploading) {
                 Icon(
-                    imageVector = Icons.Outlined.PhotoLibrary,
-                    contentDescription = stringResource(R.string.add_photo),
-                    modifier = Modifier.size(28.dp)
+                    imageVector = Icons.Outlined.AddPhotoAlternate,
+                    contentDescription = stringResource(R.string.add_photo)
                 )
             }
+            Spacer(Modifier.weight(1f))
+            Text(
+                stringResource(R.string.feed_character_count, characterCount, MAX_CHARACTERS),
+                style = MaterialTheme.typography.labelMedium,
+                color = if (characterCount > MAX_CHARACTERS) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
+
+private const val MAX_CHARACTERS = 280
 
 @Composable
 @Preview

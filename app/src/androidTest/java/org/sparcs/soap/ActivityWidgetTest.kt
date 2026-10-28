@@ -12,17 +12,17 @@ import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.ExperimentalGlanceRemoteViewsApi
 import androidx.glance.appwidget.GlanceRemoteViews
 import androidx.test.platform.app.InstrumentationRegistry
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
+import org.sparcs.soap.app.domain.models.otl.*
+import org.sparcs.soap.widgets.buddyTimetableWidget.*
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.sparcs.soap.app.domain.enums.otl.DayType
-import org.sparcs.soap.app.domain.models.otl.*
 import org.sparcs.soap.app.shared.mocks.otl.mockList
-import org.sparcs.soap.widgets.buddyTimetableWidget.*
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import java.io.File
-import kotlin.math.roundToInt
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalGlanceRemoteViewsApi::class)
 class ActivityWidgetTest {

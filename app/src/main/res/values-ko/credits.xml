@@ -39,6 +39,7 @@
     <string name="credit_save">저장</string>
     <string name="credit_cancel">취소</string>
     <string name="credit_reset">기본값으로 초기화</string>
+    <string name="credit_minimums_title">최소 학점</string>
     <string name="credit_invalid_minimum">0 이상의 정수를 입력해 주세요.</string>
     <string name="hse_core">인선(핵심)</string>
     <string name="hse_general">인선(일반)</string>

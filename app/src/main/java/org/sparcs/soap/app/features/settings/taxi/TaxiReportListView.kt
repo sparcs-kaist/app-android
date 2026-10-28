@@ -42,7 +42,7 @@ import org.sparcs.soap.app.features.settings.components.TaxiReportDetailRow
 import org.sparcs.soap.app.features.settings.components.TaxiReportDetailSkeletonRow
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiReportListViewModel
@@ -65,7 +65,7 @@ fun TaxiReportListView(
         viewModel.fetchReports()
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {

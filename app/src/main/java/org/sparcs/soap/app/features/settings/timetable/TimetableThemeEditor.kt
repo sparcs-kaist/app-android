@@ -4,11 +4,11 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -47,6 +47,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetablePhotoDecoder
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.usecases.ThemeModelStatus
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.timetable.components.AdvancedColorPicker
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeAdvancedColors
@@ -57,7 +58,6 @@ import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoErro
 import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoProgressDialog
 import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoSection
 import org.sparcs.soap.app.features.settings.timetable.components.ThemePreview
-import org.sparcs.soap.app.features.settings.timetable.components.ThemeSectionTitle
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
 import org.sparcs.soap.app.features.settings.timetable.components.rememberPaletteDragState
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -69,6 +69,9 @@ fun TimetableThemeEditor(
     seed: String,
     onBack: () -> Unit,
     onSave: (TimetableTheme) -> Unit,
+    onOpenGenerator: (TimetableTheme) -> Unit = {},
+    generatedTheme: TimetableTheme? = null,
+    onGeneratedThemeConsumed: () -> Unit = {},
 ) {
     var draftJson by rememberSaveable(seed) { mutableStateOf(seed) }
     val draft = remember(draftJson) { Json.decodeFromString<TimetableTheme>(draftJson) }
@@ -92,10 +95,10 @@ fun TimetableThemeEditor(
 
     val listState = rememberLazyListState()
     val context = LocalContext.current
-    val generator: TimetableThemeGeneratorViewModel = viewModel(key = "theme-generator-$seed")
+    // Scoped to this editor's back stack entry, so the generator screen shares it.
+    val generator: TimetableThemeGeneratorViewModel = viewModel(key = THEME_GENERATOR_KEY)
     val generatorState by generator.state.collectAsState()
-    var showGenerator by rememberSaveable(seed) { mutableStateOf(false) }
-    ThemeGeneratorLifecycleEffect(generator)
+    ThemeGeneratorLifecycleEffect(generator, cancelOnStop = false, resetOnDispose = false)
     var selectedPhoto by remember { mutableStateOf<Uri?>(null) }
     var photoError by remember { mutableStateOf(false) }
     val isGenerating = selectedPhoto != null
@@ -130,37 +133,25 @@ fun TimetableThemeEditor(
 
     var expanded by rememberSaveable { mutableStateOf(false) }
     var target by rememberSaveable { mutableStateOf<String?>(null) }
+    val hasUnsavedChanges = draftJson != savedJson
     val back = {
-        if (draftJson != savedJson) {
+        if (hasUnsavedChanges) {
             showDiscardDialog = true
         } else {
             onBack()
         }
     }
-    BackHandler(enabled = !showGenerator, onBack = back)
+    // Only intercept back to confirm discarding edits, so leaving an unchanged theme keeps the
+    // predictive back animation.
+    BackHandler(enabled = hasUnsavedChanges) { showDiscardDialog = true }
 
-    if (showGenerator) {
-        TimetableThemeGeneratorView(
-            state = generatorState,
-            baseTheme = draft,
-            onDescriptionChange = generator::describe,
-            onGenerate = { generator.generate(draft, it) },
-            onDownload = generator::download,
-            onRefresh = generator::refreshAvailability,
-            onCancel = generator::cancel,
-            onBack = {
-                generator.cancel()
-                showGenerator = false
-            },
-            onApply = { theme ->
-                paletteJson = Json.encodeToString(TimetableThemePalette.from(theme.hexColors))
-                update(theme)
-                expanded = false
-                generator.reset()
-                showGenerator = false
-            },
-        )
-        return
+    LaunchedEffect(generatedTheme) {
+        val theme = generatedTheme ?: return@LaunchedEffect
+        paletteJson = Json.encodeToString(TimetableThemePalette.from(theme.hexColors))
+        update(theme)
+        expanded = false
+        generator.reset()
+        onGeneratedThemeConsumed()
     }
 
     Scaffold(
@@ -169,6 +160,7 @@ fun TimetableThemeEditor(
             SettingsViewNavigationBar(
                 title = stringResource(R.string.theme_edit),
                 onDismiss = back,
+                containerColor = MaterialTheme.colorScheme.surface,
                 isEditable = true,
                 isDoneEnabled = draft.isValid && !isGenerating,
                 onClickDone = {
@@ -177,19 +169,24 @@ fun TimetableThemeEditor(
                     onBack()
                 }
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
+        // Rows are full-width ListItems; free-form content is inset 16dp to line up with them.
         ThemeSettingsList(
             padding = padding,
             modifier = Modifier.imePadding(),
             maxWidth = 680.dp,
             state = listState,
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(vertical = 8.dp),
         ) {
-            item { ThemePreview(draft) }
+            item { ThemePreview(draft, Modifier.padding(horizontal = 16.dp)) }
             item {
-                ThemeNameField(draft.name) { update(draft.copy(name = it)) }
+                ThemeNameField(
+                    draft.name,
+                    { update(draft.copy(name = it)) },
+                    Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                )
             }
             item {
                 ThemeColorRow(
@@ -198,13 +195,14 @@ fun TimetableThemeEditor(
                 ) { target = "text" }
             }
             item {
-                ThemeSectionTitle(stringResource(R.string.theme_palette))
+                SettingsSectionHeader(stringResource(R.string.theme_palette))
                 Text(
                     stringResource(
                         R.string.theme_palette_description,
                         TimetableTheme.maximumColors
                     ),
-                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -228,7 +226,9 @@ fun TimetableThemeEditor(
                 OutlinedButton(
                     onClick = { updatePalette(palette.add()) },
                     enabled = palette.canAdd,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Icon(Icons.Default.Add, null)
                     Spacer(Modifier.width(8.dp))
@@ -250,8 +250,8 @@ fun TimetableThemeEditor(
             ) {
                 item {
                     ThemeGenerationSection(onOpen = {
-                        showGenerator = true
                         generator.refreshAvailability()
+                        onOpenGenerator(draft)
                     })
                 }
             }
@@ -262,7 +262,6 @@ fun TimetableThemeEditor(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            containerColor = MaterialTheme.colorScheme.background,
             title = { Text(stringResource(R.string.theme_discard_title)) },
             text = { Text(stringResource(R.string.theme_unsaved_changes_message)) },
             confirmButton = {

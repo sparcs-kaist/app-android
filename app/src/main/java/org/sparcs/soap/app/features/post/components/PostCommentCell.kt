@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,22 +17,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.automirrored.rounded.Reply
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material.icons.outlined.Summarize
 import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,8 +47,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -61,7 +63,6 @@ import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
-import org.sparcs.soap.app.theme.ui.grayBB
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -207,17 +208,17 @@ fun <T> PostCommentActionsMenu(
     var reportExpanded by remember { mutableStateOf(false) }
 
     Box {
-        Icon(
-            imageVector = Icons.Rounded.MoreHoriz,
-            contentDescription = stringResource(R.string.more),
-            modifier = modifier
-                .clickable { expanded = true },
-            tint = if (isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-        )
+        // Standard overflow button; on your own comment it is tinted to mark it as yours.
+        IconButton(onClick = { expanded = true }, modifier = modifier) {
+            Icon(
+                imageVector = Icons.Filled.MoreVert,
+                contentDescription = stringResource(R.string.more),
+                tint = if (isComment && isMine == true) MaterialTheme.colorScheme.primary
+                else LocalContentColor.current
+            )
+        }
 
         DropdownMenu(
-            modifier = Modifier.background(MaterialTheme.colorScheme.background),
-            shape = RoundedCornerShape(16.dp),
             expanded = expanded,
             onDismissRequest = {
                 expanded = false
@@ -227,7 +228,7 @@ fun <T> PostCommentActionsMenu(
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.feed_reply_action)) },
                     onClick = { expanded = false; reply() },
-                    leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Reply, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Reply, contentDescription = null) },
                 )
             }
             if (isMine == false) {
@@ -244,11 +245,8 @@ fun <T> PostCommentActionsMenu(
                     },
                     trailingIcon = {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                            contentDescription = stringResource(R.string.report),
-                            modifier = Modifier
-                                .size(18.dp)
-                                .rotate(if (reportExpanded) 270f else 0f)
+                            imageVector = if (reportExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = null
                         )
                     }
                 )
@@ -327,7 +325,8 @@ fun <T> PostCommentActionsMenu(
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Outlined.Delete,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 )
@@ -343,15 +342,17 @@ private fun ProfilePicture(url: String?) {
             model = url,
             contentDescription = null,
             modifier = Modifier
-                .size(21.dp)
+                .size(24.dp)
                 .clip(CircleShape)
+                // Shown while the picture loads.
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
         )
     } else {
         Box(
             modifier = Modifier
-                .size(21.dp)
+                .size(24.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
         )
     }
 }
@@ -362,8 +363,9 @@ private fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
         Text(
             text = content ?: stringResource(R.string.this_comment_has_been_deleted),
             style = MaterialTheme.typography.bodyMedium,
+            fontStyle = if (isDeleted) FontStyle.Italic else null,
             modifier = Modifier.padding(vertical = 8.dp),
-            color = if (isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f)
+            color = if (isDeleted) MaterialTheme.colorScheme.onSurfaceVariant
             else MaterialTheme.colorScheme.onSurface
         )
     }

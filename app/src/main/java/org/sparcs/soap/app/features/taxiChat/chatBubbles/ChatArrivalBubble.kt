@@ -1,21 +1,17 @@
 package org.sparcs.soap.app.features.taxiChat.chatBubbles
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.theme.ui.Theme
 
+/** The bot's reminder after arrival to request or send the settlement. */
 @Composable
 fun ChatArrivalBubble() {
     val bubbleText = stringResource(
@@ -26,24 +22,16 @@ fun ChatArrivalBubble() {
         buildBoldAnnotatedString(stringResource(R.string.send_payment))
     )
 
-    Text(
-        text = bubbleText,
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(24.dp)
-            )
-            .padding(12.dp),
-        color = MaterialTheme.colorScheme.onBackground,
-        style = MaterialTheme.typography.bodyMedium
-    )
+    ChatCard {
+        Text(text = bubbleText, style = MaterialTheme.typography.bodyLarge)
+    }
 }
 
 
 fun buildBoldAnnotatedString(vararg parts: String, normalText: String = "") = buildAnnotatedString {
     append(normalText)
     parts.forEach { part ->
-        pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+        pushStyle(SpanStyle(fontWeight = FontWeight.SemiBold))
         append(part)
         pop()
     }

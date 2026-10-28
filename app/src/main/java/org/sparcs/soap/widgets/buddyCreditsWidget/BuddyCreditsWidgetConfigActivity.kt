@@ -65,13 +65,12 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.formatters.creditProgress
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
+import org.sparcs.soap.widgets.components.WidgetPreviewStage
 import org.sparcs.soap.widgets.ownsAppWidget
 import org.sparcs.soap.widgets.updateInstalledWidgets
 import javax.inject.Inject
@@ -233,67 +232,67 @@ private fun CreditsWidgetPreviewSection(selectedTheme: String, transparency: Flo
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
         )
-        Theme(darkTheme = isDark) {
-            Box(
-                modifier = Modifier
-                    .width(170.dp)
-                    .height(170.dp)
-                    .align(Alignment.CenterHorizontally)
-                    .glassBorder(shape = RoundedCornerShape(20.dp))
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(20.dp)
-                    )
-            ) {
+        WidgetPreviewStage {
+            Theme(darkTheme = isDark) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .width(170.dp)
+                        .height(170.dp)
                         .background(
-                            color = surfaceColor.copy(alpha = transparency),
+                            color = MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(20.dp)
                         )
-                        .padding(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.credit_gpa_label),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(
-                                text = formatGPA(3.73),
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                color = MaterialTheme.colorScheme.onSurface
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = surfaceColor.copy(alpha = transparency),
+                                shape = RoundedCornerShape(20.dp)
                             )
+                            .padding(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center
+                        ) {
                             Text(
-                                text = " / 4.3",
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = stringResource(R.string.credit_gpa_label),
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text(
+                                    text = formatGPA(3.73),
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = " / 4.3",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(R.string.credit_widget_progress, 96, 138),
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            LinearProgressIndicator(
+                                progress = { creditProgress(96, 138) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(10.dp)
+                                    .clip(RoundedCornerShape(5.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = stringResource(R.string.credit_widget_progress, 96, 138),
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        LinearProgressIndicator(
-                            progress = { creditProgress(96, 138) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(10.dp)
-                                .clip(RoundedCornerShape(5.dp)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
                     }
                 }
             }
@@ -332,7 +331,7 @@ private fun WidgetThemeRow(selectedTheme: String, onThemeSelected: (String) -> U
             Text(
                 text = currentModeText,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -410,7 +409,7 @@ private fun WidgetTransparencyRow(transparency: Float, onTransparencyChange: (Fl
             Text(
                 text = "${(transparency * 100).toInt()}%",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Slider(

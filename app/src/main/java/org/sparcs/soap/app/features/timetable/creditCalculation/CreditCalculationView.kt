@@ -2,7 +2,6 @@ package org.sparcs.soap.app.features.timetable.creditCalculation
 
 import android.content.res.Configuration
 import android.net.Uri
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,17 +20,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -41,9 +38,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,10 +52,9 @@ import org.sparcs.soap.app.domain.models.otl.OTLUserLectureSemester
 import org.sparcs.soap.app.domain.models.otl.SemesterGradeSummary
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
+import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -181,12 +177,7 @@ private fun CreditOverview(state: CreditCalculationViewState, onRequirements: ()
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         SectionTitle(stringResource(R.string.credit_summary_title))
         GPATrendChart(state)
-        val description = stringResource(R.string.credit_requirements)
-        CreditCard(
-            modifier = Modifier
-                .semantics { contentDescription = description }
-                .clickable(onClick = onRequirements)
-        ) {
+        CreditCard(onClick = onRequirements) {
             GPASummaryContent(
                 state.overallSummary.gpa,
                 state.overallSummary.earnedCredits,
@@ -220,7 +211,11 @@ private fun LazyListScope.semesterItems(
 
 @Composable
 private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+    Text(
+        text,
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.semantics { heading() }
+    )
 }
 
 @Composable
@@ -247,16 +242,18 @@ internal fun CreditScreen(
         topBar = {
             TopAppBar(title = {
                 Column {
-                    Text(title, fontWeight = FontWeight.Bold)
+                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     subtitle?.let {
                         Text(
                             it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
-            }, navigationIcon = { DismissButton(onBack) })
+            }, navigationIcon = { BackButton(onBack) })
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
@@ -269,23 +266,25 @@ internal fun CreditScreen(
     }
 }
 
+/** Default Material card for the credits screens; pass [onClick] to make the whole card tappable. */
 @Composable
 internal fun CreditCard(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(16.dp),
+    onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Surface(
-        shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.background,
-        modifier = modifier
-            .fillMaxWidth()
-            .glassBorder(RoundedCornerShape(20.dp))
-    ) {
+    val body: @Composable ColumnScope.() -> Unit = {
         Column(
             Modifier.padding(contentPadding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             content = content
         )
+    }
+    if (onClick != null) {
+        Card(onClick = onClick, modifier = modifier.fillMaxWidth(), content = body)
+    } else {
+        Card(modifier = modifier.fillMaxWidth(), content = body)
     }
 }
 
@@ -299,23 +298,19 @@ private fun SemesterCard(
     val summary = state.summary(semester)
     val timetable = state.timetables[semester.id]
     CreditCard(
-        modifier.clickable(enabled = timetable != null, onClick = onClick),
-        PaddingValues(10.dp)
+        modifier,
+        PaddingValues(12.dp),
+        onClick = if (timetable != null) onClick else null
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 semesterTitle(semester),
-                style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f)
             )
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.weight(1f))
             if (summary != null && !summary.isComplete) {
                 Icon(
-                    Icons.Rounded.Error,
+                    Icons.Outlined.ErrorOutline,
                     stringResource(R.string.credit_grades_incomplete),
                     tint = creditIncompleteColor,
                     modifier = Modifier.size(18.dp)
@@ -328,8 +323,7 @@ private fun SemesterCard(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
                 "${formatGPA(summary?.gpa)} GPA",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.labelLarge
             )
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
