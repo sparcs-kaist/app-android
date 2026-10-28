@@ -44,7 +44,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -401,6 +403,16 @@ private fun CreditRequirementsEditor(
     }
 }
 
+/** Saves the editor's drafts as a flat key, value, key, value… list. */
+private val DraftsSaver = listSaver<SnapshotStateMap<String, String>, String>(
+    save = { drafts -> drafts.flatMap { (key, value) -> listOf(key, value) } },
+    restore = { flat ->
+        mutableStateMapOf<String, String>().apply {
+            flat.chunked(2).forEach { (key, value) -> put(key, value) }
+        }
+    }
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreditRequirementsEditorContent(
@@ -413,7 +425,8 @@ private fun CreditRequirementsEditorContent(
         .map { group -> group to group.rows.filter { it.read != null } }
         .filter { (_, rows) -> rows.isNotEmpty() }
     val rows = editable.flatMap { it.second }
-    val drafts = remember {
+    // Saveable so typed values survive rotation.
+    val drafts = rememberSaveable(saver = DraftsSaver) {
         mutableStateMapOf<String, String>().apply {
             rows.forEach { put(it.key, it.read!!(requirements).toString()) }
         }
