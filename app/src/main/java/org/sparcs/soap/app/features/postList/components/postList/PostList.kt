@@ -68,7 +68,11 @@ fun PostList(
         posts == null -> LoadingView(contentPadding = contentPadding, rowPadding = rowPadding)
 
         // An empty board; an empty search result is handled by the caller.
-        posts.isEmpty() && keyword.isNullOrEmpty() -> EmptyPostsView()
+        posts.isEmpty() && keyword.isNullOrEmpty() -> EmptyPostsView(
+            onRefresh = onRefresh,
+            isRefreshing = isRefreshing,
+            contentPadding = contentPadding
+        )
 
         else -> LoadedView(
             posts = posts,
@@ -155,27 +159,47 @@ private fun LoadingView(contentPadding: PaddingValues, rowPadding: PaddingValues
     }
 }
 
+/** An empty board, still pullable to refresh: the message sits in a one-item list filling the screen. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EmptyPostsView() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
+private fun EmptyPostsView(
+    onRefresh: () -> Unit,
+    isRefreshing: Boolean,
+    contentPadding: PaddingValues,
+) {
+    val pullState = rememberPullToRefreshState()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
+
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        state = pullState
     ) {
-        Icon(
-            Icons.AutoMirrored.Outlined.Article,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(48.dp)
-        )
-        Text(
-            stringResource(R.string.empty_posts_default),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
+        LazyColumn(contentPadding = contentPadding, modifier = Modifier.fillMaxSize()) {
+            item(key = "empty") {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                    modifier = Modifier
+                        .fillParentMaxSize()
+                        .padding(32.dp)
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.Article,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Text(
+                        stringResource(R.string.empty_posts_default),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
     }
 }
 
