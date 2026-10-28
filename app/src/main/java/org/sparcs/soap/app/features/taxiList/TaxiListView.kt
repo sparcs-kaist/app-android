@@ -39,6 +39,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -106,6 +107,8 @@ fun TaxiListView(
 
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val scrollState = rememberScrollState()
+    // Derived so the FAB recomposes only when the list reaches or leaves the top, not every frame.
+    val isAtTop by remember { derivedStateOf { scrollState.value == 0 } }
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val pullState = rememberPullToRefreshState()
@@ -150,8 +153,8 @@ fun TaxiListView(
                 onClick = {
                     navController.navigate(Channel.TaxiRoomCreation.name) { launchSingleTop = true }
                 },
-                expanded = scrollState.value == 0,
-                icon = { Icon(Icons.Filled.Add, contentDescription = if (scrollState.value == 0) null else newRoom) },
+                expanded = isAtTop,
+                icon = { Icon(Icons.Filled.Add, contentDescription = if (isAtTop) null else newRoom) },
                 text = { Text(newRoom) }
             )
         },
