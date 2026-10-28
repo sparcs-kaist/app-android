@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import org.sparcs.soap.app.features.taxiChat.components.copyChatText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.enums.DeepLink
@@ -51,7 +51,10 @@ internal fun chatBubbleShape(isMine: Boolean, position: ChatBubblePosition): Rou
     )
 }
 
-/** A text message: primary for yours, the card grey for others'. Long press copies it. */
+/**
+ * A text message: primary for yours, the card grey for others'. Long press selects text, so part
+ * of a message can be copied.
+ */
 @Composable
 fun ChatBubble(
     chat: TaxiChat,
@@ -80,27 +83,28 @@ fun ChatBubble(
         contentColor = contentColor,
         modifier = Modifier.padding(vertical = 2.dp)
     ) {
-        Text(
-            text = formattedContent,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 10.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { offset ->
-                            textLayoutResult?.let { layoutResult ->
-                                val pos = layoutResult.getOffsetForPosition(offset)
-                                formattedContent.getStringAnnotations("URL", pos, pos)
-                                    .firstOrNull()?.let { annotation ->
-                                        handleURL(context, annotation.item, scope)
-                                    }
+        SelectionContainer {
+            Text(
+                text = formattedContent,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = { offset ->
+                                textLayoutResult?.let { layoutResult ->
+                                    val pos = layoutResult.getOffsetForPosition(offset)
+                                    formattedContent.getStringAnnotations("URL", pos, pos)
+                                        .firstOrNull()?.let { annotation ->
+                                            handleURL(context, annotation.item, scope)
+                                        }
+                                }
                             }
-                        },
-                        onLongPress = { context.copyChatText(chat.content) }
-                    )
-                },
-            onTextLayout = { textLayoutResult = it }
-        )
+                        )
+                    },
+                onTextLayout = { textLayoutResult = it }
+            )
+        }
     }
 }
 
