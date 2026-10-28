@@ -63,7 +63,10 @@ fun MaterialSearchField(
                         }
                     }
                 } else null,
+                // The field caps itself at 720dp; fill the bar so the clear button sits at its end
+                // on wide landscape screens.
                 modifier = Modifier
+                    .fillMaxWidth()
                     .focusRequester(focusRequester)
                     .onFocusChanged { onFocusChange(it.isFocused) }
             )
