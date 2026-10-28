@@ -13,13 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.LocalTaxi
-import androidx.compose.material.icons.outlined.ThumbDown
-import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -129,7 +129,8 @@ fun SearchPostItem(post: AraPost, onClick: () -> Unit) {
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     if (voteCount != 0) {
                         CountLabel(
-                            icon = if (voteCount > 0) Icons.Outlined.ThumbUp else Icons.Outlined.ThumbDown,
+                            // Same arrows as the board list and the vote pill.
+                            icon = if (voteCount > 0) Icons.Filled.ArrowUpward else Icons.Filled.ArrowDownward,
                             text = voteCount.toString().replace('-', '−'),
                             color = if (voteCount > 0) upvote else downvote
                         )
