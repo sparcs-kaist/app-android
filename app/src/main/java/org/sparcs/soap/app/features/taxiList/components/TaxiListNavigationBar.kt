@@ -6,6 +6,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.ChatButton
@@ -19,7 +20,8 @@ fun TaxiListNavigationBar(
 ) {
     // New rooms are created from the floating action button on the list.
     TopAppBar(
-        title = { Text(text = stringResource(Channel.Taxi.title)) },
+        // Bold, as on every tab's root screen.
+        title = { Text(text = stringResource(Channel.Taxi.title), fontWeight = FontWeight.Bold) },
         actions = {
             ChatButton(onClick = { navController.navigate(Channel.TaxiChatListView.name) })
         },

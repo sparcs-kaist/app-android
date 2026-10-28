@@ -7,6 +7,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
@@ -23,7 +24,8 @@ fun FeedViewNavigationBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
-        title = { Text(text = stringResource(Channel.Start.title)) },
+        // Bold, as on every tab's root screen.
+        title = { Text(text = stringResource(Channel.Start.title), fontWeight = FontWeight.Bold) },
         actions = {
             FeedViewDropDownMenu(
                 onClickSettings = {

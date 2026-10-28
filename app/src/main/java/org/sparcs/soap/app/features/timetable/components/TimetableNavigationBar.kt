@@ -6,6 +6,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.theme.ui.Theme
@@ -20,7 +21,8 @@ fun TimetableViewNavigationBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
-        title = { Text(text = stringResource(Channel.TimeTable.title)) },
+        // Bold, as on every tab's root screen.
+        title = { Text(text = stringResource(Channel.TimeTable.title), fontWeight = FontWeight.Bold) },
         actions = {
             TimetableAddButton(
                 enabled = isButtonEnabled,
