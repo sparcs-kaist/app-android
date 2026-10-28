@@ -77,6 +77,8 @@ import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("ConfigurationScreenWidthHeight")
@@ -151,6 +153,8 @@ fun TimetableView(
         ) onShareClick()
     }
 
+    val topBarScrollBehavior = topAppBarScrollBehavior()
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
@@ -158,11 +162,14 @@ fun TimetableView(
                     TimetableViewNavigationBar(
                         isButtonEnabled = isEditable,
                         onClick = openLectureSearch,
-                        onActivityClick = openActivityCreation
+                        onActivityClick = openActivityCreation,
+                        scrollBehavior = topBarScrollBehavior
                     )
                 }
             },
-            modifier = Modifier.analyticsScreen("Timetable")
+            modifier = Modifier
+                .hideTopBarOnScroll(topBarScrollBehavior.takeUnless { isLandscape })
+                .analyticsScreen("Timetable")
         ) { innerPadding ->
             PullToRefreshBox(
                 isRefreshing = loadState.isRefreshing,
