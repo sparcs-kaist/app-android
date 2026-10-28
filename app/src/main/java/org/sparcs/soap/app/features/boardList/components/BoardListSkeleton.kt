@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.boardList.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,13 +10,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonBlock
 import org.sparcs.soap.app.theme.ui.Theme
 
 // Row widths cycle through these so the placeholder looks like board names without changing
@@ -40,9 +38,9 @@ private fun SkeletonHeader() {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp)
     ) {
-        Placeholder(Modifier.size(18.dp))
+        SkeletonBlock(Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
-        Placeholder(Modifier.width(96.dp).height(14.dp))
+        SkeletonBlock(Modifier.width(96.dp).height(14.dp))
     }
 }
 
@@ -56,18 +54,8 @@ private fun SkeletonRow(widthFraction: Float) {
             .height(56.dp)
             .padding(horizontal = 16.dp)
     ) {
-        Placeholder(Modifier.fillMaxWidth(widthFraction).height(16.dp))
+        SkeletonBlock(Modifier.fillMaxWidth(widthFraction).height(16.dp))
     }
-}
-
-@Composable
-private fun Placeholder(modifier: Modifier) {
-    Box(
-        modifier.background(
-            MaterialTheme.colorScheme.surfaceContainerHighest,
-            RoundedCornerShape(4.dp)
-        )
-    )
 }
 
 @Composable

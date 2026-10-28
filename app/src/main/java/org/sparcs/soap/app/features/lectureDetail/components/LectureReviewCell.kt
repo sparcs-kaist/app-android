@@ -69,6 +69,8 @@ import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonBlock
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.shared.views.contentViews.SummarizationView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.upvote

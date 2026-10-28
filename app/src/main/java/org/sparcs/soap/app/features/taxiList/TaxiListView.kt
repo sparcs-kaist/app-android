@@ -61,7 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -79,11 +78,12 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationP
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toLocalDate
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.weekdaySymbol
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomSkeletonCell
 import org.sparcs.soap.app.theme.ui.Theme

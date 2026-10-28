@@ -45,14 +45,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
-import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 

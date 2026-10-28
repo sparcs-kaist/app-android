@@ -1,8 +1,6 @@
 package org.sparcs.soap.app.features.postList.components.postListRow
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Image
@@ -23,9 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +29,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.mocks.ara.mockList
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -150,7 +146,7 @@ fun PostListSkeletonRow(index: Int = 0, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
-        LinePlaceholder(titleStyle, Modifier.fillMaxWidth(skeletonTitleWidths[index % skeletonTitleWidths.size]))
+        SkeletonLine(titleStyle, Modifier.fillMaxWidth(skeletonTitleWidths[index % skeletonTitleWidths.size]))
 
         Spacer(modifier = Modifier.height(4.dp))
 
@@ -158,29 +154,11 @@ fun PostListSkeletonRow(index: Int = 0, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LinePlaceholder(metaStyle, Modifier.width(60.dp))
+            SkeletonLine(metaStyle, Modifier.width(60.dp))
             Spacer(modifier = Modifier.weight(1f))
-            LinePlaceholder(metaStyle, Modifier.width(40.dp))
-            LinePlaceholder(metaStyle, Modifier.width(40.dp))
+            SkeletonLine(metaStyle, Modifier.width(40.dp))
+            SkeletonLine(metaStyle, Modifier.width(40.dp))
         }
-    }
-}
-
-@Composable
-private fun LinePlaceholder(style: TextStyle, modifier: Modifier) {
-    val density = LocalDensity.current
-    val lineHeight = with(density) { style.lineHeight.toDp() }
-    val barHeight = with(density) { style.fontSize.toDp() }
-    Box(
-        contentAlignment = Alignment.CenterStart,
-        modifier = modifier.height(lineHeight)
-    ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(barHeight)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(4.dp))
-        )
     }
 }
 

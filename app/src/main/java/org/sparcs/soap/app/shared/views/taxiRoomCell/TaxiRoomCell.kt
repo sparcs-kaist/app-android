@@ -30,11 +30,11 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
-import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
 import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.relativeTimeString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiParticipantsIndicator
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiRoomStatusIndicator
 import org.sparcs.soap.app.theme.ui.Theme

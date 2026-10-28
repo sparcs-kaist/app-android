@@ -44,13 +44,13 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
-import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
 import org.sparcs.soap.app.features.postList.components.postListRow.title
 import org.sparcs.soap.app.shared.extensions.relativeTimeString
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
 import org.sparcs.soap.app.theme.ui.upvote

@@ -22,8 +22,8 @@ import org.sparcs.soap.app.features.lectureDetail.components.DetailInfoCardSkele
 import org.sparcs.soap.app.features.lectureDetail.components.DetailSectionHeaderSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewsSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureSummarySkeleton
-import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
 import org.sparcs.soap.app.shared.extensions.bleedHorizontally
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.theme.ui.Theme
 
 

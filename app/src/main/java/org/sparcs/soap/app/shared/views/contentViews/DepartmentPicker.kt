@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.shared.views.contentViews
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Checkbox
@@ -39,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -225,7 +222,7 @@ private val skeletonWidths = listOf(120.dp, 180.dp, 150.dp)
 @OptIn(ExperimentalMaterial3Api::class)
 private fun LazyListScope.departmentListSkeleton() {
     item(key = "skeleton-search") {
-        Placeholder(
+        SkeletonBlock(
             Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxWidth()
@@ -235,7 +232,7 @@ private fun LazyListScope.departmentListSkeleton() {
     }
     repeat(2) { section ->
         item(key = "skeleton-header-$section") {
-            Placeholder(
+            SkeletonBlock(
                 Modifier
                     .padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
                     .width(100.dp)
@@ -253,23 +250,15 @@ private fun LazyListScope.departmentListSkeleton() {
                     .padding(horizontal = 16.dp)
             ) {
                 Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
-                    Placeholder(Modifier.size(18.dp))
+                    SkeletonBlock(Modifier.size(18.dp))
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Placeholder(Modifier.width(skeletonWidths[row % skeletonWidths.size]).height(16.dp))
-                    Placeholder(Modifier.width(40.dp).height(12.dp))
+                    SkeletonBlock(Modifier.width(skeletonWidths[row % skeletonWidths.size]).height(16.dp))
+                    SkeletonBlock(Modifier.width(40.dp).height(12.dp))
                 }
             }
         }
     }
-}
-
-@Composable
-private fun Placeholder(
-    modifier: Modifier,
-    shape: Shape = RoundedCornerShape(4.dp),
-) {
-    Box(modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest, shape))
 }
 
 private fun departmentGroups(

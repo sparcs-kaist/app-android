@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.taxi.TaxiReportType
 import org.sparcs.soap.app.domain.models.taxi.TaxiReport
-import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
+import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
