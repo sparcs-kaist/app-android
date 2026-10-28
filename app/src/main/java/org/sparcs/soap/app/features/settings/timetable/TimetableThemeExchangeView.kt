@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -92,10 +93,13 @@ import org.sparcs.soap.app.theme.ui.Theme
 // Import and sharing follow the iOS app: each is its own screen that does the network work itself,
 // so it opens straight away and reports loading, success and failure in place.
 
-/** Asks for a share code before opening the import screen. Continue stays disabled until it's valid. */
+/**
+ * Asks for a share code before opening the import screen, starting from [initialCode] when the
+ * last one wasn't found. Continue stays disabled until it's valid.
+ */
 @Composable
-fun TimetableThemeCodeDialog(onDismiss: () -> Unit, onContinue: (String) -> Unit) {
-    var code by rememberSaveable { mutableStateOf("") }
+fun TimetableThemeCodeDialog(onDismiss: () -> Unit, onContinue: (String) -> Unit, initialCode: String = "") {
+    var code by rememberSaveable { mutableStateOf(initialCode) }
     val normalized = TimetableThemeShareCode.normalized(code)
     val focus = remember { FocusRequester() }
     AlertDialog(
@@ -139,21 +143,39 @@ fun TimetableThemeCodeDialog(onDismiss: () -> Unit, onContinue: (String) -> Unit
     )
 }
 
+/**
+ * The import screen for [initialCode]. A code that isn't found can be re-entered here, which looks
+ * up the new code in place instead of going back to the dialog.
+ */
 @Composable
 fun TimetableThemeImportRoute(
-    code: String,
+    initialCode: String,
     onClose: () -> Unit,
     onImport: (TimetableTheme) -> Unit,
     viewModel: TimetableThemeExchangeViewModel = hiltViewModel(),
 ) {
+    var code by rememberSaveable { mutableStateOf(initialCode) }
+    var reenteringCode by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(code) { viewModel.fetch(code) }
     TimetableThemeImportView(
         code = code,
         state = viewModel.state,
         onClose = onClose,
         onImport = onImport,
-        onRetry = { viewModel.fetch(code) }
+        onRetry = { viewModel.fetch(code) },
+        onReenterCode = { reenteringCode = true }
     )
+    if (reenteringCode) {
+        TimetableThemeCodeDialog(
+            onDismiss = { reenteringCode = false },
+            onContinue = { newCode ->
+                reenteringCode = false
+                // The same code again still deserves a fresh lookup.
+                if (newCode == code) viewModel.fetch(code) else code = newCode
+            },
+            initialCode = code
+        )
+    }
 }
 
 /** Looks up the theme behind [code], previews it, and adds it to My Themes. */
@@ -164,6 +186,7 @@ internal fun TimetableThemeImportView(
     onClose: () -> Unit,
     onImport: (TimetableTheme) -> Unit,
     onRetry: () -> Unit,
+    onReenterCode: () -> Unit = {},
 ) {
     val theme = state.theme
     ExchangeScaffold(
@@ -175,6 +198,8 @@ internal fun TimetableThemeImportView(
             when {
                 state.loading -> ExchangeButton(R.string.theme_add, Icons.Outlined.Download, enabled = false) {}
                 theme != null -> ExchangeButton(R.string.theme_add, Icons.Outlined.Download) { onImport(theme) }
+                // A mistyped code fails the same way every time, so offer to fix it instead.
+                state.isCodeNotFound -> ExchangeButton(R.string.theme_reenter_code, Icons.Outlined.Edit, onClick = onReenterCode)
                 else -> ExchangeButton(R.string.theme_retry, Icons.Outlined.Refresh, onClick = onRetry)
             }
         }
@@ -475,7 +500,7 @@ private fun ImportFoundPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun ImportNotFoundPreview() {
-    Theme { TimetableThemeImportView("ABC123", ThemeExchangeState(error = R.string.theme_code_not_found), {}, {}, {}) }
+    Theme { TimetableThemeImportView("ABC123", ThemeExchangeState(error = R.string.theme_code_not_found, isCodeNotFound = true), {}, {}, {}) }
 }
 
 @Preview(showBackground = true, heightDp = 891)

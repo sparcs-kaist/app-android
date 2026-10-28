@@ -733,6 +733,7 @@
     <string name="theme_import">Import Theme via Code</string>
     <string name="theme_share_code">6-character code</string>
     <string name="theme_retry">Try Again</string>
+    <string name="theme_reenter_code">Re-enter Code</string>
     <string name="theme_share_error">Could not share this theme. Please try again.</string>
     <string name="theme_import_error">Could not load this theme. Please try again.</string>
     <string name="theme_code_not_found">No theme found for this code.</string>

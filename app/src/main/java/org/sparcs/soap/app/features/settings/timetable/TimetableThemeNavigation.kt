@@ -85,7 +85,7 @@ fun NavGraphBuilder.timetableThemeGraph(navController: NavController) {
         val code = entry.arguments?.getString(CODE_ARGUMENT) ?: return@composable
         val store = rememberTimetableThemeStore()
         TimetableThemeImportRoute(
-            code = code,
+            initialCode = code,
             onClose = { navController.popBackStack() },
             onImport = { theme ->
                 store.saveAndSelect(theme)

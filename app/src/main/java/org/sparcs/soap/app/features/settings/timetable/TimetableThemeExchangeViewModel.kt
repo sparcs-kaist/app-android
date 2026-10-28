@@ -20,6 +20,8 @@ data class ThemeExchangeState(
     val theme: TimetableTheme? = null,
     val code: String? = null,
     val error: Int? = null,
+    /** The import failed because no theme has the code, so retrying the same code won't help. */
+    val isCodeNotFound: Boolean = false,
 )
 
 @HiltViewModel
@@ -47,10 +49,13 @@ class TimetableThemeExchangeViewModel @Inject constructor(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                state = ThemeExchangeState(theme = theme, error =
-                    if (theme == null && (error is NetworkError.NotFound ||
-                        error is NetworkError.ServerError && error.code == 404)) R.string.theme_code_not_found
-                    else errorMessage)
+                val notFound = theme == null && (error is NetworkError.NotFound ||
+                    error is NetworkError.ServerError && error.code == 404)
+                state = ThemeExchangeState(
+                    theme = theme,
+                    error = if (notFound) R.string.theme_code_not_found else errorMessage,
+                    isCodeNotFound = notFound
+                )
             }
         }
     }
