@@ -1,8 +1,5 @@
 package org.sparcs.soap.app.domain.usecases.otl
 
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +33,9 @@ import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.wearable.WearableDataManager
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
+import javax.inject.Singleton
 
 interface TimetableUseCaseProtocol {
     suspend fun cachedState(semester: Semester? = null, timetableID: Int? = null): TimetableCachedState = TimetableCachedState()

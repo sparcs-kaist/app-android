@@ -2,9 +2,9 @@ package org.sparcs.soap.app.shared.extensions
 
 import android.graphics.Bitmap
 import androidx.core.graphics.scale
+import java.io.ByteArrayOutputStream
 import kotlin.math.max
 import kotlin.math.roundToInt
-import java.io.ByteArrayOutputStream
 
 private const val MIN_QUALITY = 70
 private const val MIN_DIMENSION = 640

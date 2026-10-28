@@ -1,7 +1,7 @@
 package org.sparcs.soap.app.theme.ui
 
-import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.*
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 

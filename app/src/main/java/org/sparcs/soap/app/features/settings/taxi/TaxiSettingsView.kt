@@ -48,9 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
-import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
-import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
@@ -58,13 +55,16 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.InfoTooltip
 import org.sparcs.soap.app.features.settings.components.RowElementView
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.PhoneNumberVisualTransformation
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toPhoneNumberFormat
 import org.sparcs.soap.app.shared.extensions.toggle
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView

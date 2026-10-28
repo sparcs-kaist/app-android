@@ -62,9 +62,9 @@ import org.sparcs.soap.app.features.lectureDetail.components.MyReviewLabel
 import org.sparcs.soap.app.features.lectureDetail.components.ReviewStatsCard
 import org.sparcs.soap.app.features.lectureDetail.components.StatSeparator
 import org.sparcs.soap.app.features.lectureDetail.components.summariseTipReviewID
-import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
+import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList

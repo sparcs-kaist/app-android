@@ -13,15 +13,15 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.app.domain.helpers.AlertState
+import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import org.sparcs.soap.app.features.taxiList.TaxiListViewModelProtocol
 import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationViewModelProtocol
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

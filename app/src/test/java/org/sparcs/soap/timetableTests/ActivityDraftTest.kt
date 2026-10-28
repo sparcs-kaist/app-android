@@ -2,8 +2,8 @@ package org.sparcs.soap.timetableTests
 
 import com.google.gson.Gson
 import org.junit.Assert.*
-import org.junit.Test
 import org.sparcs.soap.app.domain.models.otl.*
+import org.junit.Test
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 

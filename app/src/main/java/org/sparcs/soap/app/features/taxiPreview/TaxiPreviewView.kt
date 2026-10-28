@@ -56,13 +56,13 @@ import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.LatLng
-import org.sparcs.soap.app.features.taxiPreview.components.DepartureTimeRow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.taxiPreview.components.DepartureTimeRow
 import org.sparcs.soap.app.features.taxiPreview.components.RouteHeaderView
 import org.sparcs.soap.app.features.taxiPreview.components.TaxiCarrierIndicator
 import org.sparcs.soap.app.shared.extensions.analyticsScreen

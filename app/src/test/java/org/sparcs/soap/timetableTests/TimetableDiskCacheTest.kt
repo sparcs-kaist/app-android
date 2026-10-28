@@ -24,6 +24,7 @@ import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
+import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCase
@@ -35,7 +36,6 @@ import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
 import org.sparcs.soap.buddyTestSupport.helper.testTipStore
 import org.sparcs.soap.testSupport.MainDispatcherRule
 import org.sparcs.soap.wearable.WearableDataManager
-import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)

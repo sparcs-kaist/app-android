@@ -5,10 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import org.sparcs.soap.app.features.taxiChat.components.ChatBubblePositionResolver
-import org.sparcs.soap.app.features.taxiChat.components.ChatRenderItemBuilder
-import org.sparcs.soap.app.features.taxiChat.components.DefaultMessagePresentationPolicy
-import org.sparcs.soap.app.features.taxiChat.components.TaxiGroupingPolicy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +15,10 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.features.taxiChat.TaxiChatViewModel
 import org.sparcs.soap.app.features.taxiChat.TaxiChatViewModelProtocol
+import org.sparcs.soap.app.features.taxiChat.components.ChatBubblePositionResolver
+import org.sparcs.soap.app.features.taxiChat.components.ChatRenderItemBuilder
+import org.sparcs.soap.app.features.taxiChat.components.DefaultMessagePresentationPolicy
+import org.sparcs.soap.app.features.taxiChat.components.TaxiGroupingPolicy
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 

@@ -1,7 +1,7 @@
 package org.sparcs.soap.creditTests
 
-import android.content.Context
 import android.app.Application
+import android.content.Context
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

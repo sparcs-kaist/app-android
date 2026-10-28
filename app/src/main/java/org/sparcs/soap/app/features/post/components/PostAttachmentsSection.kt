@@ -37,6 +37,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraPostAttachment
 import org.sparcs.soap.app.theme.ui.Theme
@@ -44,7 +45,6 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.log10
 import kotlin.math.pow
-import kotlinx.coroutines.launch
 
 /**
  * Files attached to a post. Tapping one saves it to Downloads with progress shown on the card,

@@ -66,11 +66,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.shared.views.contentViews.PickerField
-import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -88,7 +83,12 @@ import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
+import org.sparcs.soap.app.shared.views.contentViews.PickerField
+import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
 import org.sparcs.soap.app.theme.ui.Theme
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 /**
  * A time of day in the system's 12- or 24-hour style, like "9:30 AM" or "09:30". The formatter is

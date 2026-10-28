@@ -20,8 +20,6 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
-import java.time.DayOfWeek
-import java.time.LocalDateTime
 import org.sparcs.soap.R
 import org.sparcs.soap.data.models.ScheduleEntry
 import org.sparcs.soap.data.models.Timetable
@@ -31,6 +29,8 @@ import org.sparcs.soap.presentation.theme.SoapTheme
 import org.sparcs.soap.shared.formatTimeRange
 import org.sparcs.soap.shared.scheduleColor
 import org.sparcs.soap.shared.statusString
+import java.time.DayOfWeek
+import java.time.LocalDateTime
 
 @Composable
 fun LectureTabView(

@@ -14,17 +14,17 @@ import androidx.glance.background
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
 import androidx.test.platform.app.InstrumentationRegistry
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
+import org.sparcs.soap.app.domain.models.otl.*
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
-import org.sparcs.soap.app.domain.models.otl.*
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableLargeWidgetView
 import org.sparcs.soap.widgets.buddyTimetableWidget.toWidgetUiState
-import org.sparcs.soap.widgets.themed
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
+import org.sparcs.soap.widgets.themed
 import java.io.File
 import kotlin.math.roundToInt
 

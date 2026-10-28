@@ -1,20 +1,20 @@
 package org.sparcs.soap.timetableTests
 
 import android.app.Application
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
+import org.sparcs.soap.app.cache.*
+import org.sparcs.soap.app.domain.models.otl.*
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
-import org.sparcs.soap.app.cache.*
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
-import org.sparcs.soap.app.domain.models.otl.*
+import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCase
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
-import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.wearable.WearableDataManager
 
 @RunWith(RobolectricTestRunner::class)

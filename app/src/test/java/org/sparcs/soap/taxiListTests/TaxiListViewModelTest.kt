@@ -10,7 +10,6 @@ import org.junit.Test
 import org.sparcs.soap.app.domain.models.taxi.TaxiLocation
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.taxiList.TaxiListViewModel
-import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.buddyTestSupport.repository.MockTaxiRoomRepository
 import org.sparcs.soap.buddyTestSupport.useCase.MockTaxiLocationUseCase

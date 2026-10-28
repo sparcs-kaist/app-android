@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.filterNotNull
 import org.sparcs.soap.R
 import org.sparcs.soap.app.shared.views.contentViews.PickerField
 import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
@@ -44,7 +45,6 @@ import java.time.ZoneOffset
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlinx.coroutines.flow.filterNotNull
 
 /** Rooms can be scheduled up to this many days ahead, today included. */
 private const val BOOKABLE_DAYS = 14

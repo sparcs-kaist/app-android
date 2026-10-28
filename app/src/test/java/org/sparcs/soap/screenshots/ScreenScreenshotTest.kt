@@ -5,8 +5,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.navigation.compose.rememberNavController
-import org.robolectric.RuntimeEnvironment
-import org.robolectric.RobolectricTestRunner
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
@@ -14,6 +12,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.sparcs.soap.app.domain.models.ara.AraPost

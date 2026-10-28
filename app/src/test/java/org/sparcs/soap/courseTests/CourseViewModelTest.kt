@@ -1,12 +1,12 @@
 package org.sparcs.soap.courseTests
 
 import androidx.lifecycle.SavedStateHandle
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -15,13 +15,13 @@ import org.junit.Test
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.LectureReviewPage
+import org.sparcs.soap.app.domain.models.otl.Professor
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCaseProtocol
-import org.sparcs.soap.app.domain.models.otl.Professor
-import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCourseViewModel
 import org.sparcs.soap.app.features.course.CourseViewModel
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCourseViewModel
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
 import org.sparcs.soap.buddyTestSupport.useCase.MockCourseUseCase

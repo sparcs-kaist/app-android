@@ -42,12 +42,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import java.text.DateFormatSymbols
 import java.util.Locale
 import kotlin.math.abs
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
 
 /**
  * A read-only outlined field with a trailing icon that opens a picker below it; tapping it calls

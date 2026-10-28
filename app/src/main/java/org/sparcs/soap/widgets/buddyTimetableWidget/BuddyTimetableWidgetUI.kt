@@ -34,14 +34,14 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import kotlin.math.ceil
-import kotlin.math.roundToInt
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor.hoursWidth
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.widgets.theme.ui.TimetableWidgetTheme.grayBB
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 @Composable
 private fun TimetableWidgetCell(

@@ -16,9 +16,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeShareCode
-import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.repositories.settings.TimetableThemeRepository
 import org.sparcs.soap.app.networking.NetworkModule
 import org.sparcs.soap.app.networking.responseDTO.TimetableThemeDTO

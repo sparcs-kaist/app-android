@@ -16,6 +16,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -105,6 +106,8 @@ import org.sparcs.soap.app.domain.usecases.feed.FeedPostUseCase
 import org.sparcs.soap.app.domain.usecases.feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCase
 import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.otl.ActivityParsingUseCase
+import org.sparcs.soap.app.domain.usecases.otl.ActivityParsingUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCase
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCase
@@ -114,8 +117,6 @@ import org.sparcs.soap.app.domain.usecases.otl.LectureUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCase
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCase
-import org.sparcs.soap.app.domain.usecases.otl.ActivityParsingUseCase
-import org.sparcs.soap.app.domain.usecases.otl.ActivityParsingUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackgroundProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
@@ -168,7 +169,6 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
-import okhttp3.Interceptor
 
 class TokenAuthenticator @Inject constructor(
     private val authUseCaseProvider: Provider<AuthUseCaseProtocol>,

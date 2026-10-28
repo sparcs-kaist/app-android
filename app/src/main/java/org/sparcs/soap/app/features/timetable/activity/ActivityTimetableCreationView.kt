@@ -74,8 +74,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
-import org.sparcs.soap.app.domain.models.otl.ActivityTime
 import org.sparcs.soap.app.domain.models.otl.ActivityDraft
+import org.sparcs.soap.app.domain.models.otl.ActivityTime
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.components.TimetableSelectionBackground
 import org.sparcs.soap.app.features.timetable.components.TimetableSelectionDayHeader

@@ -40,9 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import org.sparcs.soap.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.feed.FeedPost
 import org.sparcs.soap.app.features.feed.components.FeedPostRow
 import org.sparcs.soap.app.features.feed.components.FeedPostRowSkeleton

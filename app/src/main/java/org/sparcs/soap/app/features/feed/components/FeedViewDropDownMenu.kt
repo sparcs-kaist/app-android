@@ -23,9 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.R
+import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun FeedViewDropDownMenu(

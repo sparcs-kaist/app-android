@@ -1,9 +1,9 @@
 package org.sparcs.soap.app.domain.error.otl
 
 import androidx.annotation.StringRes
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.error.ErrorSource
 import org.sparcs.soap.app.domain.error.SourcedError
-import org.sparcs.soap.R
 import java.io.Serializable
 
 sealed class TimetableUseCaseError : Exception(), SourcedError, Serializable {

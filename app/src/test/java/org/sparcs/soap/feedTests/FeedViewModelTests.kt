@@ -5,9 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.sparcs.soap.app.domain.models.feed.FeedPost
 import org.sparcs.soap.app.features.feed.FeedViewModel
-import org.sparcs.soap.app.shared.mocks.feed.mockList
 import org.sparcs.soap.buddyTestSupport.error.TestError
 import org.sparcs.soap.buddyTestSupport.helper.FeedTestFixtures
 

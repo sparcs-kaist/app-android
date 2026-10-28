@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.ChatBubblePosition
 import org.sparcs.soap.app.domain.models.taxi.MetadataVisibility
 import org.sparcs.soap.app.domain.models.taxi.SenderInfo
@@ -33,7 +34,6 @@ import org.sparcs.soap.app.features.taxiChat.components.ChatReadReceipt
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.R
 
 @Composable
 fun MessageView(

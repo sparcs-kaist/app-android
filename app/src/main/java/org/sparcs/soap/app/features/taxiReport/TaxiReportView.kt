@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
@@ -56,6 +55,7 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.domain.usecases.MockUserUseCase
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
+import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import org.sparcs.soap.app.features.taxiChat.TaxiChatViewModel
 import org.sparcs.soap.app.features.taxiReport.components.TaxiReportUser
 import org.sparcs.soap.app.shared.extensions.analyticsScreen

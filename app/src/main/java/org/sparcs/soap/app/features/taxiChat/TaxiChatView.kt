@@ -46,8 +46,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
-import org.sparcs.soap.app.features.taxiChat.components.CallTaxiDialog
-import org.sparcs.soap.app.features.taxiChat.components.SendPaymentDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -57,6 +55,8 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.features.fullscreenImage.FullscreenImageView
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.taxiChat.components.CallTaxiDialog
+import org.sparcs.soap.app.features.taxiChat.components.SendPaymentDialog
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatInputBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatViewNavigationBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiSettlementAmountSheet

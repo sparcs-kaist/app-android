@@ -10,11 +10,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.sparcs.soap.app.domain.helpers.TimetablePhotoPalette
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
-import kotlin.math.max
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cbrt
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
