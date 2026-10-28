@@ -334,7 +334,8 @@ private fun LoadedView(
 
         RowElementView(
             title = stringResource(R.string.karma),
-            content = viewModel.karma.toString()
+            content = viewModel.karma.toString(),
+            trailing = true
         )
     }
 }
