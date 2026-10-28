@@ -8,7 +8,9 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraPostAttachment
 
@@ -50,17 +52,19 @@ internal class AttachmentDownloader(context: Context) {
     suspend fun download(attachment: AraPostAttachment): Uri? {
         val url = attachment.file?.toString() ?: return null
         val id = try {
-            manager.enqueue(
-                DownloadManager.Request(url.toUri())
-                    .setTitle(attachment.filename)
-                    .setDescription(appContext.getString(R.string.downloading))
-                    .setMimeType(attachment.mimeType)
-                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                    .setDestinationInExternalPublicDir(
-                        Environment.DIRECTORY_DOWNLOADS,
-                        safeFileName(attachment.filename)
-                    )
-            )
+            io {
+                manager.enqueue(
+                    DownloadManager.Request(url.toUri())
+                        .setTitle(attachment.filename)
+                        .setDescription(appContext.getString(R.string.downloading))
+                        .setMimeType(attachment.mimeType)
+                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                        .setDestinationInExternalPublicDir(
+                            Environment.DIRECTORY_DOWNLOADS,
+                            safeFileName(attachment.filename)
+                        )
+                )
+            }
         } catch (_: Exception) {
             return null
         }
@@ -80,8 +84,8 @@ internal class AttachmentDownloader(context: Context) {
             val progress = query(id)
             when (progress?.status) {
                 DownloadManager.STATUS_SUCCESSFUL -> {
-                    val uri = manager.getUriForDownloadedFile(id)
-                    if (uri != null && exists(uri)) {
+                    val uri = io { manager.getUriForDownloadedFile(id)?.takeIf(::exists) }
+                    if (uri != null) {
                         statuses[attachment.id] = AttachmentStatus.Saved(uri)
                         return uri
                     }
@@ -107,7 +111,8 @@ internal class AttachmentDownloader(context: Context) {
 
     private class Progress(val status: Int, val fraction: Float?)
 
-    private fun query(id: Long): Progress? =
+    /** Reads download [id]'s row; a content provider query, so it runs off the main thread. */
+    private suspend fun query(id: Long): Progress? = io {
         manager.query(DownloadManager.Query().setFilterById(id))?.use { cursor ->
             if (!cursor.moveToFirst()) return@use null
             val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
@@ -115,12 +120,16 @@ internal class AttachmentDownloader(context: Context) {
             val total = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
             Progress(status, if (total > 0) (done.toFloat() / total).coerceIn(0f, 1f) else null)
         }
+    }
 
     private fun exists(uri: Uri): Boolean = try {
         appContext.contentResolver.openFileDescriptor(uri, "r")?.use { true } ?: false
     } catch (_: Exception) {
         false
     }
+
+    /** Runs DownloadManager and content resolver calls, which block, on the IO dispatcher. */
+    private suspend fun <T> io(block: () -> T): T = withContext(Dispatchers.IO) { block() }
 
     private fun storedId(attachment: AraPostAttachment): Long? =
         preferences.getLong(key(attachment), -1L).takeIf { it >= 0 }
