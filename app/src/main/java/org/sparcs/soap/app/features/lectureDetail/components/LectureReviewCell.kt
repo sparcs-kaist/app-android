@@ -63,8 +63,8 @@ import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCase
 import org.sparcs.soap.app.features.post.components.VoteArrow
 import org.sparcs.soap.app.features.post.components.pillHeight
+import org.sparcs.soap.app.features.post.components.pillRipple
 import org.sparcs.soap.app.features.post.components.pillTextStyle
-import org.sparcs.soap.app.features.post.components.pressedStateLayer
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
@@ -252,10 +252,9 @@ private fun ReviewLikePill(likes: Int, liked: Boolean, onClick: () -> Unit) {
             .height(pillHeight(isCompact = true))
             .clip(CircleShape)
             .background(container)
-            .pressedStateLayer(pressed, onColor = liked)
             .clickable(
                 interactionSource = interaction,
-                indication = null,
+                indication = pillRipple(onColor = liked),
                 role = Role.Button,
                 onClickLabel = "UpVote",
                 onClick = onClick

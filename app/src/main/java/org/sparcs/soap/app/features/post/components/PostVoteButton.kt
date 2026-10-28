@@ -119,10 +119,9 @@ private fun VotePill(
             horizontalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 6.dp),
             modifier = Modifier
                 .fillMaxHeight()
-                .pressedStateLayer(upPressed, onColor = myVote != null)
                 .clickable(
                     interactionSource = upInteraction,
-                    indication = null,
+                    indication = pillRipple(onColor = myVote != null),
                     enabled = enabled,
                     role = Role.Button,
                     onClickLabel = "UpVote",
@@ -168,10 +167,9 @@ private fun VotePill(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxHeight()
-                .pressedStateLayer(downPressed, onColor = myVote != null)
                 .clickable(
                     interactionSource = downInteraction,
-                    indication = null,
+                    indication = pillRipple(onColor = myVote != null),
                     enabled = enabled,
                     role = Role.Button,
                     onClickLabel = "DownVote",

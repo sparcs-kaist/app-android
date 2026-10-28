@@ -1,10 +1,9 @@
 package org.sparcs.soap.app.features.post.components
 
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Indication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -17,6 +16,7 @@ import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -43,21 +43,13 @@ internal fun pillTextStyle(isCompact: Boolean): TextStyle =
 internal fun pillIconSize(isCompact: Boolean) = if (isCompact) 16.dp else 18.dp
 
 /**
- * Pressed state layer: darkens the pressed part of a pill. On a vote-colored pill the layer is
- * black so it darkens rather than washes out the color.
+ * Press feedback for the pills: Material's ripple, bounded to the part that was pressed, so it
+ * shows even for a quick tap in a scrolling list. On a vote-colored pill it's black so it darkens
+ * rather than washes out the color.
  */
 @Composable
-internal fun Modifier.pressedStateLayer(pressed: Boolean, onColor: Boolean = false): Modifier {
-    val layer by animateColorAsState(
-        when {
-            !pressed -> Color.Transparent
-            onColor -> Color.Black.copy(alpha = 0.12f)
-            else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-        },
-        label = "PressedStateLayer"
-    )
-    return background(layer)
-}
+internal fun pillRipple(onColor: Boolean = false): Indication =
+    ripple(color = if (onColor) Color.Black else Color.Unspecified)
 
 /** Circular gray pill holding a single icon, sized to sit beside the vote and comment pills. */
 @Composable
@@ -67,7 +59,6 @@ internal fun ActionPillIconButton(
     onClick: () -> Unit,
     isCompact: Boolean = false,
     interaction: MutableInteractionSource = remember { MutableInteractionSource() },
-    pressed: Boolean = interaction.collectIsPressedAsState().value,
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -75,10 +66,9 @@ internal fun ActionPillIconButton(
             .size(pillHeight(isCompact))
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .pressedStateLayer(pressed)
             .clickable(
                 interactionSource = interaction,
-                indication = null,
+                indication = pillRipple(),
                 role = Role.Button,
                 onClick = onClick
             )
@@ -102,7 +92,7 @@ private fun Preview() {
         ) {
             ActionPillIconButton(Icons.Outlined.BookmarkBorder, "", {})
             ActionPillIconButton(Icons.Filled.Bookmark, "", {})
-            ActionPillIconButton(Icons.Outlined.Share, "", {}, pressed = true)
+            ActionPillIconButton(Icons.Outlined.Share, "", {})
         }
     }
 }

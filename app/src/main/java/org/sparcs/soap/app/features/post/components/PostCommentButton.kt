@@ -10,7 +10,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,13 +43,11 @@ fun PostCommentButton(
     onClick: () -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
     val haptic = LocalHapticFeedback.current
 
     CommentPill(
         commentCount = commentCount,
         isCompact = isCompact,
-        pressed = pressed,
         interaction = interaction,
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
@@ -63,7 +60,6 @@ fun PostCommentButton(
 private fun CommentPill(
     commentCount: Int,
     isCompact: Boolean,
-    pressed: Boolean,
     interaction: MutableInteractionSource = remember { MutableInteractionSource() },
     onClick: () -> Unit = {},
 ) {
@@ -76,10 +72,9 @@ private fun CommentPill(
             .height(pillHeight(isCompact))
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .pressedStateLayer(pressed)
             .clickable(
                 interactionSource = interaction,
-                indication = null,
+                indication = pillRipple(),
                 role = Role.Button,
                 onClick = onClick
             )
@@ -122,9 +117,8 @@ private fun Preview() {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.padding(16.dp)
         ) {
-            CommentPill(12, isCompact = false, pressed = false)
-            CommentPill(12, isCompact = false, pressed = true)
-            CommentPill(12, isCompact = true, pressed = false)
+            CommentPill(12, isCompact = false)
+            CommentPill(12, isCompact = true)
         }
     }
 }
