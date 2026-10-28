@@ -57,6 +57,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -70,7 +71,6 @@ import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -90,13 +90,20 @@ import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
 
-/** A time of day in the system's 12- or 24-hour style, like "9:30 AM" or "09:30". */
+/**
+ * A time of day in the system's 12- or 24-hour style, like "9:30 AM" or "09:30". The formatter is
+ * built once per call site, since this runs on every frame while a time wheel scrolls.
+ */
 @Composable
 internal fun activityTime(minutes: Int): String {
+    val is24Hour = DateFormat.is24HourFormat(LocalContext.current)
+    val locale = LocalConfiguration.current.locales[0]
+    val formatter = remember(is24Hour, locale) {
+        val skeleton = if (is24Hour) "HHmm" else "hmma"
+        DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale)
+    }
     if (minutes == 1440) return stringResource(R.string.activity_midnight)
-    val skeleton = if (DateFormat.is24HourFormat(LocalContext.current)) "HHmm" else "hmma"
-    return LocalTime.of(minutes / 60, minutes % 60)
-        .format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(Locale.getDefault(), skeleton)))
+    return LocalTime.of(minutes / 60, minutes % 60).format(formatter)
 }
 
 @Composable
