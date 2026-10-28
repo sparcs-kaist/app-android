@@ -12,6 +12,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +23,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import org.sparcs.soap.R
 import org.sparcs.soap.app.shared.extensions.formattedDate
 import org.sparcs.soap.app.shared.extensions.isDateInToday
@@ -36,9 +39,15 @@ import java.util.Date
 @Composable
 fun DepartureTimeRow(departAt: Date, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val now = remember { System.currentTimeMillis() }
+    // Ticks on each minute so the countdown and the day line stay current while the preview is open.
+    val now by produceState(System.currentTimeMillis()) {
+        while (true) {
+            delay(DateUtils.MINUTE_IN_MILLIS - value % DateUtils.MINUTE_IN_MILLIS)
+            value = System.currentTimeMillis()
+        }
+    }
     val time = remember(departAt) { DateFormat.getTimeFormat(context).format(departAt) }
-    val day = remember(departAt) {
+    val day = remember(departAt, now) {
         // "Today" and "Tomorrow" come localized from the platform.
         val relativeDay = if (isDateInToday(departAt) || isDateInTomorrow(departAt)) {
             DateUtils.getRelativeTimeSpanString(departAt.time, now, DateUtils.DAY_IN_MILLIS).toString()
@@ -47,7 +56,7 @@ fun DepartureTimeRow(departAt: Date, modifier: Modifier = Modifier) {
     }
     // "In 45 minutes" or "In 3 hours"; further out, the day line already says when.
     val untilDeparture = departAt.time - now
-    val countdown = remember(departAt) {
+    val countdown = remember(departAt, now) {
         if (untilDeparture <= 0 || untilDeparture >= DateUtils.DAY_IN_MILLIS) null
         else DateUtils.getRelativeTimeSpanString(
             departAt.time, now,
