@@ -46,7 +46,7 @@ fun ScheduleScaffold(
     ) {
         ScalingLazyColumn(
             state = state,
-            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 32.dp),
+            contentPadding = PaddingValues(horizontal = edgeHorizontalPadding(), vertical = 32.dp),
             modifier = Modifier.fillMaxSize()
                 .rotaryScrollable(RotaryScrollableDefaults.behavior(state), focusRequester)
                 .focusRequester(focusRequester)
