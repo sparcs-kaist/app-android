@@ -65,7 +65,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 private val GridSpacing = 3.dp
-private val GridPadding = 14.dp
+private val GridBottomPadding = 36.dp
 
 @Composable
 fun WeekTimetableView(
@@ -119,6 +119,8 @@ private fun TimetableGrid(
     }
     val scrollState = rememberScrollState(initialOffset)
     val focusRequester = remember { FocusRequester() }
+    val horizontalPadding = edgeHorizontalPadding()
+    val bottomFade = edgeBottomFade()
     Scaffold(
         modifier = Modifier.background(MaterialTheme.colors.background),
         timeText = { TimeText() },
@@ -127,7 +129,7 @@ private fun TimetableGrid(
         Column(Modifier.fillMaxSize().padding(top = 28.dp)) {
             if (isWeek) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = GridPadding),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
                     horizontalArrangement = Arrangement.spacedBy(GridSpacing)
                 ) {
                     Spacer(Modifier.width(gutterWidth))
@@ -159,10 +161,11 @@ private fun TimetableGrid(
             }
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth()
+                    .fadingBottomEdge(bottomFade)
                     .rotaryScrollable(RotaryScrollableDefaults.behavior(scrollState), focusRequester)
                     .focusRequester(focusRequester).focusable()
                     .verticalScroll(scrollState)
-                    .padding(start = GridPadding, end = GridPadding, top = 8.dp, bottom = 36.dp),
+                    .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = GridBottomPadding + bottomFade / 2),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 TimetableColumns(
