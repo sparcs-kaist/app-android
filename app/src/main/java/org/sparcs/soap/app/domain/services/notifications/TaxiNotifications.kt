@@ -107,6 +107,8 @@ object TaxiNotifications {
     /** Says that a reply could not be sent, keeping the reply action so it can be sent again. */
     fun showReplyFailed(context: Context, roomId: String, roomName: String) {
         if (!canNotify(context)) return
+        // Posting the conversation again ends the reply action's spinner on it.
+        existingStyle(context, roomId)?.let { notifyChat(context, roomId, roomName, it, alert = false) }
         val notification = NotificationCompat.Builder(context, CHATS_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_buddy_notification)
             .setContentTitle(roomName)

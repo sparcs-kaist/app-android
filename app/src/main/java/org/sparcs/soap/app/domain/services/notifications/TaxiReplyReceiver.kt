@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.models.taxi.TaxiChatRequest
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiChatRepositoryProtocol
@@ -40,9 +42,12 @@ class TaxiReplyReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                taxiChatRepository.sendChat(TaxiChatRequest(roomId, TaxiChat.ChatType.TEXT, text))
+                // A receiver gets about 10 seconds before the system gives up on it.
+                withTimeout(SEND_TIMEOUT_MILLIS) {
+                    taxiChatRepository.sendChat(TaxiChatRequest(roomId, TaxiChat.ChatType.TEXT, text))
+                }
                 // Replying means you have read the room; failing to mark it only leaves its badge.
-                runCatching { taxiChatRepository.readChats(roomId) }
+                withTimeoutOrNull(READ_TIMEOUT_MILLIS) { runCatching { taxiChatRepository.readChats(roomId) } }
                 withContext(Dispatchers.Main) { taxiUnreadStore.get().markRead(roomId) }
                 TaxiNotifications.appendReply(context, roomId, roomName, text)
             } catch (e: Exception) {
@@ -52,5 +57,10 @@ class TaxiReplyReceiver : BroadcastReceiver() {
                 pendingResult.finish()
             }
         }
+    }
+
+    private companion object {
+        const val SEND_TIMEOUT_MILLIS = 6_000L
+        const val READ_TIMEOUT_MILLIS = 2_000L
     }
 }
