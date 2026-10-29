@@ -23,6 +23,12 @@ interface FCMUseCaseProtocol {
 
     /** Stops notifications to this device for the signed-in account, so call it while still signed in. */
     suspend fun unregister()
+
+    /**
+     * Forgets that this device was registered, without telling the backend, so the next sign-in
+     * registers it again: such as when the session expired and the backend can no longer be asked.
+     */
+    fun forgetRegistration() {}
     /** Whether this device gets each kind of notification. Kinds never turned off are on. */
     suspend fun notificationPreferences(): Map<NotificationCategory, Boolean>
 
@@ -129,14 +135,19 @@ class FCMUseCase @Inject constructor(
         }
     }
 
-    override suspend fun unregister() {
-        // Whether or not it gets through, signing in again registers this device rather than
-        // skipping it as unchanged, even if a registration in flight finishes afterwards.
+    override fun forgetRegistration() {
+        // Signing in again then registers this device rather than skipping it as unchanged, even
+        // if a registration in flight finishes afterwards.
         unregisterCount++
         prefs.edit {
             remove(LAST_REGISTERED_TOKEN)
             remove(LAST_REGISTERED_LANG)
         }
+    }
+
+    override suspend fun unregister() {
+        // Whether or not it gets through.
+        forgetRegistration()
         registrationMutex.withLock {
             val deviceUUID = getPersistentDeviceID() ?: return@withLock
             fcmRepository.unregister(deviceUUID)

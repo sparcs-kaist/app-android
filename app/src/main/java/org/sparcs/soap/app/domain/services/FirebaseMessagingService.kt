@@ -60,9 +60,12 @@ class FCMService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
         try {
             val content = NotificationContent.fromMessage(this, remoteMessage) ?: return
+            // Signed out, this device may still be registered to the account, such as after
+            // signing out offline or when the session expired, so its notifications aren't shown.
+            // Ones sent to a topic aren't anyone's.
+            val isForAccount = remoteMessage.from?.startsWith("/topics/") != true
+            if (isForAccount && tokenStorage.getRefreshToken() == null) return
             if (TaxiNotifications.isTaxi(remoteMessage.data)) {
-                // Signed out, the device may not have been unregistered yet, such as while offline.
-                if (tokenStorage.getRefreshToken() == null) return
                 // The open chat already shows the message.
                 val isForeground = ProcessLifecycleOwner.get().lifecycle.currentState
                     .isAtLeast(Lifecycle.State.STARTED)

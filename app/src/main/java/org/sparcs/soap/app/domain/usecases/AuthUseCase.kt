@@ -311,6 +311,10 @@ class AuthUseCase @Inject constructor(
                 tokenStorage.clearTokens()
                 _isAuthenticated.value = false
             }
+            // A session that expired can't unregister this device any more, so it stays registered
+            // to this account until another signs in; forgetting it makes that sign-in take it over.
+            runCatching { fcmUseCase.forgetRegistration() }
+                .onFailure { Timber.e(it, "Failed to forget this device's registration") }
             scheduledRefreshJob?.cancel()
             widgetSyncHelper.clearAllWidgets()
             ChannelManager.clearIdentity()
