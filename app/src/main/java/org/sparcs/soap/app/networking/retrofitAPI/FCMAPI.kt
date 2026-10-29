@@ -1,12 +1,14 @@
 package org.sparcs.soap.app.networking.retrofitAPI
 
 import com.google.gson.annotations.SerializedName
-import org.sparcs.soap.app.networking.requestDTO.ManageAlertRequestDTO
+import org.sparcs.soap.app.networking.requestDTO.NotificationPreferenceUpdateRequestDTO
 import org.sparcs.soap.app.networking.requestDTO.RegisterDeviceRequestDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface FCMApi {
@@ -20,21 +22,25 @@ interface FCMApi {
         @Body body: RegisterDeviceRequestDTO
     ): Response<Unit>
 
-    @POST("notification/manage_alert")
-    suspend fun manageAlert(
-        @Body body: ManageAlertRequestDTO
-    ): Response<Unit>
-
-    @GET("notification/manage_alert")
-    suspend fun getAlertStatus(
+    @GET("notification/preferences")
+    suspend fun getNotificationPreferences(
         @Query("device_uuid") deviceUUID: String
-    ): Response<List<AlertManagerResponseDTO>>
+    ): Response<NotificationPreferencesResponseDTO>
+
+    @PUT("notification/preferences/{category}")
+    suspend fun setNotificationPreference(
+        @Path("category") category: String,
+        @Body body: NotificationPreferenceUpdateRequestDTO
+    ): Response<Unit>
 }
 
-data class AlertManagerResponseDTO(
-    @SerializedName("service_name") val serviceName: String?,
-    @SerializedName("is_active") val isActive: Boolean,
-    @SerializedName("device_uuid") val deviceUuid: String
+data class NotificationPreferencesResponseDTO(
+    @SerializedName("preferences") val preferences: List<NotificationPreferenceDTO>
+)
+
+data class NotificationPreferenceDTO(
+    @SerializedName("category") val category: String,
+    @SerializedName("is_enabled") val isEnabled: Boolean
 )
 
 data class NotificationTokenUpdateRequestDTO(

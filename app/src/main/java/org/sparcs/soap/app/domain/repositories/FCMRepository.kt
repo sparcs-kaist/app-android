@@ -1,7 +1,7 @@
 package org.sparcs.soap.app.domain.repositories
 
-import org.sparcs.soap.app.domain.helpers.FeatureType
-import org.sparcs.soap.app.networking.requestDTO.ManageAlertRequestDTO
+import org.sparcs.soap.app.domain.helpers.NotificationCategory
+import org.sparcs.soap.app.networking.requestDTO.NotificationPreferenceUpdateRequestDTO
 import org.sparcs.soap.app.networking.requestDTO.RegisterDeviceRequestDTO
 import org.sparcs.soap.app.networking.retrofitAPI.FCMApi
 import org.sparcs.soap.app.networking.retrofitAPI.NotificationTokenUpdateRequestDTO
@@ -17,10 +17,13 @@ interface FCMRepositoryProtocol {
         language: String,
     )
 
-    suspend fun manage(
+    /** Whether the device gets each kind of notification. Kinds this version doesn't know are left out. */
+    suspend fun fetchNotificationPreferences(deviceUUID: String): Map<NotificationCategory, Boolean>
+
+    suspend fun setNotificationPreference(
         deviceUUID: String,
-        service: FeatureType,
-        isActive: Boolean,
+        category: NotificationCategory,
+        isEnabled: Boolean,
     )
 
     suspend fun updateToken(
@@ -63,37 +66,28 @@ class FCMRepository @Inject constructor(
         return true
     }
 
-    override suspend fun manage(deviceUUID: String, service: FeatureType, isActive: Boolean) {
-        val response = api.getAlertStatus(deviceUUID)
-
-        if (response.isSuccessful) {
-            val alertList = response.body() ?: emptyList()
-
-            val existing =
-                alertList.find { it.serviceName == service.name || it.serviceName == service.rawValue.toString() }
-
-            if (existing != null) {
-                if (existing.isActive == isActive) {
-                    Timber.tag("FCM")
-                        .d("Configuration already matches the server. Skipping request.")
-                    return
-                }
-
-            }
+    override suspend fun fetchNotificationPreferences(deviceUUID: String): Map<NotificationCategory, Boolean> {
+        val response = api.getNotificationPreferences(deviceUUID)
+        val body = response.body()
+        if (!response.isSuccessful || body == null) {
+            throw Exception("Failed to load notification preferences: ${response.code()}")
         }
+        return body.preferences.mapNotNull { preference ->
+            NotificationCategory.fromRawValue(preference.category)?.let { it to preference.isEnabled }
+        }.toMap()
+    }
 
-        val request = ManageAlertRequestDTO(deviceUUID, service.rawValue, isActive)
-        try {
-            val manageResponse = api.manageAlert(request)
-            if (!manageResponse.isSuccessful) {
-                if (manageResponse.code() == 500) {
-                    Timber.tag("FCM").e("Server DB conflict: Data already exists.")
-                } else {
-                    throw Exception("Failed: ${manageResponse.code()}")
-                }
-            }
-        } catch (e: Exception) {
-            Timber.tag("FCM").e("Network Error: ${e.message}")
+    override suspend fun setNotificationPreference(
+        deviceUUID: String,
+        category: NotificationCategory,
+        isEnabled: Boolean,
+    ) {
+        val response = api.setNotificationPreference(
+            category.rawValue,
+            NotificationPreferenceUpdateRequestDTO(deviceUUID = deviceUUID, isEnabled = isEnabled)
+        )
+        if (!response.isSuccessful) {
+            throw Exception("Failed to change notification preference: ${response.code()}")
         }
     }
 }

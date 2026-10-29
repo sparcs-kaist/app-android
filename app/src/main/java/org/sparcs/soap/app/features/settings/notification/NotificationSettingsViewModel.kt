@@ -1,87 +1,96 @@
 package org.sparcs.soap.app.features.settings.notification
 
-import android.content.Context
-import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
-import org.sparcs.soap.app.domain.helpers.FeatureType
+import org.sparcs.soap.app.domain.helpers.NotificationCategory
 import org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol
+import timber.log.Timber
 import javax.inject.Inject
 
 interface NotificationSettingsViewModelProtocol {
+    val state: StateFlow<NotificationSettingsViewModel.ViewState>
+    /** Whether this device gets each kind of notification, including a change still being saved. */
+    val preferences: Map<NotificationCategory, Boolean>
+    /** Whether Android lets Buddy show notifications at all. */
+    val isAllowedBySystem: Boolean
     var alertState: AlertState?
     var isAlertPresented: Boolean
 }
 
 @HiltViewModel
 class NotificationSettingsViewModel @Inject constructor(
-    @param:ApplicationContext private val context: Context,
     private val fcmUseCase: FCMUseCaseProtocol,
 ) : ViewModel(), NotificationSettingsViewModelProtocol {
 
-    private val prefs: SharedPreferences by lazy {
-        context.getSharedPreferences("fcm_settings", Context.MODE_PRIVATE)
+    sealed class ViewState {
+        data object Loading : ViewState()
+        data object Loaded : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
-    private val _toggleState = mutableStateMapOf<FeatureType, Boolean>()
-    val toggleState: Map<FeatureType, Boolean> = _toggleState
+    private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
+    override val state: StateFlow<ViewState> = _state.asStateFlow()
 
+    private val _preferences = mutableStateMapOf<NotificationCategory, Boolean>()
+    override val preferences: Map<NotificationCategory, Boolean> = _preferences
+
+    override var isAllowedBySystem: Boolean by mutableStateOf(true)
+        private set
     override var alertState: AlertState? by mutableStateOf(null)
     override var isAlertPresented: Boolean by mutableStateOf(false)
 
-    fun loadSettings() {
-        if (_toggleState.isNotEmpty()) return
-
-        FeatureType.entries.forEach { type ->
-            val key = "fcm.${type.rawValue}"
-            val status = if (prefs.contains(key)) {
-                prefs.getBoolean(key, true)
-            } else {
-                true
-            }
-            updateToggleState(type, status)
-        }
-    }
-
-    fun toggle(service: FeatureType, isActive: Boolean) {
+    fun load() {
         viewModelScope.launch {
+            // Coming back to the screen should not cover switches already shown with a spinner.
+            if (_preferences.isEmpty()) _state.value = ViewState.Loading
             try {
-                fcmUseCase.manage(service, isActive)
-                updateToggleState(service, isActive)
+                val loaded = fcmUseCase.notificationPreferences()
+                _preferences.clear()
+                _preferences.putAll(loaded)
+                _state.value = ViewState.Loaded
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                Timber.e(e, "Failed to load notification preferences")
+                _state.value = ViewState.Error(e)
+            }
+        }
+    }
+
+    fun updateSystemPermission(isAllowed: Boolean) {
+        isAllowedBySystem = isAllowed
+    }
+
+    fun setNotifications(category: NotificationCategory, enabled: Boolean) {
+        // The switch moves at once, and moves back if the change can't be saved.
+        val previous = _preferences[category]
+        _preferences[category] = enabled
+        viewModelScope.launch {
+            try {
+                fcmUseCase.setNotifications(category, enabled)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to change notification preference")
+                if (previous == null) _preferences.remove(category) else _preferences[category] = previous
                 alertState = AlertState(
-                    titleResId = R.string.error_update_failed_title,
-                    messageResId = R.string.unexpected_error,
+                    titleResId = R.string.notification_settings_change_failed,
                     message = e.localizedMessage,
                 )
                 isAlertPresented = true
             }
-        }
-    }
-
-    private fun updateToggleState(service: FeatureType, isActive: Boolean) {
-        try {
-            prefs.edit { putBoolean("fcm.${service.rawValue}", isActive) }
-            _toggleState[service] = isActive
-        } catch (_e: Exception) {
-            alertState = AlertState(
-                titleResId = R.string.error_save_failed_title,
-                messageResId = R.string.error_encode_failed_message,
-            )
-            isAlertPresented = true
         }
     }
 

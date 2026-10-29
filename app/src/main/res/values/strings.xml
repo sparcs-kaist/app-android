@@ -466,9 +466,16 @@
     <string name="nickname_updated">Nickname updated successfully.</string>
     <string name="otl" translatable="false">OTL</string>
     <string name="notifications_title">Notifications</string>
-    <string name="error_update_failed_title">Failed to update toggle status</string>
-    <string name="error_save_failed_title">Failed to save toggle status</string>
-    <string name="error_encode_failed_message">Failed to encode toggle status</string>
+    <string name="notification_settings_feed_comments">Comments on Your Posts</string>
+    <string name="notification_settings_feed_replies">Replies to Your Comments</string>
+    <string name="notification_settings_taxi_chats">Chats</string>
+    <string name="notification_settings_ride_updates">Ride Updates</string>
+    <string name="notification_settings_ride_updates_description">When riders join or leave, about settlement and payment, and when your taxi is about to leave</string>
+    <string name="notification_settings_other_services">Other Services</string>
+    <string name="notification_settings_this_device_only">These settings apply to this device only.</string>
+    <string name="notification_settings_turn_on_in_settings">Turn On in Settings</string>
+    <string name="notification_settings_blocked_by_system">Notifications are turned off for Buddy, so none of these arrive.</string>
+    <string name="notification_settings_change_failed">Couldn’t Change Notifications</string>
     <string name="inapp_snackbar_explanation">Update downloaded. Restart to apply.</string>
     <string name="restart">Restart</string>
     <string name="error_no_connection">No internet connection.</string>

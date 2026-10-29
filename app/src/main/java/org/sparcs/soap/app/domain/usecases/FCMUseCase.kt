@@ -8,7 +8,7 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
-import org.sparcs.soap.app.domain.helpers.FeatureType
+import org.sparcs.soap.app.domain.helpers.NotificationCategory
 import org.sparcs.soap.app.domain.repositories.FCMRepositoryProtocol
 import timber.log.Timber
 import java.util.Locale
@@ -17,8 +17,15 @@ import javax.inject.Inject
 
 interface FCMUseCaseProtocol {
     suspend fun register(fcmToken: String)
-    suspend fun manage(service: FeatureType, isActive: Boolean)
+    /** Whether this device gets each kind of notification. Kinds never turned off are on. */
+    suspend fun notificationPreferences(): Map<NotificationCategory, Boolean>
+
+    /** Turns a kind of notification on or off on this device; Buddy's backend then stops or starts sending it here. */
+    suspend fun setNotifications(category: NotificationCategory, enabled: Boolean)
 }
+
+/** This device hasn't registered for notifications yet, so it has no preferences to show or change. */
+class DeviceNotRegisteredException : Exception("This device isn't registered for notifications")
 
 @Suppress("DEPRECATION")
 @SuppressLint("HardwareIds")
@@ -117,21 +124,26 @@ class FCMUseCase @Inject constructor(
         }
     }
 
-    override suspend fun manage(service: FeatureType, isActive: Boolean) {
-        val deviceUUID = getPersistentDeviceID() ?: run {
-            Timber.e("FCM Manage failed: No Device UUID found.")
-            return
-        }
+    // Preferences belong to the device as registered, so a device not registered yet has none.
+    override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> {
+        val deviceUUID = getPersistentDeviceID() ?: throw DeviceNotRegisteredException()
+        return fcmRepository.fetchNotificationPreferences(deviceUUID)
+    }
 
-        fcmRepository.manage(
-            deviceUUID = deviceUUID,
-            service = service,
-            isActive = isActive
-        )
+    override suspend fun setNotifications(category: NotificationCategory, enabled: Boolean) {
+        val deviceUUID = getPersistentDeviceID() ?: throw DeviceNotRegisteredException()
+        fcmRepository.setNotificationPreference(deviceUUID, category, enabled)
     }
 }
 
 class MockFCMUseCase : FCMUseCaseProtocol {
+    val preferences = NotificationCategory.entries.associateWith { true }.toMutableMap()
+    var setNotificationsError: Exception? = null
+
     override suspend fun register(fcmToken: String) {}
-    override suspend fun manage(service: FeatureType, isActive: Boolean) {}
+    override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> = preferences.toMap()
+    override suspend fun setNotifications(category: NotificationCategory, enabled: Boolean) {
+        setNotificationsError?.let { throw it }
+        preferences[category] = enabled
+    }
 }
