@@ -814,4 +814,9 @@
     <string name="activity_add_time">Add Time</string>
     <string name="activity_time_number">Time %1$d</string>
     <string name="activity_remove_time">Remove time</string>
+
+    <plurals name="taxi_unread_count">
+        <item quantity="one">%d unread chat</item>
+        <item quantity="other">%d unread chats</item>
+    </plurals>
 </resources>

@@ -42,6 +42,8 @@ fun TaxiChatListView(
     viewModel: TaxiChatListViewModelProtocol = hiltViewModel<TaxiChatListViewModel>(),
     navController: NavController,
 ) {
+    val unreadViewModel: TaxiUnreadViewModel = hiltViewModel()
+    val unreadCounts by unreadViewModel.counts.collectAsState()
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -89,7 +91,8 @@ fun TaxiChatListView(
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
                             },
-                            contentPadding = PaddingValues(vertical = 8.dp)
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            unreadCounts = unreadCounts
                         )
                     }
 

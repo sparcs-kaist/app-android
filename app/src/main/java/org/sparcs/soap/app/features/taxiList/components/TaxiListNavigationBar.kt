@@ -5,11 +5,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.ChatButton
+import org.sparcs.soap.app.features.taxiChatList.TaxiUnreadViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -17,13 +21,19 @@ import org.sparcs.soap.app.features.navigationBar.components.ChatButton
 fun TaxiListNavigationBar(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    unreadViewModel: TaxiUnreadViewModel = hiltViewModel(),
 ) {
+    val unreadCount by unreadViewModel.totalCount.collectAsState()
+
     // New rooms are created from the floating action button on the list.
     TopAppBar(
         // Bold, as on every tab's root screen.
         title = { Text(text = stringResource(Channel.Taxi.title), fontWeight = FontWeight.Bold) },
         actions = {
-            ChatButton(onClick = { navController.navigate(Channel.TaxiChatListView.name) })
+            ChatButton(
+                onClick = { navController.navigate(Channel.TaxiChatListView.name) },
+                unreadCount = unreadCount
+            )
         },
         scrollBehavior = scrollBehavior
     )
