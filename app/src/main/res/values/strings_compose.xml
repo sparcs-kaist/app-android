@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="compose_discard_post">Discard Post</string>
+    <string name="compose_discard_changes">Discard Changes</string>
+    <string name="compose_discard_changes_message">Are you sure you want to discard your changes to this post?</string>
+    <string name="compose_market_description_placeholder">Describe the item: its condition, and how to reach you.</string>
+    <string name="compose_hide_keyboard">Hide Keyboard</string>
+    <string name="compose_paste_image">Paste image</string>
+    <string name="compose_style_title">Title</string>
+    <string name="compose_style_heading">Heading</string>
+    <string name="compose_style_subheading">Subheading</string>
+    <string name="compose_style_body">Body</string>
+    <string name="compose_style_monospaced">Monospaced</string>
+    <string name="compose_format_code">Code</string>
+    <string name="compose_format_indent">Indent</string>
+    <string name="compose_format_outdent">Outdent</string>
+    <string name="compose_format_text_color">Text colour</string>
+    <string name="compose_color_default">Default</string>
+    <string name="compose_color_red">Red</string>
+    <string name="compose_color_orange">Orange</string>
+    <string name="compose_color_green">Green</string>
+    <string name="compose_color_blue">Blue</string>
+    <string name="compose_color_purple">Purple</string>
+    <string name="compose_color_gray">Grey</string>
+</resources>

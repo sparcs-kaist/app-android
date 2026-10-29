@@ -2,7 +2,7 @@ package org.sparcs.soap.app.networking.requestDTO.ara
 
 import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.app.domain.models.ara.AraCreatePost
-import org.sparcs.soap.app.shared.extensions.toHTMLParagraphs
+import org.sparcs.soap.app.networking.responseDTO.ara.AraMarketMetadataDTO
 
 data class AraPostRequestDTO(
     @SerializedName("title")
@@ -27,31 +27,22 @@ data class AraPostRequestDTO(
     val nicknameType: String,
 
     @SerializedName("parent_board")
-    val board: Int
+    val board: Int,
+
+    @SerializedName("metadata")
+    val metadata: AraMarketMetadataDTO?
 ){
     companion object {
-        fun fromModel(model: AraCreatePost): AraPostRequestDTO {
-            val attachmentsInHTML = model.attachments.mapNotNull { attachment ->
-                val fileURL = attachment.file
-                if (fileURL != null) {
-                    """
-                    <p><img src="$fileURL" width="500" data-attachment="${attachment.id}"></p>
-                    """.trimIndent()
-                } else {
-                    null
-                }
-            }.joinToString("")
-
-            return AraPostRequestDTO(
-                title = model.title,
-                content = model.content.toHTMLParagraphs() + attachmentsInHTML,
-                attachments = model.attachments.map { it.id },
-                topic = model.topic?.id,
-                isNSFW = model.isNSFW,
-                isPolitical = model.isPolitical,
-                nicknameType = model.nicknameType.name,
-                board = model.board.id
-            )
-        }
+        fun fromModel(model: AraCreatePost) = AraPostRequestDTO(
+            title = model.title,
+            content = model.content,
+            attachments = model.attachmentIds,
+            topic = model.topic?.id,
+            isNSFW = model.isNSFW,
+            isPolitical = model.isPolitical,
+            nicknameType = model.nicknameType.type,
+            board = model.board.id,
+            metadata = model.marketListing?.let(AraMarketMetadataDTO::fromModel)
+        )
     }
 }

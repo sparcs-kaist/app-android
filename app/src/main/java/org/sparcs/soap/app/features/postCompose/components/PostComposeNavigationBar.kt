@@ -8,8 +8,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import org.sparcs.soap.app.features.navigationBar.components.TopBarTextAction
@@ -18,16 +16,15 @@ import org.sparcs.soap.app.theme.ui.Theme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostComposeNavigationBar(
-    navController: NavController,
+    onClose: () -> Unit,
     isDoneEnabled: Boolean,
     onDoneClick: () -> Unit,
     isUploading: Boolean,
+    isEditing: Boolean = false,
 ) {
     TopAppBar(
-        navigationIcon = {
-            CloseButton { navController.popBackStack() }
-        },
-        title = { Text(text = stringResource(R.string.write)) },
+        navigationIcon = { CloseButton(onClose) },
+        title = { Text(text = stringResource(if (isEditing) R.string.edit else R.string.write)) },
         actions = {
             TopBarTextAction(
                 text = stringResource(R.string.submit),
@@ -45,5 +42,5 @@ fun PostComposeNavigationBar(
 @Composable
 @Preview
 private fun Preview() {
-    Theme { PostComposeNavigationBar(rememberNavController(), false, {}, false) }
+    Theme { PostComposeNavigationBar(onClose = {}, isDoneEnabled = false, onDoneClick = {}, isUploading = false) }
 }
