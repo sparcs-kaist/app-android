@@ -25,6 +25,8 @@
     <string name="post_options">Post options</string>
     <string name="nsfw">NSFW</string>
     <string name="political">Political</string>
+    <string name="market_state_reserved">Reserved</string>
+    <string name="market_state_sold_out">Sold out</string>
     <string name="enter_the_title">Please enter the title</string>
     <string name="enter_the_description">What\'s happening</string>
     <string name="no_flair">No flair</string>
@@ -39,6 +41,10 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="all">All</string>
+    <string name="post_updated">Updated</string>
+    <string name="post_hidden_blocked_author">This post is from someone you blocked.</string>
+    <string name="market_price_free">Free</string>
+    <string name="market_price_none">No price</string>
     <string name="my_table">My Table</string>
     <string name="br">BR</string>
     <string name="be">BE</string>

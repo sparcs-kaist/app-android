@@ -35,10 +35,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.SearchScope
+import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
 import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
+import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.search.components.CoursePaginationFooter
 import org.sparcs.soap.app.features.search.components.CourseSection
 import org.sparcs.soap.app.features.search.components.PostSection
@@ -76,7 +78,6 @@ fun SearchView(
 
     Scaffold(
         topBar = {
-            // The search bar and scope chips are the top of the screen, in place of a title.
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -226,11 +227,15 @@ fun ResultView(
     val searchScope by viewModel.searchScope.collectAsState()
     val state by viewModel.state.collectAsState()
 
+    val openPost: (AraPost) -> Unit = { post ->
+        viewModel.markRead(post.id)
+        navController.navigate(Channel.PostView.name + "?postId=${post.id}")
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
     ) {
-        // --- Courses ---
         if (searchScope == SearchScope.All) {
             item {
                 CourseSection(
@@ -256,7 +261,6 @@ fun ResultView(
             }
         }
 
-        // --- Posts ---
         if (searchScope == SearchScope.All) {
             item {
                 PostSection(
@@ -264,7 +268,7 @@ fun ResultView(
                     searchScope = searchScope,
                     onScopeChange = viewModel::onScopeChange,
                     onLoadMore = { viewModel.loadAraNextPage() },
-                    navController = navController,
+                    onPostClick = openPost,
                     isSkeleton = state == SearchViewModel.ViewState.Loading
                 )
             }
@@ -275,13 +279,12 @@ fun ResultView(
                     searchScope = searchScope,
                     onScopeChange = viewModel::onScopeChange,
                     onLoadMore = { viewModel.loadAraNextPage() },
-                    navController = navController,
+                    onPostClick = openPost,
                     isSkeleton = state == SearchViewModel.ViewState.Loading
                 )
             }
         }
 
-        // --- Taxi Rooms ---
         if (searchScope == SearchScope.All) {
             item {
                 TaxiSection(

@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.rounded.AttachFile
-import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,13 +19,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.models.ara.AraHiddenReason
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
+import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.theme.ui.Theme
@@ -37,20 +38,70 @@ fun PostListRow(
     post: AraPost,
     modifier: Modifier = Modifier,
 ) {
+    if (post.isHidden) {
+        HiddenPostListRow(post, modifier)
+    } else {
+        VisiblePostListRow(post, modifier)
+    }
+}
+
+@Composable
+private fun HiddenPostListRow(
+    post: AraPost,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .semantics(mergeDescendants = true) {}
+    ) {
+        Icon(
+            imageVector = post.hiddenIcon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.outline,
+            modifier = Modifier.size(18.dp)
+        )
+        Text(
+            text = stringResource(post.hiddenReasonRes),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = post.createdAt.timeAgoDisplay(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun VisiblePostListRow(
+    post: AraPost,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
-
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (post.isUpdatedSinceRead) {
+                UpdatedMarker(Modifier.padding(end = 6.dp))
+            }
+
             post.topic?.let { topic ->
                 Text(
                     text = "[" + topic.name.localized() + "]",
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (post.isRead) 0.5f else 1f)
                 )
 
                 Spacer(Modifier.width(4.dp))
@@ -63,7 +114,8 @@ fun PostListRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false),
-                color = if (post.isHidden) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                color = if (post.isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.width(4.dp))
@@ -87,6 +139,9 @@ fun PostListRow(
             }
         }
 
+        post.marketListing?.let { listing ->
+            MarketListingLabel(listing, Modifier.padding(top = 2.dp))
+        }
 
         Spacer(modifier = Modifier.height(4.dp))
 
@@ -94,7 +149,6 @@ fun PostListRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
             val voteCount = post.upVotes - post.downVotes
 
             if (voteCount != 0 || post.commentCount > 0) {
@@ -129,14 +183,8 @@ fun PostListRow(
     }
 }
 
-// Title widths cycle through these so placeholders look like titles without changing between
-// recompositions.
 private val skeletonTitleWidths = listOf(0.7f, 0.45f, 0.85f, 0.6f, 0.5f)
 
-/**
- * Placeholder with the same height as [PostListRow]: each bar sits in a box one text line tall
- * for the style it stands in for, so swapping to loaded rows doesn't shift the list.
- */
 @Composable
 fun PostListSkeletonRow(index: Int = 0, modifier: Modifier = Modifier) {
     val titleStyle = MaterialTheme.typography.titleMedium
@@ -163,14 +211,9 @@ fun PostListSkeletonRow(index: Int = 0, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun title(post: AraPost, stringProvider: @Composable (Int) -> String): String {
-    return when {
-        post.isHidden && post.isNSFW -> stringProvider(R.string.this_post_contains_nsfw_content)
-        post.isHidden && post.isPolitical -> stringProvider(R.string.this_post_contains_political_content)
-        post.isHidden -> stringProvider(R.string.this_post_is_hidden)
-        else -> post.title ?: stringProvider(R.string.untitled)
-    }
-}
+fun title(post: AraPost, stringProvider: @Composable (Int) -> String): String =
+    if (post.isHidden) stringProvider(post.hiddenReasonRes)
+    else post.title ?: stringProvider(R.string.untitled)
 
 @Composable
 @Preview(showBackground = true)
@@ -186,6 +229,23 @@ private fun Preview() {
 
 @Composable
 @Preview(showBackground = true)
+private fun PreviewReadAndHidden() {
+    val post = AraPost.mock()
+    Theme {
+        Column {
+            PostListRow(post.copy(readStatus = AraPost.ReadStatus.UNREAD))
+            PostListRow(post.copy(readStatus = AraPost.ReadStatus.READ))
+            PostListRow(post.copy(readStatus = AraPost.ReadStatus.UPDATED))
+            PostListRow(post.copy(isHidden = true, hiddenReason = listOf(AraHiddenReason.BLOCKED_USER_CONTENT)))
+            PostListRow(post.copy(isHidden = true, isNSFW = true))
+            PostListRow(post.copy(isHidden = true, isPolitical = true))
+            PostListRow(post.copy(isHidden = true))
+        }
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
 private fun PreviewSkeleton() {
     Theme {
         Column {
@@ -193,5 +253,3 @@ private fun PreviewSkeleton() {
         }
     }
 }
-
-

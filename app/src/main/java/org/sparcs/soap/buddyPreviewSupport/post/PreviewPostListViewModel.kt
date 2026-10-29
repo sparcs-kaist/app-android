@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.sparcs.soap.app.domain.models.ara.AraBoard
+import org.sparcs.soap.app.domain.models.ara.AraBoardTopic
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.features.postList.PostListViewModel
 import org.sparcs.soap.app.features.postList.PostListViewModelProtocol
@@ -31,6 +32,11 @@ class PreviewPostListViewModel(
 
     override fun refreshItem(postID: Int) {}
 
+    override fun markRead(postID: Int) {
+        posts = posts.map { if (it.id == postID) it.copy(readStatus = AraPost.ReadStatus.READ) else it }
+        _state.value = PostListViewModel.ViewState.Loaded(posts)
+    }
+
     override fun removePost(postID: Int) {
         posts = posts.filter { it.id != postID }
         _state.value = PostListViewModel.ViewState.Loaded(posts)
@@ -38,6 +44,12 @@ class PreviewPostListViewModel(
 
     override fun onSearchTextChange(text: String) {
         _searchKeyword.value = text
+    }
+
+    override var selectedTopic: AraBoardTopic? = null
+
+    override fun selectTopic(topic: AraBoardTopic?) {
+        selectedTopic = topic
     }
 
     override fun bind() {}

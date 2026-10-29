@@ -23,6 +23,8 @@
     <string name="post_options">게시글 옵션</string>
     <string name="nsfw">성인</string>
     <string name="political">정치</string>
+    <string name="market_state_reserved">예약 중</string>
+    <string name="market_state_sold_out">판매 완료</string>
     <string name="enter_the_title">제목을 입력해 주세요.</string>
     <string name="enter_the_description">내용을 입력해 주세요.</string>
     <string name="no_flair">말머리 없음</string>
@@ -37,6 +39,10 @@
     <string name="ok">확인</string>
     <string name="cancel">취소</string>
     <string name="all">전체</string>
+    <string name="post_updated">수정됨</string>
+    <string name="post_hidden_blocked_author">차단한 사용자의 게시글입니다.</string>
+    <string name="market_price_free">무료 나눔</string>
+    <string name="market_price_none">가격 없음</string>
     <string name="my_table">내 시간표</string>
     <string name="br">기필</string>
     <string name="be">기선</string>
