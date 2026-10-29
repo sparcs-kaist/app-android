@@ -26,6 +26,7 @@ import org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol
 import org.sparcs.soap.app.features.main.MainActivity
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 @AndroidEntryPoint
 class FCMService : FirebaseMessagingService() {
@@ -36,8 +37,9 @@ class FCMService : FirebaseMessagingService() {
     @Inject
     lateinit var tokenStorage: TokenStorageProtocol
 
+    // Only looked at while Buddy is on screen, so a push in the background doesn't create it.
     @Inject
-    lateinit var taxiUnreadStore: TaxiUnreadStore
+    lateinit var taxiUnreadStore: Provider<TaxiUnreadStore>
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -64,7 +66,7 @@ class FCMService : FirebaseMessagingService() {
                 // The open chat already shows the message.
                 val isForeground = ProcessLifecycleOwner.get().lifecycle.currentState
                     .isAtLeast(Lifecycle.State.STARTED)
-                if (isForeground && taxiUnreadStore.activeRoomId == remoteMessage.data["room_id"]) return
+                if (isForeground && taxiUnreadStore.get().activeRoomId == remoteMessage.data["room_id"]) return
                 TaxiNotifications.show(this, remoteMessage.data, content)
                 return
             }

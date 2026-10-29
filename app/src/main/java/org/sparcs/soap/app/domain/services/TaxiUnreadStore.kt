@@ -2,6 +2,7 @@ package org.sparcs.soap.app.domain.services
 
 import android.content.Context
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -108,7 +109,7 @@ class TaxiUnreadStore @Inject constructor(
             authUseCaseProvider.get().isAuthenticatedFlow.collect { authenticated ->
                 isAuthenticated = authenticated
                 if (authenticated) {
-                    if (liveChatsJob == null) liveChatsJob = observeLiveChats()
+                    startLiveChatsIfForeground()
                     refresh()
                 } else {
                     _counts.value = emptyMap()
@@ -117,6 +118,13 @@ class TaxiUnreadStore @Inject constructor(
                 }
             }
         }
+    }
+
+    // The socket is only needed while Buddy is on screen, and starting it from a push or a reply
+    // in the background would keep a connection open for nothing.
+    private fun startLiveChatsIfForeground() {
+        val isForeground = ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+        if (isAuthenticated && isForeground && liveChatsJob == null) liveChatsJob = observeLiveChats()
     }
 
     private fun observeLiveChats(): Job =
@@ -134,6 +142,7 @@ class TaxiUnreadStore @Inject constructor(
     private fun observeForeground() {
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
+                startLiveChatsIfForeground()
                 scope.launch { refresh() }
             }
         })
