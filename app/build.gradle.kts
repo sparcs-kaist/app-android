@@ -43,8 +43,8 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 37
-        versionCode = 36
-        versionName = "2.1.0"
+        versionCode = 40
+        versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"\"")
