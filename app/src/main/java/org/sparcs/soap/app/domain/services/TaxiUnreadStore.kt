@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
+import org.sparcs.soap.app.domain.services.notifications.TaxiNotifications
 import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import timber.log.Timber
@@ -89,6 +90,7 @@ class TaxiUnreadStore @Inject constructor(
     fun enterRoom(roomId: String) {
         activeRoomId = roomId
         markRead(roomId)
+        TaxiNotifications.cancel(context, roomId)
     }
 
     /** Marks [roomId] as no longer on screen, if it still is. */

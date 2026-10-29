@@ -761,6 +761,20 @@
     <string name="activity_time_number">시간 %1$d</string>
     <string name="activity_remove_time">시간 삭제</string>
 
+    <!-- 택시 알림. taxi_push_* 문자열은 서버가 보내는 TAXI_* 현지화 키이며 NotificationContent에서 연결됩니다. -->
+    <string name="taxi_push_chat_image">사진을 보냈습니다.</string>
+    <string name="taxi_push_chat_account">계좌번호를 보냈습니다.</string>
+    <string name="taxi_push_in">%1$s 님이 참여했습니다.</string>
+    <string name="taxi_push_out">%1$s 님이 나갔습니다.</string>
+    <string name="taxi_push_settlement">%1$s 님이 정산을 요청했습니다.</string>
+    <string name="taxi_push_payment">%1$s 님이 송금했습니다.</string>
+    <string name="taxi_push_departure">택시가 %1$s분 후에 출발합니다.</string>
+    <string name="taxi_push_arrival">아직 정산을 요청하지 않았거나 송금하지 않은 탑승자가 있습니다.</string>
+    <string name="taxi_chats_channel">택시 채팅</string>
+    <string name="taxi_updates_channel">탑승 알림</string>
+    <string name="taxi_notification_me">나</string>
+    <string name="taxi_reply">답장</string>
+    <string name="taxi_reply_failed">답장을 보낼 수 없습니다. 답장을 탭하여 다시 시도하세요.</string>
     <string name="taxi_chat_not_found_title">채팅을 찾을 수 없음</string>
     <string name="taxi_chat_not_found_message">이 탑승의 채팅을 열 수 없습니다. 이미 탑승에서 나갔을 수 있습니다.</string>
     <plurals name="taxi_unread_count">

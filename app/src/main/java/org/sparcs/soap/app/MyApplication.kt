@@ -1,5 +1,6 @@
 package org.sparcs.soap.app
 
+import org.sparcs.soap.app.domain.services.notifications.TaxiNotifications
 import android.app.Application
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -25,6 +26,7 @@ class MyApplication : Application() {
         setupLogger()
         setupFirebase()
         timetableThemeSync.start()
+        TaxiNotifications.createChannels(this)
 
         try {
             val name = runCatching { userUseCase.taxiUser?.name }.getOrNull()

@@ -815,6 +815,21 @@
     <string name="activity_time_number">Time %1$d</string>
     <string name="activity_remove_time">Remove time</string>
 
+    <!-- Taxi notifications. The taxi_push_* strings are the server's TAXI_* localization keys, mapped in
+         NotificationContent. -->
+    <string name="taxi_push_chat_image">Sent a photo.</string>
+    <string name="taxi_push_chat_account">Sent a bank account number.</string>
+    <string name="taxi_push_in">%1$s joined the ride.</string>
+    <string name="taxi_push_out">%1$s left the ride.</string>
+    <string name="taxi_push_settlement">%1$s requested settlement.</string>
+    <string name="taxi_push_payment">%1$s sent their payment.</string>
+    <string name="taxi_push_departure">Your taxi leaves in %1$s minutes.</string>
+    <string name="taxi_push_arrival">Some riders haven’t requested settlement or sent their payment yet.</string>
+    <string name="taxi_chats_channel">Taxi Chats</string>
+    <string name="taxi_updates_channel">Ride Updates</string>
+    <string name="taxi_notification_me">You</string>
+    <string name="taxi_reply">Reply</string>
+    <string name="taxi_reply_failed">Couldn’t send your reply. Tap Reply to try again.</string>
     <string name="taxi_chat_not_found_title">Chat Not Found</string>
     <string name="taxi_chat_not_found_message">Couldn’t open this ride’s chat. You may have left the ride.</string>
     <plurals name="taxi_unread_count">
