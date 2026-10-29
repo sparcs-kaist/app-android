@@ -225,7 +225,9 @@ class TaxiChatService @Inject constructor(
 
         socket?.on("chat_push_back") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-            val newChats = parseChats(firstArg.optJSONArray("chats") ?: JSONArray())
+            // Minigame chats decode as text, so they are told apart by their raw type.
+            val chatsWithTypes = parseChatsWithTypes(firstArg.optJSONArray("chats") ?: JSONArray())
+            val newChats = chatsWithTypes.map { it.first }
             val roomId = roomIdOf(firstArg, newChats) ?: return@on
             val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
 
@@ -238,16 +240,13 @@ class TaxiChatService @Inject constructor(
                 serviceScope.launch { _chatsFlow.emit(chatsForRoom.toList()) }
             }
 
-            // Only a chat just sent carries its room ID; loading newer chats for a room does not.
+            // Only a chat just sent carries its room ID; loading newer chats for a room does not. One
+            // already here, such as sent again, isn't new, and emitting it in place keeps the order.
             if (firstArg.has("roomId")) {
-                val chatsJson = firstArg.optJSONArray("chats") ?: JSONArray()
-                val liveJson = JSONArray()
-                for (i in 0 until chatsJson.length()) {
-                    val chat = chatsJson.optJSONObject(i) ?: continue
-                    if (chat.optString("type") !in MINIGAME_CHAT_TYPES) liveJson.put(chat)
-                }
-                val liveChats = parseChats(liveJson)
-                serviceScope.launch { liveChats.forEach { _liveChatsFlow.emit(it) } }
+                val newIds = filteredChats.map { it.id }.toSet()
+                chatsWithTypes
+                    .filter { (chat, type) -> chat.id in newIds && type !in MINIGAME_CHAT_TYPES }
+                    .forEach { (chat, _) -> _liveChatsFlow.tryEmit(chat) }
             }
         }
 
@@ -257,6 +256,12 @@ class TaxiChatService @Inject constructor(
             serviceScope.launch { _roomUpdateFlow.emit(roomID) }
         }
     }
+
+    private fun parseChatsWithTypes(array: JSONArray): List<Pair<TaxiChat, String>> =
+        (0 until array.length()).mapNotNull { i ->
+            val json = array.optJSONObject(i) ?: return@mapNotNull null
+            parseChats(JSONArray().put(json)).firstOrNull()?.let { it to json.optString("type") }
+        }
 
     private fun parseChats(array: JSONArray): List<TaxiChat> =
         (0 until array.length()).mapNotNull { i ->
