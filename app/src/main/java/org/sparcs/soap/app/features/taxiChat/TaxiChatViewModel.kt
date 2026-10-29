@@ -38,9 +38,15 @@ import timber.log.Timber
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+import org.sparcs.soap.app.domain.services.MockTaxiUnreadStore
+import org.sparcs.soap.app.domain.services.TaxiUnreadStoreProtocol
 
 
 interface TaxiChatViewModelProtocol {
+    /** Marks this ride's chat as on screen, whose chats are read as they arrive. */
+    fun enterChat()
+    /** Marks this ride's chat as no longer on screen. */
+    fun exitChat()
 
     // MARK: - ViewModel Properties
     val state: StateFlow<TaxiChatViewModel.ViewState>
@@ -83,7 +89,24 @@ class TaxiChatViewModel @Inject constructor(
     private val taxiChatUseCase: TaxiChatUseCaseProtocol,
     val userUseCase: UserUseCaseProtocol,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
+    private val taxiUnreadStore: TaxiUnreadStoreProtocol = MockTaxiUnreadStore(),
 ) : ViewModel(), TaxiChatViewModelProtocol {
+
+    // The ride last entered, which is left even if the ride shown changes meanwhile.
+    private var enteredRoomId: String? = null
+
+    // While the chat is on screen its chats are read as they arrive, so they neither count as
+    // unread nor show as notifications.
+    override fun enterChat() {
+        val roomId = room.value.id
+        enteredRoomId = roomId
+        taxiUnreadStore.enterRoom(roomId)
+    }
+
+    override fun exitChat() {
+        enteredRoomId?.let(taxiUnreadStore::leaveRoom)
+        enteredRoomId = null
+    }
 
     private val initialRoom: TaxiRoom by lazy {
         val json = savedStateHandle.get<String>("room_json")

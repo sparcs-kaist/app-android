@@ -182,7 +182,8 @@ class MainActivity : ComponentActivity() {
                             }
                             */
                             Box(modifier = Modifier.fillMaxSize()) {
-                                MainTabBar()
+                                val taxiUnreadCount by viewModel.taxiUnreadCount.collectAsState()
+                                MainTabBar(taxiUnreadCount = taxiUnreadCount)
                                 SnackbarHost(
                                     hostState = snackbarHostState,
                                     modifier = Modifier

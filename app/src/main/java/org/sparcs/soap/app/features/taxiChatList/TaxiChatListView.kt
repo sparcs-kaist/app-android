@@ -42,8 +42,7 @@ fun TaxiChatListView(
     viewModel: TaxiChatListViewModelProtocol = hiltViewModel<TaxiChatListViewModel>(),
     navController: NavController,
 ) {
-    val unreadViewModel: TaxiUnreadViewModel = hiltViewModel()
-    val unreadCounts by unreadViewModel.counts.collectAsState()
+    val unreadCounts by viewModel.unreadCounts.collectAsState()
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {

@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.taxiChat
 
-import org.sparcs.soap.app.features.taxiChatList.TaxiUnreadViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import android.content.res.Configuration
 import android.net.Uri
@@ -107,13 +106,10 @@ fun TaxiChatView(
     }
     fun dismissFullscreenImage() { tappedImageID = null }
 
-    // While the chat is on screen its chats are read as they arrive, so they neither count as
-    // unread nor show as notifications.
-    val unreadViewModel: TaxiUnreadViewModel = hiltViewModel()
-    val unreadCounts by unreadViewModel.counts.collectAsState()
+    val unreadCounts by listViewModel.unreadCounts.collectAsState()
     LifecycleResumeEffect(room.id) {
-        unreadViewModel.enterRoom(room.id)
-        onPauseOrDispose { unreadViewModel.leaveRoom(room.id) }
+        viewModel.enterChat()
+        onPauseOrDispose { viewModel.exitChat() }
     }
 
     LaunchedEffect(Unit) {

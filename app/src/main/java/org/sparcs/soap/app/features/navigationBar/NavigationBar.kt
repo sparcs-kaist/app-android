@@ -1,8 +1,5 @@
 package org.sparcs.soap.app.features.navigationBar
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import org.sparcs.soap.app.features.taxiChatList.TaxiUnreadViewModel
 import org.sparcs.soap.app.features.navigationBar.components.UnreadCountBadge
 import androidx.compose.material3.BadgedBox
 import android.content.Intent
@@ -178,9 +175,10 @@ enum class Channel(@param:StringRes val title: Int) {
 }
 
 @Composable
-fun MainTabBar(navController: NavHostController = rememberNavController()) {
-    val taxiUnreadViewModel: TaxiUnreadViewModel = hiltViewModel()
-    val taxiUnreadCount by taxiUnreadViewModel.totalCount.collectAsState()
+fun MainTabBar(
+    navController: NavHostController = rememberNavController(),
+    taxiUnreadCount: Int = 0,
+) {
     val navBackStackEntryState = navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntryState.value?.destination?.route
 
