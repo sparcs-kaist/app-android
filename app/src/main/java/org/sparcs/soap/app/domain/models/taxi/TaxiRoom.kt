@@ -15,7 +15,9 @@ data class TaxiRoom(
     val settlementTotal: Int?,
     val emojiIdentifier: EmojiIdentifier,
     val isDeparted: Boolean,
-    val isOver: Boolean?
+    val isOver: Boolean?,
+    /** Chats others sent since you last read the room, when the server reported it. */
+    val unreadCount: Int? = null
 ){
     fun canCommitPayment(userID: String?): Boolean =
         userID != null && isDeparted && (settlementTotal ?: 0) > 0 &&

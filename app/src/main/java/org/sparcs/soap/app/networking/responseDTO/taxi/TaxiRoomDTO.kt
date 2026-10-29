@@ -41,7 +41,10 @@ data class TaxiRoomDTO(
     val isDeparted: Boolean,
 
     @SerializedName("isOver")
-    val isOver: Boolean?
+    val isOver: Boolean?,
+
+    @SerializedName("unreadCount")
+    val unreadCount: Int? = null
 ) {
     fun toModel(): TaxiRoom {
         return TaxiRoom(
@@ -56,7 +59,8 @@ data class TaxiRoomDTO(
             settlementTotal = settlementTotal,
             emojiIdentifier = EmojiIdentifier.fromRawValue(emojiIdentifier),
             isDeparted = isDeparted,
-            isOver = isOver
+            isOver = isOver,
+            unreadCount = unreadCount
         )
     }
 }
