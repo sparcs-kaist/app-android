@@ -24,6 +24,8 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.transform.CircleCropTransformation
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.NotificationContent
@@ -51,6 +53,7 @@ object TaxiNotifications {
 
     private const val CHAT_TAG = "taxi_chat"
     private const val EVENT_TAG = "taxi_event"
+    private const val REPLY_FAILED_TAG = "taxi_reply_failed"
     private const val ME_KEY = "me"
     // Each room's notifications are told apart by their tag, which holds the room's ID; an ID made
     // from it, such as its hash, could be shared by two rooms.
@@ -64,11 +67,13 @@ object TaxiNotifications {
 
     private fun chatTag(roomId: String) = "$CHAT_TAG:$roomId"
     private fun eventTag(roomId: String) = "$EVENT_TAG:$roomId"
+    private fun replyFailedTag(roomId: String) = "$REPLY_FAILED_TAG:$roomId"
 
     /** Whether [data] is a Taxi notification's. */
     fun isTaxi(data: Map<String, String>): Boolean =
         data["category"]?.startsWith("taxi_") == true && !data["room_id"].isNullOrBlank()
 
+    /** Creates the channels, which the app does as it starts, before any notification arrives. */
     fun createChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannels(
@@ -90,7 +95,6 @@ object TaxiNotifications {
     /** Shows a Taxi push. Downloads images, so call it off the main thread. */
     internal fun show(context: Context, data: Map<String, String>, content: NotificationContent) {
         if (!canNotify(context)) return
-        createChannels(context)
         val roomId = data["room_id"] ?: return
         val roomName = data["room_name"] ?: content.title
 
@@ -106,8 +110,11 @@ object TaxiNotifications {
         val style = existingStyle(context, roomId) ?: newStyle(context, roomName)
         style.addMessage(NotificationCompat.MessagingStyle.Message(text, System.currentTimeMillis(), null as Person?))
         notifyChat(context, roomId, roomName, style, alert = false)
-        // A reply from a ride event's notification is now part of the conversation.
-        NotificationManagerCompat.from(context).cancel(eventTag(roomId), NOTIFICATION_ID)
+        // A reply from a ride event's notification is now part of the conversation, and one sent
+        // again after failing has been.
+        val manager = NotificationManagerCompat.from(context)
+        manager.cancel(eventTag(roomId), NOTIFICATION_ID)
+        manager.cancel(replyFailedTag(roomId), NOTIFICATION_ID)
     }
 
     /** Says that a reply could not be sent, keeping the reply action so it can be sent again. */
@@ -123,7 +130,7 @@ object TaxiNotifications {
             .addAction(replyAction(context, roomId, roomName))
             .setAutoCancel(true)
             .build()
-        NotificationManagerCompat.from(context).notify(eventTag(roomId), NOTIFICATION_ID, notification)
+        NotificationManagerCompat.from(context).notify(replyFailedTag(roomId), NOTIFICATION_ID, notification)
     }
 
     /**
@@ -133,7 +140,7 @@ object TaxiNotifications {
     fun clearAll(context: Context) {
         val manager = NotificationManagerCompat.from(context)
         manager.activeNotifications
-            .filter { it.tag?.startsWith(CHAT_TAG) == true || it.tag?.startsWith(EVENT_TAG) == true }
+            .filter { notification -> listOf(CHAT_TAG, EVENT_TAG, REPLY_FAILED_TAG).any { notification.tag?.startsWith(it) == true } }
             .forEach { manager.cancel(it.tag, it.id) }
         runCatching {
             val rideShortcuts = ShortcutManagerCompat
@@ -150,6 +157,7 @@ object TaxiNotifications {
         val manager = NotificationManagerCompat.from(context)
         manager.cancel(chatTag(roomId), NOTIFICATION_ID)
         manager.cancel(eventTag(roomId), NOTIFICATION_ID)
+        manager.cancel(replyFailedTag(roomId), NOTIFICATION_ID)
     }
 
     private fun showChat(
@@ -160,18 +168,22 @@ object TaxiNotifications {
         body: String,
     ) {
         val senderId = data["sender_id"] ?: roomId
+        val sentAt = data["sent_at"]?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
+            ?: System.currentTimeMillis()
+        // Both at once, so a slow one doesn't hold up the other.
+        val (avatar, photo) = runBlocking {
+            val avatar = async { loadBitmap(context, data["sender_avatar_url"], AVATAR_SIZE, circle = true) }
+            val photo = async { imageUri(context, data["image_url"], data["chat_id"] ?: sentAt.toString()) }
+            avatar.await() to photo.await()
+        }
         val sender = Person.Builder()
             .setKey(senderId)
             .setName(data["sender_name"] ?: roomName)
-            .apply { loadBitmap(context, data["sender_avatar_url"], AVATAR_SIZE, circle = true)?.let { setIcon(IconCompat.createWithBitmap(it)) } }
+            .apply { avatar?.let { setIcon(IconCompat.createWithBitmap(it)) } }
             .build()
 
-        val sentAt = data["sent_at"]?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
-            ?: System.currentTimeMillis()
         val message = NotificationCompat.MessagingStyle.Message(body, sentAt, sender)
-        imageUri(context, data["image_url"], data["chat_id"] ?: sentAt.toString())?.let {
-            message.setData("image/jpeg", it)
-        }
+        photo?.let { message.setData("image/jpeg", it) }
 
         val style = existingStyle(context, roomId) ?: newStyle(context, roomName)
         style.addMessage(message)
@@ -293,7 +305,7 @@ object TaxiNotifications {
      * loaded, since the URL comes from the push, and a slow one is given up on so the notification
      * still shows.
      */
-    private fun loadBitmap(context: Context, url: String?, size: Int, circle: Boolean): Bitmap? {
+    private suspend fun loadBitmap(context: Context, url: String?, size: Int, circle: Boolean): Bitmap? {
         val uri = url?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return null
         if (uri.scheme?.lowercase() !in setOf("https", "http")) return null
         return runCatching {
@@ -303,15 +315,13 @@ object TaxiNotifications {
                 .allowHardware(false)
                 .apply { if (circle) transformations(CircleCropTransformation()) }
                 .build()
-            val result = kotlinx.coroutines.runBlocking {
-                withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) { context.imageLoader.execute(request) }
-            }
+            val result = withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) { context.imageLoader.execute(request) }
             (result as? SuccessResult)?.drawable?.toBitmap()
         }.getOrNull()
     }
 
     /** A photo sent in the chat, saved where the system's notification UI may read it. */
-    private fun imageUri(context: Context, url: String?, name: String): Uri? {
+    private suspend fun imageUri(context: Context, url: String?, name: String): Uri? {
         val bitmap = loadBitmap(context, url, PHOTO_SIZE, circle = false) ?: return null
         return runCatching {
             val directory = File(context.cacheDir, IMAGES_DIRECTORY).apply { mkdirs() }
@@ -323,9 +333,8 @@ object TaxiNotifications {
             val safeName = name.filter { it.isLetterOrDigit() || it == '-' || it == '_' }.take(64).ifEmpty { "photo" }
             val file = File(directory, "$safeName.jpg")
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
-            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-            context.grantUriPermission("com.android.systemui", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            uri
+            // The system lets its notification UI read a URI a notification holds.
+            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         }.getOrNull()
     }
 

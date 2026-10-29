@@ -8,9 +8,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.withTimeoutOrNull
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.models.taxi.TaxiChatRequest
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiChatRepositoryProtocol
@@ -46,9 +44,9 @@ class TaxiReplyReceiver : BroadcastReceiver() {
                 withTimeout(SEND_TIMEOUT_MILLIS) {
                     taxiChatRepository.sendChat(TaxiChatRequest(roomId, TaxiChat.ChatType.TEXT, text))
                 }
-                // Replying means you have read the room; failing to mark it only leaves its badge.
-                withTimeoutOrNull(READ_TIMEOUT_MILLIS) { runCatching { taxiChatRepository.readChats(roomId) } }
-                withContext(Dispatchers.Main) { taxiUnreadStore.get().markRead(roomId) }
+                // Replying means you have read the room.
+                TaxiMarkReadWorker.enqueue(context, roomId)
+                taxiUnreadStore.get().markRead(roomId)
                 TaxiNotifications.appendReply(context, roomId, roomName, text)
             } catch (e: Exception) {
                 Timber.e(e, "[TaxiReplyReceiver] Failed to send a quick reply")
@@ -60,7 +58,6 @@ class TaxiReplyReceiver : BroadcastReceiver() {
     }
 
     private companion object {
-        const val SEND_TIMEOUT_MILLIS = 6_000L
-        const val READ_TIMEOUT_MILLIS = 2_000L
+        const val SEND_TIMEOUT_MILLIS = 8_000L
     }
 }
