@@ -52,12 +52,18 @@ object TaxiNotifications {
     private const val CHAT_TAG = "taxi_chat"
     private const val EVENT_TAG = "taxi_event"
     private const val ME_KEY = "me"
+    // Each room's notifications are told apart by their tag, which holds the room's ID; an ID made
+    // from it, such as its hash, could be shared by two rooms.
+    private const val NOTIFICATION_ID = 0
     private const val SHORTCUT_CATEGORY = "org.sparcs.soap.category.TAXI_CHAT"
     private const val IMAGES_DIRECTORY = "notification_images"
     private const val IMAGE_LIFETIME_MILLIS = 24 * 60 * 60 * 1000L
     private const val IMAGE_TIMEOUT_MILLIS = 5_000L
     private const val AVATAR_SIZE = 256
     private const val PHOTO_SIZE = 1440
+
+    private fun chatTag(roomId: String) = "$CHAT_TAG:$roomId"
+    private fun eventTag(roomId: String) = "$EVENT_TAG:$roomId"
 
     /** Whether [data] is a Taxi notification's. */
     fun isTaxi(data: Map<String, String>): Boolean =
@@ -101,7 +107,7 @@ object TaxiNotifications {
         style.addMessage(NotificationCompat.MessagingStyle.Message(text, System.currentTimeMillis(), null as Person?))
         notifyChat(context, roomId, roomName, style, alert = false)
         // A reply from a ride event's notification is now part of the conversation.
-        NotificationManagerCompat.from(context).cancel(EVENT_TAG, roomId.hashCode())
+        NotificationManagerCompat.from(context).cancel(eventTag(roomId), NOTIFICATION_ID)
     }
 
     /** Says that a reply could not be sent, keeping the reply action so it can be sent again. */
@@ -117,7 +123,7 @@ object TaxiNotifications {
             .addAction(replyAction(context, roomId, roomName))
             .setAutoCancel(true)
             .build()
-        NotificationManagerCompat.from(context).notify(EVENT_TAG, roomId.hashCode(), notification)
+        NotificationManagerCompat.from(context).notify(eventTag(roomId), NOTIFICATION_ID, notification)
     }
 
     /**
@@ -127,7 +133,7 @@ object TaxiNotifications {
     fun clearAll(context: Context) {
         val manager = NotificationManagerCompat.from(context)
         manager.activeNotifications
-            .filter { it.tag == CHAT_TAG || it.tag == EVENT_TAG }
+            .filter { it.tag?.startsWith(CHAT_TAG) == true || it.tag?.startsWith(EVENT_TAG) == true }
             .forEach { manager.cancel(it.tag, it.id) }
         runCatching {
             val rideShortcuts = ShortcutManagerCompat
@@ -142,8 +148,8 @@ object TaxiNotifications {
     /** Removes the room's notifications, such as once its chat is on screen. */
     fun cancel(context: Context, roomId: String) {
         val manager = NotificationManagerCompat.from(context)
-        manager.cancel(CHAT_TAG, roomId.hashCode())
-        manager.cancel(EVENT_TAG, roomId.hashCode())
+        manager.cancel(chatTag(roomId), NOTIFICATION_ID)
+        manager.cancel(eventTag(roomId), NOTIFICATION_ID)
     }
 
     private fun showChat(
@@ -185,7 +191,7 @@ object TaxiNotifications {
             .addAction(replyAction(context, roomId, roomName))
             .setAutoCancel(true)
             .build()
-        NotificationManagerCompat.from(context).notify(EVENT_TAG, roomId.hashCode(), notification)
+        NotificationManagerCompat.from(context).notify(eventTag(roomId), NOTIFICATION_ID, notification)
     }
 
     private fun notifyChat(
@@ -208,7 +214,7 @@ object TaxiNotifications {
             .setOnlyAlertOnce(!alert)
             .setAutoCancel(true)
             .build()
-        NotificationManagerCompat.from(context).notify(CHAT_TAG, roomId.hashCode(), notification)
+        NotificationManagerCompat.from(context).notify(chatTag(roomId), NOTIFICATION_ID, notification)
     }
 
     private fun newStyle(context: Context, roomName: String): NotificationCompat.MessagingStyle {
@@ -222,19 +228,20 @@ object TaxiNotifications {
     private fun existingStyle(context: Context, roomId: String): NotificationCompat.MessagingStyle? {
         val manager = context.getSystemService(NotificationManager::class.java)
         val active = manager.activeNotifications.firstOrNull {
-            it.tag == CHAT_TAG && it.id == roomId.hashCode()
+            it.tag == chatTag(roomId) && it.id == NOTIFICATION_ID
         } ?: return null
         return NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(active.notification)
     }
 
     private fun replyAction(context: Context, roomId: String, roomName: String): NotificationCompat.Action {
         val intent = Intent(context, TaxiReplyReceiver::class.java)
+            .setIdentifier(roomId)
             .putExtra(EXTRA_ROOM_ID, roomId)
             .putExtra(EXTRA_ROOM_NAME, roomName)
         // Mutable, since the system adds the typed reply to it.
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            roomId.hashCode(),
+            0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
@@ -252,7 +259,7 @@ object TaxiNotifications {
     private fun openChatIntent(context: Context, roomId: String): PendingIntent =
         PendingIntent.getActivity(
             context,
-            roomId.hashCode(),
+            0,
             openChat(context, roomId),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -261,6 +268,7 @@ object TaxiNotifications {
     private fun openChat(context: Context, roomId: String): Intent =
         Intent(context, MainActivity::class.java)
             .setAction(Intent.ACTION_VIEW)
+            .setIdentifier(roomId)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             .putExtra("category", "taxi_chat")
             .putExtra(EXTRA_ROOM_ID, roomId)
