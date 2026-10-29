@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -50,6 +51,7 @@ class MainTabBarViewModel @Inject constructor(
     private fun executeDeepLink(deepLink: DeepLink) {
         when (deepLink) {
             is DeepLink.TaxiInvite -> resolveInvite(deepLink.code)
+            is DeepLink.TaxiChat -> resolveTaxiChat(deepLink.roomId)
             is DeepLink.AraPost -> resolvePost(deepLink.id)
             is DeepLink.FeedPost -> resolveFeedPost(deepLink)
             is DeepLink.Timetable -> {
@@ -76,6 +78,20 @@ class MainTabBarViewModel @Inject constructor(
                 _navigationEvent.send(Channel.Taxi.name + "?roomId=${room.id}")
             } catch (_: Exception) {
                 showError(R.string.invalid_invitation_title, R.string.invalid_invitation_message)
+            }
+        }
+    }
+
+    /** Opens the room's chat, as if it had been chosen from Chats. */
+    fun resolveTaxiChat(roomId: String) {
+        viewModelScope.launch {
+            try {
+                val room = taxiRoomRepository.getRoom(roomId)
+                val json = Uri.encode(Gson().toJson(room))
+                _navigationEvent.send(Channel.TaxiChatView.name + "?room_json=$json")
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                showError(R.string.taxi_chat_not_found_title, R.string.taxi_chat_not_found_message)
             }
         }
     }

@@ -28,6 +28,10 @@ fun MainDeepLinkHandler(
                     onTabSelected(Channel.Taxi)
                     viewModel.resolveInvite(deepLink.code)
                 }
+                is DeepLink.TaxiChat -> {
+                    onTabSelected(Channel.Taxi)
+                    viewModel.resolveTaxiChat(deepLink.roomId)
+                }
                 is DeepLink.AraPost -> {
                     onTabSelected(Channel.Boards)
                     viewModel.resolvePost(deepLink.id)

@@ -815,6 +815,8 @@
     <string name="activity_time_number">Time %1$d</string>
     <string name="activity_remove_time">Remove time</string>
 
+    <string name="taxi_chat_not_found_title">Chat Not Found</string>
+    <string name="taxi_chat_not_found_message">Couldn’t open this ride’s chat. You may have left the ride.</string>
     <plurals name="taxi_unread_count">
         <item quantity="one">%d unread chat</item>
         <item quantity="other">%d unread chats</item>
