@@ -27,8 +27,16 @@ sealed interface PostTranslationState {
         get() = (this as? Translated)?.translation?.targetLanguage
 }
 
+data class LanguagePickerSections(
+    val suggested: List<String>,
+    val others: List<String>,
+) {
+    val isEmpty: Boolean get() = suggested.isEmpty() && others.isEmpty()
+}
+
 object PostTranslator {
     private const val TITLE_KEY = "title"
+    const val SUGGESTION_LIMIT = 5
 
     fun document(content: String, body: PostBody): TiptapDocument =
         TiptapParser().parseOrNull(content)
@@ -40,6 +48,31 @@ object PostTranslator {
 
     fun suggestedTargets(suggested: List<String>, targets: List<String>): List<String> =
         suggested.filter { it in targets }
+
+    fun quickTarget(suggested: List<String>, targets: List<String>, current: String?): String? =
+        if (current != null) null else suggestedTargets(suggested, targets).firstOrNull()
+
+    fun pickerSections(
+        targets: List<String>,
+        suggested: List<String>,
+        current: String?,
+        query: String,
+        name: (String) -> String,
+        aliases: (String) -> List<String> = { emptyList() },
+    ): LanguagePickerSections {
+        val byName = compareBy(String.CASE_INSENSITIVE_ORDER, name)
+        val term = query.trim()
+        if (term.isNotEmpty()) {
+            val matches = targets.distinct().filter { code ->
+                (aliases(code) + name(code)).any { it.contains(term, ignoreCase = true) } ||
+                    code.startsWith(term, ignoreCase = true)
+            }
+            return LanguagePickerSections(suggested = emptyList(), others = matches.sortedWith(byName))
+        }
+        val top = suggestedTargets(listOfNotNull(current) + suggested, targets).distinct().take(SUGGESTION_LIMIT)
+        val others = targets.distinct().filterNot { it in top }.sortedWith(byName)
+        return LanguagePickerSections(suggested = top, others = others)
+    }
 
     suspend fun translate(
         title: String?,

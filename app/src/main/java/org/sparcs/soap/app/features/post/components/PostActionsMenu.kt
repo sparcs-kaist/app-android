@@ -7,10 +7,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Undo
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreVert
@@ -18,6 +16,7 @@ import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.HowToReg
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material.icons.outlined.Summarize
 import androidx.compose.material.icons.outlined.Translate
@@ -33,12 +32,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.ara.AraContentReportType
+import org.sparcs.soap.app.features.post.PostTranslator
 import org.sparcs.soap.app.theme.ui.Theme
 import java.util.Locale
 
@@ -63,15 +61,27 @@ data class PostMenuActions(
     val onSummarise: () -> Unit = {},
 )
 
-private enum class PostMenuSection { REPORT, TRANSLATE }
-
 @Composable
 fun PostActionsMenu(state: PostMenuState, actions: PostMenuActions) {
     var expanded by remember { mutableStateOf(false) }
-    var section by remember { mutableStateOf<PostMenuSection?>(null) }
+    var isReportExpanded by remember { mutableStateOf(false) }
+    var isPickingLanguage by remember { mutableStateOf(false) }
     val dismiss = {
         expanded = false
-        section = null
+        isReportExpanded = false
+    }
+
+    if (isPickingLanguage) {
+        LanguagePickerSheet(
+            targets = state.translationTargets,
+            suggested = state.suggestedTargets,
+            current = state.translationTarget,
+            onSelect = {
+                isPickingLanguage = false
+                actions.onTranslate(it)
+            },
+            onDismiss = { isPickingLanguage = false },
+        )
     }
 
     Box {
@@ -84,8 +94,8 @@ fun PostActionsMenu(state: PostMenuState, actions: PostMenuActions) {
                 ExpandableItem(
                     label = stringResource(R.string.report),
                     icon = { Icon(Icons.Outlined.SmsFailed, contentDescription = null) },
-                    isExpanded = section == PostMenuSection.REPORT,
-                    onToggle = { section = if (section == PostMenuSection.REPORT) null else PostMenuSection.REPORT },
+                    isExpanded = isReportExpanded,
+                    onToggle = { isReportExpanded = !isReportExpanded },
                 ) {
                     AraContentReportType.entries.forEach { type ->
                         DropdownMenuItem(
@@ -100,12 +110,11 @@ fun PostActionsMenu(state: PostMenuState, actions: PostMenuActions) {
                 HorizontalDivider()
             }
 
-            TranslateSection(
+            TranslateItems(
                 state = state,
-                isExpanded = section == PostMenuSection.TRANSLATE,
-                onToggle = { section = if (section == PostMenuSection.TRANSLATE) null else PostMenuSection.TRANSLATE },
-                onShowOriginal = { dismiss(); actions.onShowOriginal() },
                 onTranslate = { dismiss(); actions.onTranslate(it) },
+                onShowOriginal = { dismiss(); actions.onShowOriginal() },
+                onPickLanguage = { dismiss(); isPickingLanguage = true },
             )
 
             if (state.canSummarise) {
@@ -156,54 +165,53 @@ fun BlockItem(isBlocked: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun TranslateSection(
+private fun TranslateItems(
     state: PostMenuState,
-    isExpanded: Boolean,
-    onToggle: () -> Unit,
-    onShowOriginal: () -> Unit,
     onTranslate: (String) -> Unit,
+    onShowOriginal: () -> Unit,
+    onPickLanguage: () -> Unit,
 ) {
-    if (state.translationTargets.isEmpty()) {
-        DropdownMenuItem(
+    val quickTarget = PostTranslator.quickTarget(state.suggestedTargets, state.translationTargets, state.translationTarget)
+    when {
+        state.translationTargets.isEmpty() -> DropdownMenuItem(
             text = { Text(stringResource(R.string.translate)) },
             onClick = {},
             enabled = false,
             leadingIcon = { Icon(Icons.Outlined.Translate, contentDescription = null) },
         )
-        return
-    }
-    val others = state.translationTargets.filterNot { it in state.suggestedTargets }
 
-    ExpandableItem(
-        label = stringResource(R.string.translate),
-        icon = { Icon(Icons.Outlined.Translate, contentDescription = null) },
-        isExpanded = isExpanded,
-        onToggle = onToggle,
-    ) {
-        if (state.translationTarget != null) {
+        state.translationTarget != null -> {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.show_original)) },
                 onClick = onShowOriginal,
                 leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = null) },
             )
-            HorizontalDivider()
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.translate_change_language)) },
+                onClick = onPickLanguage,
+                leadingIcon = { Icon(Icons.Outlined.Translate, contentDescription = null) },
+            )
         }
-        state.suggestedTargets.forEach { LanguageItem(it, it == state.translationTarget, onTranslate) }
-        if (state.suggestedTargets.isNotEmpty() && others.isNotEmpty()) HorizontalDivider()
-        others.forEach { LanguageItem(it, it == state.translationTarget, onTranslate) }
-    }
-}
 
-@Composable
-private fun LanguageItem(code: String, isSelected: Boolean, onSelect: (String) -> Unit) {
-    DropdownMenuItem(
-        text = { Text(languageName(code)) },
-        onClick = { onSelect(code) },
-        trailingIcon = if (isSelected) {
-            { Icon(Icons.Filled.Check, contentDescription = null) }
-        } else null,
-        modifier = Modifier.padding(start = 8.dp),
-    )
+        quickTarget != null -> {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.translate_to_language, languageName(quickTarget))) },
+                onClick = { onTranslate(quickTarget) },
+                leadingIcon = { Icon(Icons.Outlined.Translate, contentDescription = null) },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.translate_other_languages)) },
+                onClick = onPickLanguage,
+                leadingIcon = { Icon(Icons.Outlined.Language, contentDescription = null) },
+            )
+        }
+
+        else -> DropdownMenuItem(
+            text = { Text(stringResource(R.string.translate)) },
+            onClick = onPickLanguage,
+            leadingIcon = { Icon(Icons.Outlined.Translate, contentDescription = null) },
+        )
+    }
 }
 
 @Composable
@@ -245,6 +253,23 @@ private fun PostActionsMenuPreview() {
                 canSummarise = true,
                 translationTargets = listOf("en", "ja", "zh"),
                 suggestedTargets = listOf("en"),
+            ),
+            actions = PostMenuActions(),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PostActionsMenuTranslatedPreview() {
+    Theme {
+        PostActionsMenu(
+            state = PostMenuState(
+                isMine = true,
+                canEdit = true,
+                translationTargets = listOf("en", "ja", "zh"),
+                suggestedTargets = listOf("en"),
+                translationTarget = "en",
             ),
             actions = PostMenuActions(),
         )
