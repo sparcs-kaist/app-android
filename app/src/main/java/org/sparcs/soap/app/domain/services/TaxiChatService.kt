@@ -34,6 +34,9 @@ interface TaxiChatServiceProtocol {
     val chatsPublisher: Flow<List<TaxiChat>>
     val isConnectedPublisher: Flow<Boolean>
     val roomUpdatePublisher: Flow<String>
+    /** Chats as they are sent in any of your rooms, excluding older chats loaded for a room and
+     *  minigame chats, which the app does not support. */
+    val liveChatsPublisher: Flow<TaxiChat>
     fun connectIfNeeded()
     fun reconnect()
     fun disconnect()
@@ -43,6 +46,7 @@ class MockTaxiChatService : TaxiChatServiceProtocol {
     override val chatsPublisher: Flow<List<TaxiChat>> = MutableStateFlow(emptyList())
     override val isConnectedPublisher: Flow<Boolean> = MutableStateFlow(false)
     override val roomUpdatePublisher: Flow<String> = MutableSharedFlow()
+    override val liveChatsPublisher: Flow<TaxiChat> = MutableSharedFlow()
     override fun connectIfNeeded() {}
     override fun reconnect() {}
     override fun disconnect() {}
@@ -64,6 +68,9 @@ class TaxiChatService @Inject constructor(
 
     private val _roomUpdateFlow = MutableSharedFlow<String>(replay = 1)
     override val roomUpdatePublisher = _roomUpdateFlow.asSharedFlow()
+
+    private val _liveChatsFlow = MutableSharedFlow<TaxiChat>(extraBufferCapacity = 64)
+    override val liveChatsPublisher = _liveChatsFlow.asSharedFlow()
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val gson = Gson()
@@ -230,6 +237,18 @@ class TaxiChatService @Inject constructor(
             if (roomId == currentRoomId) {
                 serviceScope.launch { _chatsFlow.emit(chatsForRoom.toList()) }
             }
+
+            // Only a chat just sent carries its room ID; loading newer chats for a room does not.
+            if (firstArg.has("roomId")) {
+                val chatsJson = firstArg.optJSONArray("chats") ?: JSONArray()
+                val liveJson = JSONArray()
+                for (i in 0 until chatsJson.length()) {
+                    val chat = chatsJson.optJSONObject(i) ?: continue
+                    if (chat.optString("type") !in MINIGAME_CHAT_TYPES) liveJson.put(chat)
+                }
+                val liveChats = parseChats(liveJson)
+                serviceScope.launch { liveChats.forEach { _liveChatsFlow.emit(it) } }
+            }
         }
 
         socket?.on("chat_update") { args ->
@@ -282,5 +301,11 @@ class TaxiChatService @Inject constructor(
             }
             connectSocket()
         }
+    }
+
+    private companion object {
+        /** Minigame chats, which the app does not support. Their DTOs decode as text, so they are
+         *  told apart by their raw type. */
+        val MINIGAME_CHAT_TYPES = setOf("wordChain", "racing", "raceLog")
     }
 }
