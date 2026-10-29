@@ -27,6 +27,10 @@ import org.sparcs.soap.app.cache.AppDatabase
 import org.sparcs.soap.app.cache.TaxiRouteCacheDAO
 import org.sparcs.soap.app.cache.TimetableCache
 import org.sparcs.soap.app.cache.TimetableCacheDAO
+import org.sparcs.soap.app.domain.helpers.BoardListSectionStore
+import org.sparcs.soap.app.domain.helpers.BoardListSectionStoreProtocol
+import org.sparcs.soap.app.domain.helpers.BoardSeenPostsStore
+import org.sparcs.soap.app.domain.helpers.BoardSeenPostsStoreProtocol
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.helpers.TaxiLocationStorage
 import org.sparcs.soap.app.domain.helpers.TaxiLocationStorageProtocol
@@ -466,6 +470,14 @@ abstract class StorageModule {
     @Binds
     @Singleton
     abstract fun bindTaxiLocationStorage(impl: TaxiLocationStorage): TaxiLocationStorageProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindBoardListSectionStore(impl: BoardListSectionStore): BoardListSectionStoreProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindBoardSeenPostsStore(impl: BoardSeenPostsStore): BoardSeenPostsStoreProtocol
 }
 
 @Module

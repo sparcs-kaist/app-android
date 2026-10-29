@@ -1,13 +1,16 @@
 package org.sparcs.soap.app.networking.retrofitAPI.ara
 
 
+import org.sparcs.soap.app.networking.responseDTO.ara.AraBlockPageDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraSignInResponseDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraUserDTO
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface AraUserApi {
 
@@ -30,4 +33,16 @@ interface AraUserApi {
         @Path("id") userID: Int,
         @Body params: Map<String, Any>
     )
+
+    @POST("blocks/")
+    suspend fun block(@Body body: Map<String, Int>): Response<Unit>
+
+    @POST("blocks/without_id/")
+    suspend fun unblock(@Body body: Map<String, Int>): Response<Unit>
+
+    @GET("blocks/")
+    suspend fun fetchBlocks(
+        @Query("page") page: Int,
+        @Query("page_size") pageSize: Int,
+    ): AraBlockPageDTO
 }

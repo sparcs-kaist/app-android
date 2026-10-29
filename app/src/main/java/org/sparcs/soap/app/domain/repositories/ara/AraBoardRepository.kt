@@ -18,7 +18,9 @@ import org.sparcs.soap.app.domain.models.ara.AraBoard
 import org.sparcs.soap.app.domain.models.ara.AraCreatePost
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostPage
+import org.sparcs.soap.app.domain.models.ara.AraUpdatePost
 import org.sparcs.soap.app.networking.requestDTO.ara.AraPostRequestDTO
+import org.sparcs.soap.app.networking.requestDTO.ara.AraPostUpdateRequestDTO
 import org.sparcs.soap.app.networking.responseDTO.safeApiCall
 import org.sparcs.soap.app.networking.retrofitAPI.ara.AraBoardApi
 import org.sparcs.soap.app.networking.retrofitAPI.ara.PostReportRequest
@@ -38,7 +40,9 @@ interface AraBoardRepositoryProtocol {
     suspend fun fetchPost(origin: PostOrigin?, postID: Int): AraPost
     suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage
     suspend fun uploadImage(image: Bitmap): AraAttachment
+    suspend fun uploadFile(bytes: ByteArray, fileName: String, mimeType: String): AraAttachment
     suspend fun writePost(request: AraCreatePost)
+    suspend fun updatePost(postID: Int, request: AraUpdatePost)
     suspend fun upVotePost(postID: Int)
     suspend fun downVotePost(postID: Int)
     suspend fun cancelVote(postID: Int)
@@ -84,6 +88,24 @@ class AraBoardRepository @Inject constructor(
                 page,
                 pageSize,
                 parentBoard = type.boardID,
+                parentTopic = type.topicID,
+                searchKeyword = searchKeyword
+            )
+
+            is PostListType.BoardSlug -> api.fetchPosts(
+                page,
+                pageSize,
+                board = type.slug,
+                searchKeyword = searchKeyword
+            )
+
+            is PostListType.Trending -> api.fetchTopPosts(page, pageSize)
+
+            is PostListType.Latest -> api.fetchPosts(
+                page,
+                pageSize,
+                parentBoardIn = type.boardIDs.joinToString(","),
+                ordering = "-created_at",
                 searchKeyword = searchKeyword
             )
 
@@ -116,8 +138,17 @@ class AraBoardRepository @Inject constructor(
         return safeApiCall(gson) { api.uploadImage(part) }.toModel()
     }
 
+    override suspend fun uploadFile(bytes: ByteArray, fileName: String, mimeType: String): AraAttachment {
+        val part = MultipartBody.Part.createFormData("file", fileName, bytes.toRequestBody(mimeType.toMediaTypeOrNull()))
+        return safeApiCall(gson) { api.uploadImage(part) }.toModel()
+    }
+
     override suspend fun writePost(request: AraCreatePost) = safeApiCall(gson) {
         api.writePost(AraPostRequestDTO.fromModel(request))
+    }
+
+    override suspend fun updatePost(postID: Int, request: AraUpdatePost) = safeApiCall(gson) {
+        api.updatePost(postID, AraPostUpdateRequestDTO.fromModel(request))
     }
 
     override suspend fun upVotePost(postID: Int) = safeApiCall(gson) {

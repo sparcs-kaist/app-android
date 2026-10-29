@@ -12,6 +12,7 @@ import org.sparcs.soap.app.domain.models.ara.AraBoard
 import org.sparcs.soap.app.domain.models.ara.AraCreatePost
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostPage
+import org.sparcs.soap.app.domain.models.ara.AraUpdatePost
 import org.sparcs.soap.app.domain.repositories.ara.AraBoardRepositoryProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import javax.inject.Inject
@@ -37,7 +38,9 @@ interface AraBoardUseCaseProtocol {
     ): AraPostPage
 
     suspend fun uploadImage(image: Bitmap): AraAttachment
+    suspend fun uploadFile(bytes: ByteArray, fileName: String, mimeType: String): AraAttachment
     suspend fun writePost(request: AraCreatePost)
+    suspend fun updatePost(postID: Int, request: AraUpdatePost)
     suspend fun upVotePost(postID: Int)
     suspend fun downVotePost(postID: Int)
     suspend fun cancelVote(postID: Int)
@@ -127,6 +130,20 @@ class AraBoardUseCase @Inject constructor(
         )
         execute(context) {
             araBoardRepository.writePost(request)
+        }
+    }
+
+    override suspend fun uploadFile(bytes: ByteArray, fileName: String, mimeType: String): AraAttachment {
+        val context = CrashContext(feature = feature, metadata = mapOf("mimeType" to mimeType, "size" to bytes.size.toString()))
+        return execute(context) {
+            araBoardRepository.uploadFile(bytes, fileName, mimeType)
+        }
+    }
+
+    override suspend fun updatePost(postID: Int, request: AraUpdatePost) {
+        val context = CrashContext(feature = feature, metadata = mapOf("postID" to postID.toString()))
+        execute(context) {
+            araBoardRepository.updatePost(postID, request)
         }
     }
 
