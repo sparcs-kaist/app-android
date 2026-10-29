@@ -112,6 +112,8 @@ class TaxiUnreadStore @Inject constructor(
                     refresh()
                 } else {
                     _counts.value = emptyMap()
+                    // The next person to sign in mustn't see the previous account's rides.
+                    TaxiNotifications.clearAll(context)
                 }
             }
         }

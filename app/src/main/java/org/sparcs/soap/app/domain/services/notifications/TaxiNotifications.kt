@@ -51,6 +51,9 @@ object TaxiNotifications {
     private const val CHAT_TAG = "taxi_chat"
     private const val EVENT_TAG = "taxi_event"
     private const val ME_KEY = "me"
+    private const val SHORTCUT_CATEGORY = "org.sparcs.soap.category.TAXI_CHAT"
+    private const val IMAGES_DIRECTORY = "notification_images"
+    private const val IMAGE_LIFETIME_MILLIS = 24 * 60 * 60 * 1000L
 
     /** Whether [data] is a Taxi notification's. */
     fun isTaxi(data: Map<String, String>): Boolean =
@@ -109,6 +112,25 @@ object TaxiNotifications {
             .setAutoCancel(true)
             .build()
         NotificationManagerCompat.from(context).notify(EVENT_TAG, roomId.hashCode(), notification)
+    }
+
+    /**
+     * Removes everything Taxi notifications leave behind: their notifications, the rides'
+     * conversation shortcuts and the saved photos, such as once you sign out.
+     */
+    fun clearAll(context: Context) {
+        val manager = NotificationManagerCompat.from(context)
+        manager.activeNotifications
+            .filter { it.tag == CHAT_TAG || it.tag == EVENT_TAG }
+            .forEach { manager.cancel(it.tag, it.id) }
+        runCatching {
+            val rideShortcuts = ShortcutManagerCompat
+                .getShortcuts(context, ShortcutManagerCompat.FLAG_MATCH_DYNAMIC or ShortcutManagerCompat.FLAG_MATCH_CACHED)
+                .filter { SHORTCUT_CATEGORY in it.categories.orEmpty() }
+                .map { it.id }
+            ShortcutManagerCompat.removeLongLivedShortcuts(context, rideShortcuts)
+        }.onFailure { Timber.e(it, "[TaxiNotifications] Failed to remove the rides' shortcuts") }
+        File(context.cacheDir, IMAGES_DIRECTORY).deleteRecursively()
     }
 
     /** Removes the room's notifications, such as once its chat is on screen. */
@@ -246,7 +268,7 @@ object TaxiNotifications {
             .setIntent(openChat(context, roomId))
             .setLocusId(LocusIdCompat(roomId))
             .setPerson(sender)
-            .setCategories(setOf("org.sparcs.soap.category.TAXI_CHAT"))
+            .setCategories(setOf(SHORTCUT_CATEGORY))
             .build()
         runCatching { ShortcutManagerCompat.pushDynamicShortcut(context, shortcut) }
             .onFailure { Timber.e(it, "[TaxiNotifications] Failed to push the room's shortcut") }
@@ -269,8 +291,14 @@ object TaxiNotifications {
     private fun imageUri(context: Context, url: String?, name: String): Uri? {
         val bitmap = loadBitmap(context, url, circle = false) ?: return null
         return runCatching {
-            val directory = File(context.cacheDir, "notification_images").apply { mkdirs() }
-            val file = File(directory, "$name.jpg")
+            val directory = File(context.cacheDir, IMAGES_DIRECTORY).apply { mkdirs() }
+            // Photos older than a day have long left the notification shade.
+            val expired = System.currentTimeMillis() - IMAGE_LIFETIME_MILLIS
+            directory.listFiles()?.filter { it.lastModified() < expired }?.forEach { it.delete() }
+            // The name comes from the push, so only letters, digits, '-' and '_' are kept, which
+            // can't lead outside the directory.
+            val safeName = name.filter { it.isLetterOrDigit() || it == '-' || it == '_' }.take(64).ifEmpty { "photo" }
+            val file = File(directory, "$safeName.jpg")
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
             context.grantUriPermission("com.android.systemui", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)

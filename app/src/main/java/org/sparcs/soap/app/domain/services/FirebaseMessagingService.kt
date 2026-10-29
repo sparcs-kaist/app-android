@@ -59,6 +59,8 @@ class FCMService : FirebaseMessagingService() {
         try {
             val content = NotificationContent.fromMessage(this, remoteMessage) ?: return
             if (TaxiNotifications.isTaxi(remoteMessage.data)) {
+                // Signed out, the device may not have been unregistered yet, such as while offline.
+                if (tokenStorage.getRefreshToken() == null) return
                 // The open chat already shows the message.
                 val isForeground = ProcessLifecycleOwner.get().lifecycle.currentState
                     .isAtLeast(Lifecycle.State.STARTED)
