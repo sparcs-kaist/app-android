@@ -24,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -56,15 +55,16 @@ import org.sparcs.soap.app.theme.ui.Theme
 @Composable
 fun NotificationSettingsView(
     navController: NavController,
-    viewModel: NotificationSettingsViewModel = hiltViewModel(),
+    viewModel: NotificationSettingsViewModelProtocol = hiltViewModel<NotificationSettingsViewModel>(),
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
 
     // Notifications may have been allowed in Android's settings while Buddy was in the background.
+    // The preferences are loaded once, by the view model, so a change still being saved isn't
+    // replaced by the server's earlier value on coming back.
     LifecycleResumeEffect(Unit) {
         viewModel.updateSystemPermission(NotificationManagerCompat.from(context).areNotificationsEnabled())
-        viewModel.load()
         onPauseOrDispose { }
     }
 
@@ -191,7 +191,7 @@ private fun NotificationsBlockedNotice(onTurnOn: () -> Unit) {
 
 @Composable
 private fun PreferenceSwitch(
-    viewModel: NotificationSettingsViewModel,
+    viewModel: NotificationSettingsViewModelProtocol,
     category: NotificationCategory,
     titleResId: Int,
     supportingText: String? = null,
@@ -214,7 +214,6 @@ private fun Preview() {
         val mockViewModel = remember {
             NotificationSettingsViewModel(fcmUseCase = MockFCMUseCase())
         }
-        LaunchedEffect(Unit) { mockViewModel.load() }
         NotificationSettingsView(rememberNavController(), mockViewModel)
     }
 }

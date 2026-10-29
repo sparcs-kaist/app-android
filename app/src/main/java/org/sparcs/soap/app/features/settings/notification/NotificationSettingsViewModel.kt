@@ -29,6 +29,13 @@ interface NotificationSettingsViewModelProtocol {
     val isAllowedBySystem: Boolean
     var alertState: AlertState?
     var isAlertPresented: Boolean
+
+    /** Fetches this device's preferences again, such as to retry after an error. */
+    fun load()
+    fun updateSystemPermission(isAllowed: Boolean)
+    /** Turns a kind on or off at once, and back with an alert if the change can't be saved. */
+    fun setNotifications(category: NotificationCategory, enabled: Boolean)
+    fun dismissAlert()
 }
 
 @HiltViewModel
@@ -60,7 +67,11 @@ class NotificationSettingsViewModel @Inject constructor(
     /** Changes are saved one at a time, in order, so the last one is what the server keeps. */
     private val saveMutex = Mutex()
 
-    fun load() {
+    init {
+        load()
+    }
+
+    override fun load() {
         viewModelScope.launch {
             // Coming back to the screen should not cover switches already shown with a spinner.
             if (_preferences.isEmpty()) _state.value = ViewState.Loading
@@ -80,11 +91,11 @@ class NotificationSettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateSystemPermission(isAllowed: Boolean) {
+    override fun updateSystemPermission(isAllowed: Boolean) {
         isAllowedBySystem = isAllowed
     }
 
-    fun setNotifications(category: NotificationCategory, enabled: Boolean) {
+    override fun setNotifications(category: NotificationCategory, enabled: Boolean) {
         // The switch moves at once, and moves back if the change can't be saved.
         _preferences[category] = enabled
         val change = (latestChange[category] ?: 0) + 1
@@ -113,7 +124,7 @@ class NotificationSettingsViewModel @Inject constructor(
         }
     }
 
-    fun dismissAlert() {
+    override fun dismissAlert() {
         isAlertPresented = false
     }
 }
