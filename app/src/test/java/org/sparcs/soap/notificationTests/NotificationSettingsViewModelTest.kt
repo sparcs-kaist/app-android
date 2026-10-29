@@ -1,5 +1,6 @@
 package org.sparcs.soap.notificationTests
 
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -68,5 +69,34 @@ class NotificationSettingsViewModelTest {
 
         assertEquals(true, viewModel.preferences[NotificationCategory.TAXI_CHAT])
         assertTrue(viewModel.isAlertPresented)
+    }
+
+    @Test
+    fun `flipping a switch back while the first change fails keeps the latest`() {
+        val firstSave = CompletableDeferred<Unit>()
+        val saved = mutableListOf<Boolean>()
+        val viewModel = NotificationSettingsViewModel(object : org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol {
+            override suspend fun register(fcmToken: String) {}
+            override suspend fun unregister() {}
+            override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> =
+                mapOf(NotificationCategory.TAXI_CHAT to true)
+            override suspend fun setNotifications(category: NotificationCategory, enabled: Boolean) {
+                if (saved.isEmpty() && !firstSave.isCompleted) {
+                    firstSave.await()
+                    throw Exception("offline")
+                }
+                saved += enabled
+            }
+        })
+        viewModel.load()
+
+        viewModel.setNotifications(NotificationCategory.TAXI_CHAT, false)
+        viewModel.setNotifications(NotificationCategory.TAXI_CHAT, true)
+        viewModel.setNotifications(NotificationCategory.TAXI_CHAT, false)
+        firstSave.complete(Unit)
+
+        assertEquals(false, viewModel.preferences[NotificationCategory.TAXI_CHAT])
+        assertEquals(listOf(false), saved)
+        assertFalse(viewModel.isAlertPresented)
     }
 }

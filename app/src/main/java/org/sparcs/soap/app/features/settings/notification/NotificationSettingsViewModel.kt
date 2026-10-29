@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.helpers.NotificationCategory
@@ -51,6 +53,13 @@ class NotificationSettingsViewModel @Inject constructor(
     override var alertState: AlertState? by mutableStateOf(null)
     override var isAlertPresented: Boolean by mutableStateOf(false)
 
+    /** The values last loaded from or saved to the server, which a failed change goes back to. */
+    private val savedPreferences = mutableMapOf<NotificationCategory, Boolean>()
+    /** The latest change to each kind, so a change that a newer one replaces isn't saved or undone. */
+    private val latestChange = mutableMapOf<NotificationCategory, Int>()
+    /** Changes are saved one at a time, in order, so the last one is what the server keeps. */
+    private val saveMutex = Mutex()
+
     fun load() {
         viewModelScope.launch {
             // Coming back to the screen should not cover switches already shown with a spinner.
@@ -59,6 +68,8 @@ class NotificationSettingsViewModel @Inject constructor(
                 val loaded = fcmUseCase.notificationPreferences()
                 _preferences.clear()
                 _preferences.putAll(loaded)
+                savedPreferences.clear()
+                savedPreferences.putAll(loaded)
                 _state.value = ViewState.Loaded
             } catch (e: CancellationException) {
                 throw e
@@ -75,21 +86,29 @@ class NotificationSettingsViewModel @Inject constructor(
 
     fun setNotifications(category: NotificationCategory, enabled: Boolean) {
         // The switch moves at once, and moves back if the change can't be saved.
-        val previous = _preferences[category]
         _preferences[category] = enabled
+        val change = (latestChange[category] ?: 0) + 1
+        latestChange[category] = change
         viewModelScope.launch {
-            try {
-                fcmUseCase.setNotifications(category, enabled)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to change notification preference")
-                if (previous == null) _preferences.remove(category) else _preferences[category] = previous
-                alertState = AlertState(
-                    titleResId = R.string.notification_settings_change_failed,
-                    message = e.localizedMessage,
-                )
-                isAlertPresented = true
+            saveMutex.withLock {
+                // Flipped again since: the newer change saves its own value.
+                if (latestChange[category] != change) return@withLock
+                try {
+                    fcmUseCase.setNotifications(category, enabled)
+                    savedPreferences[category] = enabled
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to change notification preference")
+                    if (latestChange[category] != change) return@withLock
+                    val saved = savedPreferences[category]
+                    if (saved == null) _preferences.remove(category) else _preferences[category] = saved
+                    alertState = AlertState(
+                        titleResId = R.string.notification_settings_change_failed,
+                        message = e.localizedMessage,
+                    )
+                    isAlertPresented = true
+                }
             }
         }
     }
