@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.theme.ui.Theme
@@ -22,47 +23,44 @@ import org.sparcs.soap.app.theme.ui.upvote
 import kotlin.math.abs
 
 @Composable
-fun PostListRowVoteLabel(voteCount: Int){
-    if(voteCount > 0){
-        //up voted
+fun PostListRowVoteLabel(
+    voteCount: Int,
+    upColor: Color = upvote,
+    downColor: Color = downvote,
+) {
+    if (voteCount > 0) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Same Material arrow as the vote pill.
             Icon(
                 imageVector = Icons.Filled.ArrowUpward,
                 contentDescription = null,
-                tint = upvote,
+                tint = upColor,
                 modifier = Modifier.size(14.dp)
             )
             Spacer(Modifier.padding(2.dp))
 
             Text(
                 text = "$voteCount",
-                color = upvote,
+                color = upColor,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall
             )
-
         }
-    }
-    else if (voteCount < 0){
-        //down voted
+    } else if (voteCount < 0) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Same Material arrow as the vote pill.
             Icon(
                 imageVector = Icons.Filled.ArrowDownward,
                 contentDescription = null,
-                tint = downvote,
+                tint = downColor,
                 modifier = Modifier.size(14.dp)
             )
             Spacer(Modifier.padding(2.dp))
 
             Text(
                 text = "−${abs(voteCount)}",
-                color = downvote,
+                color = downColor,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall
             )
-
         }
     }
 }

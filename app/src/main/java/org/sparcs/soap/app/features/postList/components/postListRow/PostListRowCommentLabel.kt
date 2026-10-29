@@ -12,13 +12,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.theme.ui.Theme
 
 
 @Composable
-fun PostListRowCommentLabel(commentCount: Int){
+fun PostListRowCommentLabel(
+    commentCount: Int,
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+) {
     if(commentCount > 0) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -26,7 +30,7 @@ fun PostListRowCommentLabel(commentCount: Int){
             Icon(
                 imageVector = Icons.Outlined.ChatBubbleOutline,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = color,
                 modifier = Modifier.size(13.dp)
             )
 
@@ -35,7 +39,7 @@ fun PostListRowCommentLabel(commentCount: Int){
             Text(
                 text = "$commentCount",
                 maxLines = 1,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = color,
                 style = MaterialTheme.typography.bodySmall
             )
         }

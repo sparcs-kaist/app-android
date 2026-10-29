@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.search.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,11 +47,13 @@ import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.postList.components.postListRow.UpdatedMarker
+import org.sparcs.soap.app.features.postList.components.postListRow.accentColor
 import org.sparcs.soap.app.features.postList.components.postListRow.hiddenIcon
 import org.sparcs.soap.app.features.postList.components.postListRow.hiddenReasonRes
-import org.sparcs.soap.app.features.postList.components.postListRow.isRead
 import org.sparcs.soap.app.features.postList.components.postListRow.isUpdatedSinceRead
+import org.sparcs.soap.app.features.postList.components.postListRow.metaColor
 import org.sparcs.soap.app.features.postList.components.postListRow.title
+import org.sparcs.soap.app.features.postList.components.postListRow.titleColor
 import org.sparcs.soap.app.shared.extensions.relativeTimeString
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.mocks.ara.mock
@@ -121,7 +124,8 @@ private fun SearchHiddenPostItem(post: AraPost) {
 @Composable
 private fun SearchVisiblePostItem(post: AraPost, onClick: () -> Unit) {
     val voteCount = post.upVotes - post.downVotes
-    val accent = MaterialTheme.colorScheme.primary.copy(alpha = if (post.isRead) 0.5f else 1f)
+    val accent = post.accentColor()
+    val metaColor = post.metaColor()
     val postTitle = title(post) { stringResource(it) }
     ListItem(
         headlineContent = {
@@ -138,14 +142,14 @@ private fun SearchVisiblePostItem(post: AraPost, onClick: () -> Unit) {
                     },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = if (post.isRead) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    color = post.titleColor(),
                     modifier = Modifier.weight(1f, fill = false)
                 )
                 if (post.attachmentType == AraPost.AttachmentType.IMAGE || post.attachmentType == AraPost.AttachmentType.BOTH) {
-                    AttachmentIcon(Icons.Outlined.Image)
+                    AttachmentIcon(Icons.Outlined.Image, metaColor)
                 }
                 if (post.attachmentType == AraPost.AttachmentType.NON_IMAGE || post.attachmentType == AraPost.AttachmentType.BOTH) {
-                    AttachmentIcon(Icons.Outlined.AttachFile)
+                    AttachmentIcon(Icons.Outlined.AttachFile, metaColor)
                 }
             }
         },
@@ -157,7 +161,8 @@ private fun SearchVisiblePostItem(post: AraPost, onClick: () -> Unit) {
                     post.createdAt.timeAgoDisplay()
                 ).joinToString(" · "),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = metaColor
             )
         },
         trailingContent = if (voteCount != 0 || post.commentCount > 0) {
@@ -167,14 +172,14 @@ private fun SearchVisiblePostItem(post: AraPost, onClick: () -> Unit) {
                         CountLabel(
                             icon = if (voteCount > 0) Icons.Filled.ArrowUpward else Icons.Filled.ArrowDownward,
                             text = voteCount.toString().replace('-', '−'),
-                            color = if (voteCount > 0) upvote else downvote
+                            color = post.accentColor(if (voteCount > 0) upvote else downvote)
                         )
                     }
                     if (post.commentCount > 0) {
                         CountLabel(
                             icon = Icons.Outlined.ChatBubbleOutline,
                             text = post.commentCount.toString(),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = metaColor
                         )
                     }
                 }
@@ -254,9 +259,9 @@ fun SearchItemSkeleton(overline: Boolean = false, supportingLines: Int = 1, lead
 }
 
 @Composable
-private fun AttachmentIcon(icon: ImageVector) {
+private fun AttachmentIcon(icon: ImageVector, tint: Color) {
     Spacer(Modifier.width(4.dp))
-    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+    Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
 }
 
 @Composable
@@ -285,6 +290,18 @@ private fun Preview() {
             SearchItemSkeleton(overline = true, supportingLines = 2)
             HorizontalDivider()
             SearchItemSkeleton(leading = true)
+        }
+    }
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xFF1F1F1F, name = "Read vs unread dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun ReadStateDarkPreview() {
+    val post = AraPost.mock().copy(upVotes = 5, commentCount = 2)
+    Theme {
+        Column {
+            SearchPostItem(post.copy(readStatus = AraPost.ReadStatus.UNREAD)) {}
+            SearchPostItem(post.copy(readStatus = AraPost.ReadStatus.READ)) {}
         }
     }
 }

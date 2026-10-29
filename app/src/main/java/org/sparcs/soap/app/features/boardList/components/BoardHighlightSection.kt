@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.boardList.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapPosition
@@ -43,7 +44,9 @@ import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.BoardListSection
 import org.sparcs.soap.app.features.postList.components.marketGrid.MarketGridCell
 import org.sparcs.soap.app.features.postList.components.marketGrid.MarketGridSkeletonCell
+import org.sparcs.soap.app.features.postList.components.postListRow.metaColor
 import org.sparcs.soap.app.features.postList.components.postListRow.title
+import org.sparcs.soap.app.features.postList.components.postListRow.titleColor
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.mocks.ara.mock
@@ -178,14 +181,14 @@ fun HighlightRow(
             text = title(post) { stringResource(it) },
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = if (post.isHidden) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+            color = post.titleColor(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = details,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = post.metaColor(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -311,6 +314,27 @@ private fun MarketPreview() {
             onSeeAll = {}
         )
     }
+}
+
+@Composable
+private fun ReadStatePreviewContent() {
+    val post = AraPost.mock()
+    Card(Modifier.padding(16.dp)) {
+        HighlightRow(post.copy(readStatus = AraPost.ReadStatus.UNREAD), rank = 1, showsBoard = true)
+        HighlightRow(post.copy(readStatus = AraPost.ReadStatus.READ), rank = 2, showsBoard = true)
+    }
+}
+
+@Preview(showBackground = true, name = "Read vs unread")
+@Composable
+private fun ReadStatePreview() {
+    Theme { ReadStatePreviewContent() }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1F1F1F, name = "Read vs unread dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ReadStateDarkPreview() {
+    Theme { ReadStatePreviewContent() }
 }
 
 @Preview(showBackground = true)

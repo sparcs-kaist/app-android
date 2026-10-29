@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.postList.components.marketGrid
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,12 +50,14 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraMarketListing
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.features.postList.components.postListRow.PostListRowCommentLabel
+import org.sparcs.soap.app.features.postList.components.postListRow.accentColor
 import org.sparcs.soap.app.features.postList.components.postListRow.UpdatedMarker
 import org.sparcs.soap.app.features.postList.components.postListRow.hiddenIcon
-import org.sparcs.soap.app.features.postList.components.postListRow.isRead
 import org.sparcs.soap.app.features.postList.components.postListRow.isUpdatedSinceRead
 import org.sparcs.soap.app.features.postList.components.postListRow.marketPriceText
+import org.sparcs.soap.app.features.postList.components.postListRow.metaColor
 import org.sparcs.soap.app.features.postList.components.postListRow.title
+import org.sparcs.soap.app.features.postList.components.postListRow.titleColor
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonBlock
@@ -101,10 +104,10 @@ fun MarketGridCell(
                 Text(
                     text = post.createdAt.timeAgoDisplay(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = post.metaColor(),
                     maxLines = 1
                 )
-                PostListRowCommentLabel(post.commentCount)
+                PostListRowCommentLabel(post.commentCount, post.metaColor())
             }
         }
     }
@@ -181,7 +184,7 @@ private fun MarketPrice(listing: AraMarketListing?, isSold: Boolean) {
 
 @Composable
 private fun MarketTitle(post: AraPost, maxLines: Int) {
-    val accent = MaterialTheme.colorScheme.primary.copy(alpha = if (post.isRead) 0.5f else 1f)
+    val accent = post.accentColor()
     val text = buildAnnotatedString {
         post.topic?.takeUnless { post.isHidden }?.let { topic ->
             withStyle(SpanStyle(color = accent)) { append("[${topic.name.localized()}] ") }
@@ -196,8 +199,7 @@ private fun MarketTitle(post: AraPost, maxLines: Int) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = if (post.isHidden || post.isRead) MaterialTheme.colorScheme.onSurfaceVariant
-            else MaterialTheme.colorScheme.onSurface,
+            color = post.titleColor(),
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis
         )
@@ -253,4 +255,28 @@ private fun Preview() {
             item { MarketGridSkeletonCell() }
         }
     }
+}
+
+@Composable
+private fun ReadStatePreviewContent() {
+    val post = AraPost.mockList().first().copy(marketListing = AraMarketListing(price = 15_000), commentCount = 3)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.padding(16.dp)
+    ) {
+        MarketGridCell(post.copy(readStatus = AraPost.ReadStatus.UNREAD), Modifier.weight(1f))
+        MarketGridCell(post.copy(readStatus = AraPost.ReadStatus.READ), Modifier.weight(1f))
+    }
+}
+
+@Preview(showBackground = true, name = "Read vs unread")
+@Composable
+private fun ReadStatePreview() {
+    Theme { ReadStatePreviewContent() }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1F1F1F, name = "Read vs unread dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ReadStateDarkPreview() {
+    Theme { ReadStatePreviewContent() }
 }

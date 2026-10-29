@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.postList.components.postListRow
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,8 @@ import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.downvote
+import org.sparcs.soap.app.theme.ui.upvote
 
 @Composable
 fun PostListRow(
@@ -85,6 +88,7 @@ private fun VisiblePostListRow(
     post: AraPost,
     modifier: Modifier = Modifier,
 ) {
+    val metaColor = post.metaColor()
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -101,7 +105,7 @@ private fun VisiblePostListRow(
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (post.isRead) 0.5f else 1f)
+                    color = post.accentColor()
                 )
 
                 Spacer(Modifier.width(4.dp))
@@ -114,8 +118,7 @@ private fun VisiblePostListRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false),
-                color = if (post.isRead) MaterialTheme.colorScheme.onSurfaceVariant
-                else MaterialTheme.colorScheme.onSurface
+                color = post.titleColor()
             )
 
             Spacer(modifier = Modifier.width(4.dp))
@@ -124,7 +127,7 @@ private fun VisiblePostListRow(
                 Icon(
                     imageVector = Icons.Outlined.Image,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = metaColor,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -133,7 +136,7 @@ private fun VisiblePostListRow(
                 Icon(
                     imageVector = Icons.Outlined.AttachFile,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = metaColor,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -155,15 +158,15 @@ private fun VisiblePostListRow(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    PostListRowVoteLabel(voteCount)
-                    PostListRowCommentLabel(post.commentCount)
+                    PostListRowVoteLabel(voteCount, post.accentColor(upvote), post.accentColor(downvote))
+                    PostListRowCommentLabel(post.commentCount, metaColor)
                 }
             }
 
             Text(
                 text = post.author.profile.nickname,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = metaColor
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -171,13 +174,13 @@ private fun VisiblePostListRow(
             Text(
                 text = stringResource(R.string.views, post.views),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = metaColor
             )
 
             Text(
                 text = post.createdAt.timeAgoDisplay(),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = metaColor
             )
         }
     }
@@ -225,6 +228,27 @@ private fun Preview() {
             }
         }
     }
+}
+
+@Composable
+private fun ReadStatePreviewContent() {
+    val post = AraPost.mock().copy(upVotes = 12, downVotes = 2, commentCount = 4)
+    Column {
+        PostListRow(post.copy(readStatus = AraPost.ReadStatus.UNREAD))
+        PostListRow(post.copy(readStatus = AraPost.ReadStatus.READ))
+    }
+}
+
+@Composable
+@Preview(showBackground = true, name = "Read vs unread")
+private fun PreviewReadState() {
+    Theme { ReadStatePreviewContent() }
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xFF1F1F1F, name = "Read vs unread dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun PreviewReadStateDark() {
+    Theme { ReadStatePreviewContent() }
 }
 
 @Composable
