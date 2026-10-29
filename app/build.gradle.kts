@@ -59,11 +59,11 @@ android {
             buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"${sidAuthToken.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
             manifestPlaceholders["taxihost"] = "taxi.dev.sparcs.org"
             manifestPlaceholders["arahost"] = "newara.dev.sparcs.org"
-            manifestPlaceholders["feedhost"] = "buddy.dev.sparcs.org"
+            manifestPlaceholders["feedhost"] = "buddy-dev.sparcs.org"
 
             buildConfigField("String", "TAXI_HOST", "\"taxi.dev.sparcs.org\"")
             buildConfigField("String", "ARA_HOST", "\"newara.dev.sparcs.org\"")
-            buildConfigField("String", "FEED_HOST", "\"buddy.dev.sparcs.org\"")
+            buildConfigField("String", "FEED_HOST", "\"buddy-dev.sparcs.org\"")
             buildConfigField("String", "OTL_HOST", "\"api.otl.dev.sparcs.org\"")
         }
 
