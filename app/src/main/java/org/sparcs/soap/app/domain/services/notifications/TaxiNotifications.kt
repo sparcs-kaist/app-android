@@ -24,6 +24,7 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.transform.CircleCropTransformation
+import kotlinx.coroutines.withTimeoutOrNull
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.NotificationContent
 import org.sparcs.soap.app.features.main.MainActivity
@@ -54,6 +55,9 @@ object TaxiNotifications {
     private const val SHORTCUT_CATEGORY = "org.sparcs.soap.category.TAXI_CHAT"
     private const val IMAGES_DIRECTORY = "notification_images"
     private const val IMAGE_LIFETIME_MILLIS = 24 * 60 * 60 * 1000L
+    private const val IMAGE_TIMEOUT_MILLIS = 5_000L
+    private const val AVATAR_SIZE = 256
+    private const val PHOTO_SIZE = 1440
 
     /** Whether [data] is a Taxi notification's. */
     fun isTaxi(data: Map<String, String>): Boolean =
@@ -151,7 +155,7 @@ object TaxiNotifications {
         val sender = Person.Builder()
             .setKey(senderId)
             .setName(data["sender_name"] ?: roomName)
-            .apply { loadBitmap(context, data["sender_avatar_url"], circle = true)?.let { setIcon(IconCompat.createWithBitmap(it)) } }
+            .apply { loadBitmap(context, data["sender_avatar_url"], AVATAR_SIZE, circle = true)?.let { setIcon(IconCompat.createWithBitmap(it)) } }
             .build()
 
         val sentAt = data["sent_at"]?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
@@ -274,22 +278,31 @@ object TaxiNotifications {
             .onFailure { Timber.e(it, "[TaxiNotifications] Failed to push the room's shortcut") }
     }
 
-    private fun loadBitmap(context: Context, url: String?, circle: Boolean): Bitmap? {
-        if (url.isNullOrBlank()) return null
+    /**
+     * Downloads an image from the push, at most [size] pixels on its longer side. Only web URLs are
+     * loaded, since the URL comes from the push, and a slow one is given up on so the notification
+     * still shows.
+     */
+    private fun loadBitmap(context: Context, url: String?, size: Int, circle: Boolean): Bitmap? {
+        val uri = url?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return null
+        if (uri.scheme?.lowercase() !in setOf("https", "http")) return null
         return runCatching {
             val request = ImageRequest.Builder(context)
-                .data(url)
+                .data(uri)
+                .size(size)
                 .allowHardware(false)
                 .apply { if (circle) transformations(CircleCropTransformation()) }
                 .build()
-            val result = kotlinx.coroutines.runBlocking { context.imageLoader.execute(request) }
+            val result = kotlinx.coroutines.runBlocking {
+                withTimeoutOrNull(IMAGE_TIMEOUT_MILLIS) { context.imageLoader.execute(request) }
+            }
             (result as? SuccessResult)?.drawable?.toBitmap()
         }.getOrNull()
     }
 
     /** A photo sent in the chat, saved where the system's notification UI may read it. */
     private fun imageUri(context: Context, url: String?, name: String): Uri? {
-        val bitmap = loadBitmap(context, url, circle = false) ?: return null
+        val bitmap = loadBitmap(context, url, PHOTO_SIZE, circle = false) ?: return null
         return runCatching {
             val directory = File(context.cacheDir, IMAGES_DIRECTORY).apply { mkdirs() }
             // Photos older than a day have long left the notification shade.
