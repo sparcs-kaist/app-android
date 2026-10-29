@@ -43,8 +43,8 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 37
-        versionCode = 36
-        versionName = "2.1.0"
+        versionCode = 40
+        versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"\"")
@@ -59,11 +59,11 @@ android {
             buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"${sidAuthToken.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
             manifestPlaceholders["taxihost"] = "taxi.dev.sparcs.org"
             manifestPlaceholders["arahost"] = "newara.dev.sparcs.org"
-            manifestPlaceholders["feedhost"] = "buddy.dev.sparcs.org"
+            manifestPlaceholders["feedhost"] = "buddy-dev.sparcs.org"
 
             buildConfigField("String", "TAXI_HOST", "\"taxi.dev.sparcs.org\"")
             buildConfigField("String", "ARA_HOST", "\"newara.dev.sparcs.org\"")
-            buildConfigField("String", "FEED_HOST", "\"buddy.dev.sparcs.org\"")
+            buildConfigField("String", "FEED_HOST", "\"buddy-dev.sparcs.org\"")
             buildConfigField("String", "OTL_HOST", "\"api.otl.dev.sparcs.org\"")
         }
 
