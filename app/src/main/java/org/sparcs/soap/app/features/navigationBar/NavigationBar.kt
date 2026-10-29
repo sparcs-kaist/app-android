@@ -706,11 +706,16 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     }
 
                     composable(
-                        route = Channel.PostCompose.name + "?board_json={board_json}",
+                        route = Channel.PostCompose.name + "?board_json={board_json}&post_json={post_json}",
                         arguments = listOf(
                             navArgument("board_json") {
                                 type = NavType.StringType
                                 nullable = false
+                            },
+                            navArgument("post_json") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
                             }
                         ),
                     ) { backStackEntry ->

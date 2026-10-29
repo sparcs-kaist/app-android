@@ -41,12 +41,18 @@
     <string name="all">전체</string>
     <string name="see_all">모두 보기</string>
     <string name="post_updated">수정됨</string>
+    <string name="block_author">작성자 차단</string>
+    <string name="unblock_author">작성자 차단 해제</string>
     <string name="blocked_users">차단한 사용자</string>
     <string name="blocked_users_empty">차단한 사용자가 없습니다.</string>
     <string name="unblock">차단 해제</string>
+    <string name="error_block_user">작성자를 차단하지 못했습니다.</string>
     <string name="error_unblock_user">차단을 해제하지 못했습니다.</string>
     <string name="error_fetch_blocked_users">차단한 사용자를 불러오지 못했습니다.</string>
     <string name="post_hidden_blocked_author">차단한 사용자의 게시글입니다.</string>
+    <string name="comment_hidden_blocked_author">차단한 사용자의 댓글입니다.</string>
+    <string name="block_author_confirm_title">이 작성자를 차단할까요?</string>
+    <string name="block_author_confirm_message">이 사용자의 게시글과 댓글이 보이지 않습니다. 아라 설정에서 차단을 해제할 수 있습니다.</string>
     <string name="market_price_free">무료 나눔</string>
     <string name="market_price_none">가격 없음</string>
     <string name="board_section_trending">인기 글</string>
@@ -277,6 +283,7 @@
     <string name="open_kakao_pay">카카오 페이 열기</string>
     <string name="open_toss">토스 열기</string>
     <string name="photo_library">사진 보관함</string>
+    <string name="open_image">이미지 열기</string>
     <string name="request_settlement">정산 요청</string>
     <string name="chat_as_user">%1$s로 대화하기</string>
     <string name="chats">채팅</string>

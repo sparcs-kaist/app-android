@@ -1,6 +1,7 @@
 package org.sparcs.soap.postTests
 
 import androidx.lifecycle.SavedStateHandle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -17,11 +18,13 @@ import org.sparcs.soap.app.features.post.PostViewModel
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.viewModels.TextProcessingDelegate
+import org.sparcs.soap.buddyTestSupport.repository.MockAraUserRepository
 import org.sparcs.soap.buddyTestSupport.useCase.MockReviewSummaryUseCase
 
 class PostViewModelTest : PostTestBase() {
 
     private lateinit var viewModel: PostViewModel
+    private val mockAraUserRepository = MockAraUserRepository()
 
     private val fakeTranslationUseCase = object : PostTranslationUseCaseProtocol {
         override fun availableLanguages(): List<String> = emptyList()
@@ -49,7 +52,8 @@ class PostViewModelTest : PostTestBase() {
             araCommentUseCase = mockAraCommentUseCase,
             analyticsService = mockAnalyticsService,
             textProcessingDelegate = TextProcessingDelegate(fakeTranslationUseCase, fakeSummarizationUseCase, MockReviewSummaryUseCase()),
-        )
+            araUserRepository = mockAraUserRepository,
+        ).apply { backgroundDispatcher = Dispatchers.Unconfined }
     }
 
     private fun seedPost(post: AraPost) {

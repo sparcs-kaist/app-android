@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.outlined.Description
+import org.sparcs.soap.app.shared.extensions.fileTypeIcon
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -90,7 +90,7 @@ fun PostAttachmentsSection(
                 val uri = downloader.download(attachment)
                 if (uri == null) {
                     snackbarHostState?.showSnackbar(
-                        context.getString(R.string.attachment_download_failed, attachment.filename)
+                        context.getString(R.string.attachment_download_failed, attachment.displayName)
                     )
                     return@launch
                 }
@@ -140,9 +140,9 @@ private fun AttachmentItem(
         modifier = Modifier.fillMaxWidth()
     ) {
         ListItem(
-            leadingContent = { Icon(Icons.Outlined.Description, contentDescription = null) },
+            leadingContent = { Icon(fileTypeIcon(attachment.mimeType, attachment.displayName), contentDescription = null) },
             headlineContent = {
-                Text(attachment.filename, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(attachment.displayName, maxLines = 1, overflow = TextOverflow.Ellipsis)
             },
             supportingContent = { Text(formatFileSize(attachment.size)) },
             trailingContent = {
