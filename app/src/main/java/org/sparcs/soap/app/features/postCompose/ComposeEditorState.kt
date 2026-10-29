@@ -20,7 +20,15 @@ class ComposeEditorState(initial: List<ComposeBlock> = emptyList()) {
         private set
     var selection: TextRange by mutableStateOf(TextRange.Zero)
         private set
-    var isEditing: Boolean by mutableStateOf(false)
+    private var hasFocus: Boolean by mutableStateOf(false)
+    var isEditing: Boolean
+        get() = hasFocus
+        set(value) {
+            hasFocus = value
+            if (!value) isFormatting = false
+        }
+    var isFormatting: Boolean by mutableStateOf(false)
+        private set
 
     var activeStyles: Set<ComposeStyle> by mutableStateOf(emptySet())
         private set
@@ -42,6 +50,14 @@ class ComposeEditorState(initial: List<ComposeBlock> = emptyList()) {
     fun focus(id: String? = blocks.firstOrNull { it is ComposeBlock.Text }?.id) {
         focusedId = id ?: return
         focusRequest++
+    }
+
+    fun toggleFormatting() {
+        isFormatting = !isFormatting && isEditing
+    }
+
+    fun closeFormatting() {
+        isFormatting = false
     }
 
     fun select(id: String, range: TextRange) {

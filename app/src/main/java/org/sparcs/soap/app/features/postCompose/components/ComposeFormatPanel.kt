@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatIndentDecrease
 import androidx.compose.material.icons.automirrored.filled.FormatIndentIncrease
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.FormatBold
@@ -23,18 +23,17 @@ import androidx.compose.material.icons.filled.FormatColorReset
 import androidx.compose.material.icons.filled.FormatColorText
 import androidx.compose.material.icons.filled.FormatItalic
 import androidx.compose.material.icons.filled.FormatListNumbered
-import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.FormatStrikethrough
 import androidx.compose.material.icons.filled.FormatUnderlined
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,10 +47,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.postCompose.ComposeBlock
 import org.sparcs.soap.app.features.postCompose.ComposeBlockStyle
@@ -62,49 +61,91 @@ import org.sparcs.soap.app.features.postCompose.ComposeStyle
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
-fun ComposeFormatBar(editor: ComposeEditorState, modifier: Modifier = Modifier) {
+fun ComposeFormatPanel(editor: ComposeEditorState, modifier: Modifier = Modifier) {
     val block = editor.focusedText
     val isEnabled = block != null
-    val innermostList = block?.lists?.lastOrNull()
     val label = stringResource(R.string.text_formatting)
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    Column(
+        verticalArrangement = Arrangement.spacedBy(2.dp),
         modifier = modifier
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 4.dp)
+            .padding(vertical = 4.dp)
             .semantics { contentDescription = label }
     ) {
-        BlockStyleMenu(block?.style, enabled = isEnabled, onSelect = editor::setBlockStyle)
-        BarDivider()
-        INLINE_STYLES.forEach { (style, icon, labelRes) ->
-            FormatToggle(icon, stringResource(labelRes), style in editor.activeStyles, isEnabled) { editor.toggle(style) }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 12.dp)
+        ) {
+            BLOCK_STYLES.forEach { (style, labelRes) ->
+                FilterChip(
+                    selected = (block?.style ?: ComposeBlockStyle.PARAGRAPH) == style,
+                    onClick = { editor.setBlockStyle(style) },
+                    enabled = isEnabled,
+                    label = {
+                        Text(
+                            text = stringResource(labelRes),
+                            fontFamily = FontFamily.Monospace.takeIf { style == ComposeBlockStyle.MONOSPACED }
+                        )
+                    }
+                )
+            }
         }
-        ColorMenu(editor.activeColor, enabled = isEnabled, onSelect = editor::setColor)
-        BarDivider()
-        FormatToggle(Icons.AutoMirrored.Filled.FormatListBulleted, stringResource(R.string.format_bullet_list), innermostList?.isOrdered == false, isEnabled) {
-            editor.toggleList(ComposeList.BULLET)
+        PanelRow {
+            INLINE_STYLES.forEach { (style, icon, labelRes) ->
+                FormatToggle(icon, stringResource(labelRes), style in editor.activeStyles, isEnabled) { editor.toggle(style) }
+            }
+            PanelDivider()
+            ColorMenu(editor.activeColor, enabled = isEnabled, onSelect = editor::setColor)
         }
-        FormatToggle(Icons.Filled.FormatListNumbered, stringResource(R.string.format_numbered_list), innermostList?.isOrdered == true, isEnabled) {
-            editor.toggleList(ComposeList.NUMBERED)
-        }
-        if (innermostList != null) {
-            IconButton(onClick = editor::outdent) {
+        PanelRow {
+            BulletListToggle(editor)
+            FormatToggle(
+                Icons.Filled.FormatListNumbered,
+                stringResource(R.string.format_numbered_list),
+                block?.lists?.lastOrNull()?.isOrdered == true,
+                isEnabled
+            ) { editor.toggleList(ComposeList.NUMBERED) }
+            PanelDivider()
+            IconButton(onClick = editor::outdent, enabled = !block?.lists.isNullOrEmpty()) {
                 Icon(Icons.AutoMirrored.Filled.FormatIndentDecrease, contentDescription = stringResource(R.string.compose_format_outdent))
             }
-            IconButton(onClick = editor::indent, enabled = block.lists.size < ComposeList.MAX_DEPTH) {
+            IconButton(
+                onClick = editor::indent,
+                enabled = block != null && block.lists.isNotEmpty() && block.lists.size < ComposeList.MAX_DEPTH
+            ) {
                 Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, contentDescription = stringResource(R.string.compose_format_indent))
             }
-        }
-        FormatToggle(Icons.Filled.FormatQuote, stringResource(R.string.format_quote), block?.style == ComposeBlockStyle.QUOTE, isEnabled) {
-            editor.setBlockStyle(ComposeBlockStyle.QUOTE)
         }
     }
 }
 
 @Composable
-private fun BarDivider() {
+fun BulletListToggle(editor: ComposeEditorState) {
+    val block = editor.focusedText
+    FormatToggle(
+        Icons.AutoMirrored.Filled.FormatListBulleted,
+        stringResource(R.string.format_bullet_list),
+        block?.lists?.lastOrNull()?.isOrdered == false,
+        block != null
+    ) { editor.toggleList(ComposeList.BULLET) }
+}
+
+@Composable
+private fun PanelRow(content: @Composable () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 4.dp)
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun PanelDivider() {
     VerticalDivider(
         Modifier
             .height(24.dp)
@@ -120,40 +161,6 @@ private fun FormatToggle(icon: ImageVector, label: String, checked: Boolean, ena
 }
 
 @Composable
-private fun BlockStyleMenu(current: ComposeBlockStyle?, enabled: Boolean, onSelect: (ComposeBlockStyle) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    val selected = current?.takeIf { it in PARAGRAPH_STYLES.keys } ?: ComposeBlockStyle.PARAGRAPH
-
-    Box {
-        TextButton(onClick = { expanded = true }, enabled = enabled) {
-            Text(stringResource(PARAGRAPH_STYLES.getValue(selected)))
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            PARAGRAPH_STYLES.forEach { (style, labelRes) ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(labelRes), style = menuTextStyle(style)) },
-                    trailingIcon = if (style == selected) { { Icon(Icons.Filled.Check, contentDescription = null) } } else null,
-                    onClick = {
-                        if (style != selected) onSelect(style)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun menuTextStyle(style: ComposeBlockStyle): TextStyle = when (style) {
-    ComposeBlockStyle.TITLE -> MaterialTheme.typography.titleLarge
-    ComposeBlockStyle.HEADING -> MaterialTheme.typography.titleMedium
-    ComposeBlockStyle.SUBHEADING -> MaterialTheme.typography.titleSmall
-    ComposeBlockStyle.MONOSPACED -> MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
-    else -> MaterialTheme.typography.bodyLarge
-}
-
-@Composable
 private fun ColorMenu(current: String?, enabled: Boolean, onSelect: (String?) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -165,29 +172,33 @@ private fun ColorMenu(current: String?, enabled: Boolean, onSelect: (String?) ->
                 tint = ComposeColors.color(current)?.takeIf { enabled } ?: LocalContentColor.current
             )
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.compose_color_default)) },
-                leadingIcon = { Icon(Icons.Filled.FormatColorReset, contentDescription = null) },
-                trailingIcon = if (current == null) { { Icon(Icons.Filled.Check, contentDescription = null) } } else null,
-                onClick = {
-                    onSelect(null)
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            properties = PopupProperties(focusable = false)
+        ) {
+            ColorItem(stringResource(R.string.compose_color_default), current == null, { Icon(Icons.Filled.FormatColorReset, contentDescription = null) }) {
+                onSelect(null)
+                expanded = false
+            }
+            ComposeColors.PALETTE.zip(COLOR_NAMES).forEach { (hex, nameRes) ->
+                ColorItem(stringResource(nameRes), current == hex, { ColorSwatch(ComposeColors.color(hex) ?: Color.Unspecified) }) {
+                    onSelect(hex)
                     expanded = false
                 }
-            )
-            ComposeColors.PALETTE.zip(COLOR_NAMES).forEach { (hex, nameRes) ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(nameRes)) },
-                    leadingIcon = { ColorSwatch(ComposeColors.color(hex) ?: Color.Unspecified) },
-                    trailingIcon = if (current == hex) { { Icon(Icons.Filled.Check, contentDescription = null) } } else null,
-                    onClick = {
-                        onSelect(hex)
-                        expanded = false
-                    }
-                )
             }
         }
     }
+}
+
+@Composable
+private fun ColorItem(name: String, selected: Boolean, leadingIcon: @Composable () -> Unit, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(name) },
+        leadingIcon = leadingIcon,
+        trailingIcon = if (selected) { { Icon(Icons.Filled.Check, contentDescription = null) } } else null,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -200,12 +211,13 @@ private fun ColorSwatch(color: Color) {
     )
 }
 
-private val PARAGRAPH_STYLES = linkedMapOf(
+private val BLOCK_STYLES = listOf(
     ComposeBlockStyle.TITLE to R.string.compose_style_title,
     ComposeBlockStyle.HEADING to R.string.compose_style_heading,
     ComposeBlockStyle.SUBHEADING to R.string.compose_style_subheading,
     ComposeBlockStyle.PARAGRAPH to R.string.compose_style_body,
     ComposeBlockStyle.MONOSPACED to R.string.compose_style_monospaced,
+    ComposeBlockStyle.QUOTE to R.string.format_quote,
 )
 
 private val INLINE_STYLES = listOf(
@@ -229,6 +241,14 @@ private val COLOR_NAMES = listOf(
 @Composable
 private fun Preview() {
     Theme {
-        ComposeFormatBar(ComposeEditorState(listOf(ComposeBlock.Text("항목", lists = listOf(ComposeList.BULLET)))))
+        ComposeFormatPanel(ComposeEditorState(listOf(ComposeBlock.Text("항목", lists = listOf(ComposeList.BULLET)))))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BulletListTogglePreview() {
+    Theme {
+        BulletListToggle(ComposeEditorState(listOf(ComposeBlock.Text("항목", lists = listOf(ComposeList.BULLET)))))
     }
 }
