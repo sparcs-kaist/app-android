@@ -4,8 +4,6 @@ import org.sparcs.soap.app.domain.helpers.NotificationCategory
 import org.sparcs.soap.app.networking.requestDTO.NotificationPreferenceUpdateRequestDTO
 import org.sparcs.soap.app.networking.requestDTO.RegisterDeviceRequestDTO
 import org.sparcs.soap.app.networking.retrofitAPI.FCMApi
-import org.sparcs.soap.app.networking.retrofitAPI.NotificationTokenUpdateRequestDTO
-import timber.log.Timber
 import javax.inject.Inject
 
 interface FCMRepositoryProtocol {
@@ -26,10 +24,7 @@ interface FCMRepositoryProtocol {
         isEnabled: Boolean,
     )
 
-    suspend fun updateToken(
-        fcmToken: String,
-        deviceToken: String,
-    ): Boolean
+    suspend fun unregister(deviceUUID: String)
 }
 
 class FCMRepository @Inject constructor(
@@ -55,15 +50,11 @@ class FCMRepository @Inject constructor(
         }
     }
 
-    override suspend fun updateToken(fcmToken: String, deviceToken: String): Boolean {
-        val response = api.updateNotificationToken(
-            NotificationTokenUpdateRequestDTO(fcmToken, deviceToken)
-        )
+    override suspend fun unregister(deviceUUID: String) {
+        val response = api.unregisterDevice(deviceUUID)
         if (!response.isSuccessful) {
-            Timber.tag("FCM").e("Failed to update token: ${response.code()}")
-            return false
+            throw Exception("Failed to unregister device: ${response.code()}")
         }
-        return true
     }
 
     override suspend fun fetchNotificationPreferences(deviceUUID: String): Map<NotificationCategory, Boolean> {

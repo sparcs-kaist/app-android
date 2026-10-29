@@ -35,6 +35,7 @@ class NotificationSettingsViewModelTest {
     fun `a device not registered for notifications shows an error`() {
         val viewModel = NotificationSettingsViewModel(object : org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol {
             override suspend fun register(fcmToken: String) {}
+            override suspend fun unregister() {}
             override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> =
                 throw DeviceNotRegisteredException()
             override suspend fun setNotifications(category: NotificationCategory, enabled: Boolean) {}

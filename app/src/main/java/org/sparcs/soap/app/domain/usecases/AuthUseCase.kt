@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -287,7 +288,20 @@ class AuthUseCase @Inject constructor(
         return null
     }
 
-    override suspend fun signOut() = clearSession()
+    override suspend fun signOut() {
+        // While still signed in, so the backend knows whose device to forget. Briefly, as signing out
+        // must work offline too: the next account to register this device takes it over anyway.
+        withTimeoutOrNull(5_000) {
+            try {
+                fcmUseCase.unregister()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to unregister from notifications")
+            }
+        }
+        clearSession()
+    }
 
     private suspend fun clearSession(expectedRevision: Long? = null) {
         withContext(Dispatchers.IO + NonCancellable) {

@@ -17,6 +17,9 @@ import javax.inject.Inject
 
 interface FCMUseCaseProtocol {
     suspend fun register(fcmToken: String)
+
+    /** Stops notifications to this device for the signed-in account, so call it while still signed in. */
+    suspend fun unregister()
     /** Whether this device gets each kind of notification. Kinds never turned off are on. */
     suspend fun notificationPreferences(): Map<NotificationCategory, Boolean>
 
@@ -70,31 +73,23 @@ class FCMUseCase @Inject constructor(
         isRegistering = true
 
         try {
-            val existingUUID = getPersistentDeviceID()
-
-            if (existingUUID == null) {
-                val newUUID = UUID.randomUUID().toString()
+            // The backend updates a device it already knows, so registering again also keeps the
+            // token and language of a registered device current.
+            val deviceUUID = getPersistentDeviceID() ?: UUID.randomUUID().toString().also { newUUID ->
                 val currentAndroidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-                
                 prefs.edit {
                     putString(FCM_DEVICE_ID_KEY, newUUID)
                     putString(FCM_ANDROID_ID_KEY, currentAndroidId)
                 }
-
-                fcmRepository.register(
-                    deviceUUID = newUUID,
-                    fcmToken = fcmToken,
-                    deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
-                    language = currentLang
-                )
-                Timber.d("FCM: New device registered. UUID: $newUUID")
-            } else {
-                fcmRepository.updateToken(
-                    fcmToken = fcmToken,
-                    deviceToken = existingUUID
-                )
-                Timber.d("FCM: Existing device token updated. UUID: $existingUUID")
             }
+
+            fcmRepository.register(
+                deviceUUID = deviceUUID,
+                fcmToken = fcmToken,
+                deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
+                language = currentLang
+            )
+            Timber.d("FCM: Device registered. UUID: $deviceUUID")
 
             prefs.edit {
                 putString(LAST_REGISTERED_TOKEN, fcmToken)
@@ -124,6 +119,17 @@ class FCMUseCase @Inject constructor(
         }
     }
 
+    override suspend fun unregister() {
+        // Whether or not it gets through, signing in again registers this device rather than
+        // skipping it as unchanged.
+        prefs.edit {
+            remove(LAST_REGISTERED_TOKEN)
+            remove(LAST_REGISTERED_LANG)
+        }
+        val deviceUUID = getPersistentDeviceID() ?: return
+        fcmRepository.unregister(deviceUUID)
+    }
+
     // Preferences belong to the device as registered, so a device not registered yet has none.
     override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> {
         val deviceUUID = getPersistentDeviceID() ?: throw DeviceNotRegisteredException()
@@ -141,6 +147,7 @@ class MockFCMUseCase : FCMUseCaseProtocol {
     var setNotificationsError: Exception? = null
 
     override suspend fun register(fcmToken: String) {}
+    override suspend fun unregister() {}
     override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> = preferences.toMap()
     override suspend fun setNotifications(category: NotificationCategory, enabled: Boolean) {
         setNotificationsError?.let { throw it }
