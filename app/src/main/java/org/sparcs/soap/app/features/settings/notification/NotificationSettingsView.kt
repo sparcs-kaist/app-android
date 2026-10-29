@@ -167,6 +167,9 @@ private fun PreferenceSwitch(
         text = stringResource(titleResId),
         checked = viewModel.preferences[category] ?: true,
         onCheckedChange = { enabled -> viewModel.setNotifications(category, enabled) },
+        // None of these arrive while Android blocks Buddy's notifications, which is changed in
+        // the system settings, through the row above.
+        enabled = viewModel.isAllowedBySystem,
         supportingText = supportingText,
     )
 }
