@@ -19,6 +19,8 @@ object DeepLinkEventBus {
 
 sealed class DeepLink {
     data class TaxiInvite(val code: String) : DeepLink()
+    /** The chat of a Taxi room you are in, such as from a chat notification. */
+    data class TaxiChat(val roomId: String) : DeepLink()
     data class AraPost(val id: Int) : DeepLink()
     data class FeedPost(val postID: String, val commentID: String? = null) : DeepLink() {
         fun toUri(): Uri = Uri.parse(Constants.FEED_SHARE_URL).buildUpon()
@@ -30,6 +32,9 @@ sealed class DeepLink {
 
     companion object {
         fun fromNotificationData(data: Map<String, String>): DeepLink? {
+            if (data["category"]?.startsWith("taxi_") == true) {
+                data["room_id"]?.takeIf { it.isNotBlank() }?.let { return TaxiChat(it) }
+            }
             val link = data["url"] ?: data["deep_link"]
             link?.let { fromUri(it.toUri()) }?.let { return it }
             val postID = (data["post_id"] ?: data["postId"])?.takeIf { it.isNotBlank() } ?: return null
@@ -40,7 +45,7 @@ sealed class DeepLink {
         fun fromIntent(intent: Intent): DeepLink? {
             fromUri(intent.data)?.let { return it }
             val extras = intent.extras ?: return null
-            val data = listOf("url", "deep_link", "post_id", "postId", "comment_id", "commentId")
+            val data = listOf("category", "room_id", "url", "deep_link", "post_id", "postId", "comment_id", "commentId")
                 .mapNotNull { key -> extras.getString(key)?.let { key to it } }
                 .toMap()
             return fromNotificationData(data)

@@ -1,5 +1,8 @@
 package org.sparcs.soap.app.features.taxiChatList.components
 
+import org.sparcs.soap.app.features.navigationBar.components.UnreadCountBadge
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.Alignment
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,14 +39,15 @@ fun TaxiChatRoomList(
     taxiUser: TaxiUser?,
     onRoomClick: (TaxiRoom) -> Unit,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    unreadCounts: Map<String, Int> = emptyMap()
 ) {
     LazyColumn(
         contentPadding = contentPadding,
         modifier = modifier.fillMaxSize()
     ) {
-        roomSection(R.string.active_groups, R.string.no_active_groups, onGoing, "ongoing", taxiUser, onRoomClick)
-        roomSection(R.string.past_groups, R.string.no_past_groups, done, "done", taxiUser, onRoomClick)
+        roomSection(R.string.active_groups, R.string.no_active_groups, onGoing, "ongoing", taxiUser, unreadCounts, onRoomClick)
+        roomSection(R.string.past_groups, R.string.no_past_groups, done, "done", taxiUser, unreadCounts, onRoomClick)
     }
 }
 
@@ -54,6 +58,7 @@ private fun LazyListScope.roomSection(
     rooms: List<TaxiRoom>,
     key: String,
     taxiUser: TaxiUser?,
+    unreadCounts: Map<String, Int>,
     onRoomClick: (TaxiRoom) -> Unit,
 ) {
     item(key = "$key-header") { RoomSectionHeader(stringResource(title)) }
@@ -69,6 +74,12 @@ private fun LazyListScope.roomSection(
     items(rooms, key = { room -> "$key-${room.id}" }) { room ->
         Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
             TaxiRoomCell(room = room, onClick = { onRoomClick(room) }, taxiUser = taxiUser)
+            val unreadCount = unreadCounts[room.id] ?: 0
+            if (unreadCount > 0) {
+                Box(Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-4).dp)) {
+                    UnreadCountBadge(unreadCount)
+                }
+            }
         }
     }
 }

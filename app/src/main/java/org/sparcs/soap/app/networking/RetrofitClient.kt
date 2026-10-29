@@ -79,13 +79,17 @@ import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiUserRepository
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiUserRepositoryProtocol
 import org.sparcs.soap.app.domain.services.AnalyticsService
+import org.sparcs.soap.app.domain.services.AppForegroundMonitor
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.AuthenticationService
 import org.sparcs.soap.app.domain.services.AuthenticationServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsService
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
+import org.sparcs.soap.app.domain.services.ProcessForegroundMonitor
 import org.sparcs.soap.app.domain.services.TaxiChatService
 import org.sparcs.soap.app.domain.services.TaxiChatServiceProtocol
+import org.sparcs.soap.app.domain.services.notifications.SystemTaxiNotificationCleaner
+import org.sparcs.soap.app.domain.services.notifications.TaxiNotificationCleaner
 import org.sparcs.soap.app.domain.usecases.AuthUseCase
 import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.FCMUseCase
@@ -169,6 +173,8 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
+import org.sparcs.soap.app.domain.services.TaxiUnreadStore
+import org.sparcs.soap.app.domain.services.TaxiUnreadStoreProtocol
 
 class TokenAuthenticator @Inject constructor(
     private val authUseCaseProvider: Provider<AuthUseCaseProtocol>,
@@ -793,6 +799,16 @@ object ServiceModule {
     @Provides
     @Singleton
     fun provideTaxiChatServiceProtocol(impl: TaxiChatService): TaxiChatServiceProtocol = impl
+
+    @Provides
+    @Singleton
+    fun provideAppForegroundMonitor(impl: ProcessForegroundMonitor): AppForegroundMonitor = impl
+
+    @Provides
+    fun provideTaxiUnreadStoreProtocol(impl: TaxiUnreadStore): TaxiUnreadStoreProtocol = impl
+
+    @Provides
+    fun provideTaxiNotificationCleaner(impl: SystemTaxiNotificationCleaner): TaxiNotificationCleaner = impl
 }
 
 @Module

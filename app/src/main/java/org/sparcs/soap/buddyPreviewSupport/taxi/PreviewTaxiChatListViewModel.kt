@@ -25,6 +25,7 @@ class PreviewTaxiChatListViewModel(
 
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<TaxiChatListViewModel.ViewState> = _state.asStateFlow()
+    override val unreadCounts: StateFlow<Map<String, Int>> = MutableStateFlow(emptyMap())
 
     // MARK: - Functions
     override fun fetchData() {

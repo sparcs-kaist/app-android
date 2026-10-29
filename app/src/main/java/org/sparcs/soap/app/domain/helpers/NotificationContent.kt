@@ -37,6 +37,15 @@ internal data class NotificationContent(val title: String, val body: String) {
             val resourceID = when (key?.uppercase(Locale.ROOT)) {
                 "NEW_COMMENT" -> R.string.new_comment
                 "NEW_REPLY" -> R.string.new_reply
+                // Taxi chats and ride events, sent through Buddy's backend
+                "TAXI_CHAT_IMAGE" -> R.string.taxi_push_chat_image
+                "TAXI_CHAT_ACCOUNT" -> R.string.taxi_push_chat_account
+                "TAXI_IN" -> R.string.taxi_push_in
+                "TAXI_OUT" -> R.string.taxi_push_out
+                "TAXI_SETTLEMENT" -> R.string.taxi_push_settlement
+                "TAXI_PAYMENT" -> R.string.taxi_push_payment
+                "TAXI_DEPARTURE" -> R.string.taxi_push_departure
+                "TAXI_ARRIVAL" -> R.string.taxi_push_arrival
                 else -> key?.let {
                     context.resources.getIdentifier(
                         it.lowercase(Locale.ROOT),

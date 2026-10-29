@@ -137,12 +137,14 @@ fun TaxiListView(
     )
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
+    val unreadCount by viewModel.unreadCount.collectAsState()
     val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {
             TaxiListNavigationBar(
                 navController = navController,
+                unreadCount = unreadCount,
                 scrollBehavior = topBarScrollBehavior
             )
         },

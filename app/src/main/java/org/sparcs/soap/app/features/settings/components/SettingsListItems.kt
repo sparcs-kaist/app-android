@@ -102,6 +102,7 @@ fun SettingsSwitchItem(
     leadingContent: (@Composable () -> Unit)? = null,
     headlineTrailing: (@Composable () -> Unit)? = null,
 ) {
+    val disabled = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     ListItem(
         headlineContent = {
             if (headlineTrailing == null) {
@@ -119,6 +120,11 @@ fun SettingsSwitchItem(
         supportingContent = supportingText?.let { { Text(it) } },
         leadingContent = leadingContent,
         trailingContent = { Switch(checked = checked, onCheckedChange = null, enabled = enabled) },
+        colors = if (enabled) ListItemDefaults.colors() else ListItemDefaults.colors(
+            headlineColor = disabled,
+            supportingColor = disabled,
+            leadingIconColor = disabled
+        ),
         modifier = modifier.toggleable(
             value = checked,
             enabled = enabled,

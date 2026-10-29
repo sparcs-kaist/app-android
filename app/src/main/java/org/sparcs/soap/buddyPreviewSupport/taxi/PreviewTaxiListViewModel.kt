@@ -28,6 +28,7 @@ class PreviewTaxiListViewModel(
 
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<TaxiListViewModel.ViewState> = _state.asStateFlow()
+    override val unreadCount: StateFlow<Int> = MutableStateFlow(0)
 
     override val week: List<Date>
         get() {

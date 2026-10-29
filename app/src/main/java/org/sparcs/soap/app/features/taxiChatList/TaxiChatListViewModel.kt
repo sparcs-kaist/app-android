@@ -12,10 +12,14 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import javax.inject.Inject
+import org.sparcs.soap.app.domain.services.MockTaxiUnreadStore
+import org.sparcs.soap.app.domain.services.TaxiUnreadStoreProtocol
 
 interface TaxiChatListViewModelProtocol {
     // MARK: - ViewModel Properties
     val state: StateFlow<TaxiChatListViewModel.ViewState>
+    /** Unread chats by ride ID. Rides with none may be missing. */
+    val unreadCounts: StateFlow<Map<String, Int>>
     var taxiUser: TaxiUser?
 
     // MARK: - Functions
@@ -26,7 +30,10 @@ interface TaxiChatListViewModelProtocol {
 class TaxiChatListViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val userUseCase: UserUseCaseProtocol,
+    taxiUnreadStore: TaxiUnreadStoreProtocol = MockTaxiUnreadStore(),
 ) : ViewModel(), TaxiChatListViewModelProtocol {
+
+    override val unreadCounts: StateFlow<Map<String, Int>> = taxiUnreadStore.counts
 
     sealed class ViewState {
         data object Loading : ViewState()
