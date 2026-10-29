@@ -475,7 +475,8 @@
     <string name="notification_settings_other_services">다른 서비스</string>
     <string name="notification_settings_this_device_only">이 설정은 이 기기에만 적용됩니다.</string>
     <string name="notification_settings_turn_on_in_settings">설정에서 켜기</string>
-    <string name="notification_settings_blocked_by_system">Buddy 알림이 꺼져 있어 아래 알림을 받을 수 없습니다.</string>
+    <string name="notification_settings_blocked_title">알림이 꺼져 있음</string>
+    <string name="notification_settings_blocked_by_system">Buddy 알림을 허용하기 전까지는 아래 알림을 받을 수 없습니다.</string>
     <string name="notification_settings_change_failed">알림 설정을 변경할 수 없음</string>
     <string name="error_no_connection">인터넷 연결이 원활하지 않습니다.</string>
     <string name="error_timeout">요청 시간이 초과되었습니다.</string>

@@ -2,13 +2,21 @@ package org.sparcs.soap.app.features.settings.notification
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,7 +42,6 @@ import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.NotificationCategory
 import org.sparcs.soap.app.domain.usecases.MockFCMUseCase
-import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
@@ -100,13 +107,8 @@ fun NotificationSettingsView(
                     ) {
                         if (!viewModel.isAllowedBySystem) {
                             item {
-                                SettingsNavigationItem(
-                                    text = stringResource(R.string.notification_settings_turn_on_in_settings),
-                                    supportingText = stringResource(R.string.notification_settings_blocked_by_system),
-                                    leadingContent = {
-                                        Icon(Icons.Outlined.NotificationsOff, contentDescription = null)
-                                    },
-                                    onClick = {
+                                NotificationsBlockedNotice(
+                                    onTurnOn = {
                                         context.startActivity(
                                             Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                                                 .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
@@ -154,6 +156,37 @@ fun NotificationSettingsView(
         state = viewModel.alertState,
         onDismiss = viewModel::dismissAlert,
     )
+}
+
+/** Says why the switches below are off, with a button to where notifications can be turned on. */
+@Composable
+private fun NotificationsBlockedNotice(onTurnOn: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(Icons.Outlined.NotificationsOff, contentDescription = null, modifier = Modifier.size(24.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = stringResource(R.string.notification_settings_blocked_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.notification_settings_blocked_by_system),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Button(onClick = onTurnOn, modifier = Modifier.padding(top = 8.dp)) {
+                    Text(stringResource(R.string.notification_settings_turn_on_in_settings))
+                }
+            }
+        }
+    }
 }
 
 @Composable

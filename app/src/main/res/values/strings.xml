@@ -474,7 +474,8 @@
     <string name="notification_settings_other_services">Other Services</string>
     <string name="notification_settings_this_device_only">These settings apply to this device only.</string>
     <string name="notification_settings_turn_on_in_settings">Turn On in Settings</string>
-    <string name="notification_settings_blocked_by_system">Notifications are turned off for Buddy, so none of these arrive.</string>
+    <string name="notification_settings_blocked_title">Notifications are off</string>
+    <string name="notification_settings_blocked_by_system">None of these arrive until you allow notifications for Buddy.</string>
     <string name="notification_settings_change_failed">Couldn’t Change Notifications</string>
     <string name="inapp_snackbar_explanation">Update downloaded. Restart to apply.</string>
     <string name="restart">Restart</string>
