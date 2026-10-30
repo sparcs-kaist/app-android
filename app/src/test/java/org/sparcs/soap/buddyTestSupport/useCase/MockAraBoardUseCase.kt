@@ -19,6 +19,7 @@ import java.util.Date
 class MockAraBoardUseCase : AraBoardUseCaseProtocol {
 
     var fetchPostResult: Result<AraPost> = Result.success(AraPost.mock())
+    var cachedPostResult: AraPost? = null
     var fetchBoardsResult: Result<List<AraBoard>> = Result.success(emptyList())
     var fetchPostsResult: Result<AraPostPage> =
         Result.success(AraPostPage(pages = 0, items = 0, currentPage = 0, results = emptyList()))
@@ -73,6 +74,8 @@ class MockAraBoardUseCase : AraBoardUseCaseProtocol {
         lastFetchPostID = postID
         return fetchPostResult.getOrThrow()
     }
+
+    override fun cachedPost(postID: Int): AraPost? = cachedPostResult
 
     override suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage =
         fetchBookmarksResult.getOrThrow()

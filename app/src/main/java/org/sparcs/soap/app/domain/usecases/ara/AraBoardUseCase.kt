@@ -32,6 +32,8 @@ interface AraBoardUseCaseProtocol {
         postID: Int
     ): AraPost
 
+    fun cachedPost(postID: Int): AraPost?
+
     suspend fun fetchBookmarks(
         page: Int,
         pageSize: Int
@@ -99,6 +101,8 @@ class AraBoardUseCase @Inject constructor(
             araBoardRepository.fetchPost(origin, postID)
         }
     }
+
+    override fun cachedPost(postID: Int): AraPost? = araBoardRepository.cachedPost(postID)
 
     override suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage {
         val context = CrashContext(

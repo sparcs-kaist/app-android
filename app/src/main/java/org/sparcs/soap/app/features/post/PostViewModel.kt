@@ -148,7 +148,10 @@ class PostViewModel @Inject constructor(
         val isFirstTime = _post.value == null
         val origin = if (isFirstTime) PostOrigin.All else PostOrigin.Board
 
-        if (isFirstTime) _state.value = ViewState.Loading
+        if (isFirstTime) {
+            _state.value = ViewState.Loading
+            araBoardUseCase.cachedPost(postId)?.let(::setPost)
+        }
 
         viewModelScope.launch {
             try {
@@ -173,17 +176,15 @@ class PostViewModel @Inject constructor(
     private fun prepareContentBody(post: AraPost) {
         val content = post.content ?: return
         val boardSlug = post.board?.slug
-        val hasBoard = post.board != null
         val title = post.title.orEmpty()
         bodyJob?.cancel()
         bodyJob = viewModelScope.launch {
-            val (body, isEditable) = withContext(backgroundDispatcher) {
-                val baseUrl = PostBody.baseUrl(boardSlug)
-                PostBody.from(content, boardSlug) to (hasBoard && ComposeDocument.fromContent(content, baseUrl) != null)
-            }
+            val body = withContext(backgroundDispatcher) { PostBody.from(content, boardSlug) }
             _contentBody.value = body
-            _canEdit.value = isEditable
             updateCanSummarise()
+            _canEdit.value = post.isMine == true && post.board != null && withContext(backgroundDispatcher) {
+                ComposeDocument.fromContent(content, PostBody.baseUrl(boardSlug)) != null
+            }
             loadTranslationTargets(listOf(title, body.plainText).joinToString(LINE_SEPARATOR))
         }
     }

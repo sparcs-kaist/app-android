@@ -273,7 +273,7 @@ fun PostView(
 
     val comments: LazyListScope.() -> Unit = {
         commentsSection(
-            post = post,
+            post = post.takeIf { state != PostViewModel.ViewState.Loading },
             viewModel = viewModel,
             showsTopDivider = !usesPanes,
             reservesReplySpace = replyTargetId != null,

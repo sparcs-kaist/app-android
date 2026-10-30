@@ -85,6 +85,26 @@ class PostViewModelTest : PostTestBase() {
     }
 
     @Test
+    fun `fetchPost shows the listed post while the full post loads`() = runTest {
+        val listed = AraPost.mock().copy(title = "Listed", comments = mutableListOf())
+        mockAraBoardUseCase.cachedPostResult = listed
+        mockAraBoardUseCase.fetchPostResult = Result.failure(Exception("Offline"))
+
+        createViewModel(listed)
+        viewModel.fetchPost()
+
+        assertEquals("Listed", viewModel.post.value?.title)
+        assertTrue(viewModel.state.value is PostViewModel.ViewState.Error)
+    }
+
+    @Test
+    fun `canEdit stays false for posts by others`() = runTest {
+        seedPost(AraPost.mock().copy(isMine = false))
+
+        assertFalse(viewModel.canEdit.value)
+    }
+
+    @Test
     fun `fetchPost failure sets error state`() = runTest {
         mockAraBoardUseCase.fetchPostResult = Result.failure(Exception("Test failure"))
 

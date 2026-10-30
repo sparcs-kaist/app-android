@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.domain.repositories.ara
 
 import android.graphics.Bitmap
+import android.util.LruCache
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -38,6 +39,7 @@ interface AraBoardRepositoryProtocol {
     ): AraPostPage
 
     suspend fun fetchPost(origin: PostOrigin?, postID: Int): AraPost
+    fun cachedPost(postID: Int): AraPost?
     suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage
     suspend fun uploadImage(image: Bitmap): AraAttachment
     suspend fun uploadFile(bytes: ByteArray, fileName: String, mimeType: String): AraAttachment
@@ -54,6 +56,7 @@ interface AraBoardRepositoryProtocol {
 
 
 private const val ARA_IMAGE_MAX_MB = 1.0
+private const val LISTED_POSTS_CAPACITY = 200
 
 class AraBoardRepository @Inject constructor(
     private val api: AraBoardApi,
@@ -63,6 +66,7 @@ class AraBoardRepository @Inject constructor(
     // MARK: - Caches
     private var cachedBoards: List<AraBoard>? = null
     private val mutex = Mutex()
+    private val listedPosts = LruCache<Int, AraPost>(LISTED_POSTS_CAPACITY)
 
     override suspend fun fetchBoards(): List<AraBoard> {
         val cached = mutex.withLock { cachedBoards }
@@ -118,15 +122,21 @@ class AraBoardRepository @Inject constructor(
 
             is PostListType.All -> api.fetchPosts(page, pageSize, searchKeyword = searchKeyword)
         }
-    }.toModel()
+    }.toModel().also(::rememberListed)
 
     override suspend fun fetchPost(origin: PostOrigin?, postID: Int): AraPost = safeApiCall(gson) {
         api.fetchPost(postID, topicId = (origin as? PostOrigin.Topic)?.topicID)
     }.toModel()
 
+    override fun cachedPost(postID: Int): AraPost? = listedPosts.get(postID)
+
     override suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage = safeApiCall(gson) {
         api.fetchBookmarks(page = page, pageSize = pageSize)
-    }.toModel()
+    }.toModel().also(::rememberListed)
+
+    private fun rememberListed(page: AraPostPage) {
+        page.results.forEach { listedPosts.put(it.id, it) }
+    }
 
     override suspend fun uploadImage(image: Bitmap): AraAttachment {
         val compressed = withContext(Dispatchers.Default) {
