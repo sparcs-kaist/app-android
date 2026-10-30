@@ -81,6 +81,7 @@ fun FeedPostRow(
     onPostDeleted: ((String) -> Unit)?,
     onComment: () -> Unit, //post 또는 comment click
     singleLine: Boolean,
+    onCommentButton: () -> Unit = onComment,
     summarizationState: SummarizationState = SummarizationState.Idle,
     onRetrySummarize: () -> Unit = {},
     onDismissSummarize: () -> Unit = {},
@@ -113,7 +114,7 @@ fun FeedPostRow(
             Content(post, singleLine, onComment)
         }
 
-        Footer(post, viewModel, onComment)
+        Footer(post, viewModel, onCommentButton)
     }
 }
 

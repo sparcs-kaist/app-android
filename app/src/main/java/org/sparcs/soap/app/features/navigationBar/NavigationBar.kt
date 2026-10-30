@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
@@ -48,11 +49,11 @@ import org.sparcs.soap.app.features.course.CourseView
 import org.sparcs.soap.app.features.course.CourseViewModel
 import org.sparcs.soap.app.features.courseCompose.CourseComposeView
 import org.sparcs.soap.app.features.credit.CreditView
+import org.sparcs.soap.app.features.feed.ActiveFeedPostViewModel
+import org.sparcs.soap.app.features.feed.FeedPostRoute
 import org.sparcs.soap.app.features.feed.FeedView
 import org.sparcs.soap.app.features.feed.FeedViewModel
-import org.sparcs.soap.app.features.feedPost.FeedPostView
-import org.sparcs.soap.app.features.feedPost.FeedPostViewModel
-import org.sparcs.soap.app.features.feedPost.FeedPostViewModelProtocol
+import org.sparcs.soap.app.features.feed.rememberFeedPostSelection
 import org.sparcs.soap.app.features.feedPostCompose.FeedPostComposeView
 import org.sparcs.soap.app.features.feedPostCompose.FeedPostComposeViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailView
@@ -174,6 +175,7 @@ enum class Channel(@param:StringRes val title: Int) {
 
 @Composable
 fun MainTabBar(navController: NavHostController = rememberNavController()) {
+    val feedPostSelection = rememberFeedPostSelection()
     val navBackStackEntryState = navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntryState.value?.destination?.route
 
@@ -253,17 +255,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         }
     }
 
-    //Rail whenever the window is wider than a portrait phone. Deliberately diverges from
-    //NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo, which returns the bar for
-    //compact-height windows i.e. phones in landscape. Tabletop keeps the bar so the rail
-    //does not straddle the hinge.
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val navigationLayoutType = when {
         !isMainTab -> NavigationSuiteType.None
-        adaptiveInfo.windowPosture.isTabletop -> NavigationSuiteType.NavigationBar
-        adaptiveInfo.windowSizeClass.windowWidthSizeClass != WindowWidthSizeClass.COMPACT ->
-            NavigationSuiteType.NavigationRail
-
+        usesNavigationRail(adaptiveInfo) -> NavigationSuiteType.NavigationRail
         else -> NavigationSuiteType.NavigationBar
     }
 
@@ -317,7 +312,13 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             navController.getBackStackEntry("FeedGraph")
                         }
                         val viewModel: FeedViewModel = hiltViewModel(parentEntry)
-                        FeedView(navController = navController, viewModel = viewModel)
+                        val activePost: ActiveFeedPostViewModel = hiltViewModel(parentEntry)
+                        FeedView(
+                            navController = navController,
+                            viewModel = viewModel,
+                            postViewModel = activePost[feedPostSelection.value.postID],
+                            selection = feedPostSelection,
+                        )
                     }
 
                     composable(
@@ -337,16 +338,20 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             }
                         ),
                     ) { backStackEntry ->
-                        val viewModel: FeedPostViewModelProtocol =
-                            hiltViewModel<FeedPostViewModel>(backStackEntry)
                         val parentEntry = remember(backStackEntry) {
                             navController.getBackStackEntry("FeedGraph")
                         }
                         val feedViewModel: FeedViewModel = hiltViewModel(parentEntry)
-                        FeedPostView(
+                        val activePost: ActiveFeedPostViewModel = hiltViewModel(parentEntry)
+                        val postID = requireNotNull(backStackEntry.arguments?.getString("feedId"))
+                        val postViewModel = remember(activePost, postID) { requireNotNull(activePost[postID]) }
+                        FeedPostRoute(
+                            postID = postID,
+                            commentID = backStackEntry.arguments?.getString("commentId"),
                             navController = navController,
-                            viewModel = viewModel,
-                            feedViewModel = feedViewModel
+                            viewModel = postViewModel,
+                            feedViewModel = feedViewModel,
+                            selection = feedPostSelection,
                         )
                     }
 
@@ -841,6 +846,14 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         }
     }
 }
+
+//Rail whenever the window is wider than a portrait phone. Deliberately diverges from
+//NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo, which returns the bar for
+//compact-height windows i.e. phones in landscape. Tabletop keeps the bar so the rail
+//does not straddle the hinge.
+fun usesNavigationRail(adaptiveInfo: WindowAdaptiveInfo): Boolean =
+    !adaptiveInfo.windowPosture.isTabletop &&
+        adaptiveInfo.windowSizeClass.windowWidthSizeClass != WindowWidthSizeClass.COMPACT
 
 @Preview
 @Composable

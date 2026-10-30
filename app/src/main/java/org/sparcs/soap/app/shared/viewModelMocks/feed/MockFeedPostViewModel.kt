@@ -1,6 +1,9 @@
 package org.sparcs.soap.app.shared.viewModelMocks.feed
 
 import android.graphics.Bitmap
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,12 +26,14 @@ class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPos
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<FeedPostViewModel.ViewState> = _state.asStateFlow()
 
-    override val post: FeedPost = FeedPost.mock()
+    override val post: FeedPost = (initialState as? FeedPostViewModel.ViewState.Loaded)?.post ?: FeedPost.mock()
+    override var targetComment: FeedComment? by mutableStateOf(null)
+    override fun retry() {}
 
     override var comments: List<FeedComment> = FeedComment.mockList()
-    override var text: String = ""
+    override var text: String by mutableStateOf("")
     override var image: Bitmap? = null
-    override var isAnonymous: Boolean = false
+    override var isAnonymous: Boolean by mutableStateOf(false)
     override var isSubmittingComment: Boolean = false
     override var alertState: AlertState? = null
     override var isAlertPresented: Boolean = false

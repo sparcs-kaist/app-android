@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,11 +31,15 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -52,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -92,9 +99,11 @@ import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedPostView(
-    viewModel: FeedPostViewModelProtocol = hiltViewModel<FeedPostViewModel>(),
+    viewModel: FeedPostViewModelProtocol,
     feedViewModel: FeedViewModelProtocol = hiltViewModel<FeedViewModel>(),
     navController: NavController,
+    onClosePanel: (() -> Unit)? = null,
+    initialCommentID: String? = null,
 ) {
     val postState by viewModel.state.collectAsState()
 
@@ -103,21 +112,39 @@ fun FeedPostView(
     }
 
     when (val state = postState) {
-        is FeedPostViewModel.ViewState.Loading -> LoadingView(navController)
+        is FeedPostViewModel.ViewState.Loading -> {
+            if (onClosePanel == null) LoadingView(navController)
+            else Column {
+                CommentsPanelHeader(onClosePanel)
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
 
-        is FeedPostViewModel.ViewState.Error -> ErrorView(
-            error = state.error,
-            onRetry = { viewModel.post?.let { viewModel.fetchComments(it.id, initial = true) } }
-        )
+        is FeedPostViewModel.ViewState.Error -> Column {
+            if (onClosePanel != null) CommentsPanelHeader(onClosePanel)
+            ErrorView(error = state.error, onRetry = { viewModel.retry() })
+        }
 
         is FeedPostViewModel.ViewState.Loaded -> {
+            LaunchedEffect(initialCommentID) {
+                if (initialCommentID != null) viewModel.fetchComments(state.post.id, initial = false)
+            }
+            LaunchedEffect(state.post.id, state.post.commentCount) {
+                feedViewModel.posts = feedViewModel.posts.map {
+                    if (it.id == state.post.id) it.copy(commentCount = state.post.commentCount) else it
+                }
+            }
             val post = feedViewModel.posts.find { it.id == state.post.id } ?: state.post
             FeedPostContent(
                 post = post,
                 comments = viewModel.comments,
                 viewModel = viewModel,
                 feedViewModel = feedViewModel,
-                navController = navController
+                navController = navController,
+                onClosePanel = onClosePanel,
+                initialCommentID = initialCommentID,
             )
         }
     }
@@ -128,7 +155,7 @@ fun FeedPostView(
         onDismiss = { viewModel.isAlertPresented = false }
     )
 
-    GlobalAlertDialog(
+    if (onClosePanel == null) GlobalAlertDialog(
         isPresented = feedViewModel.isAlertPresented,
         state = feedViewModel.alertState,
         onDismiss = { feedViewModel.isAlertPresented = false }
@@ -143,6 +170,8 @@ private fun FeedPostContent(
     viewModel: FeedPostViewModelProtocol,
     feedViewModel: FeedViewModelProtocol,
     navController: NavController,
+    onClosePanel: (() -> Unit)? = null,
+    initialCommentID: String? = null,
 ) {
     val proxy = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -152,13 +181,12 @@ private fun FeedPostContent(
     val missingCommentMessage = stringResource(R.string.feed_notification_comment_missing)
     val commentItems = remember(comments) { comments.flatMap { listOf(it) + it.replies } }
     val commentItemIDs = remember(commentItems) { commentItems.map { it.id } }
-    var requestedCommentID by rememberSaveable(post.id, viewModel.initialCommentID) {
-        mutableStateOf(viewModel.initialCommentID)
+    var requestedCommentID by rememberSaveable(post.id, initialCommentID) {
+        mutableStateOf(initialCommentID)
     }
     var highlightedCommentID by rememberSaveable(post.id) { mutableStateOf<String?>(null) }
 
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    var targetComment by remember { mutableStateOf<FeedComment?>(null) }
     var isRefreshing by remember { mutableStateOf(false) }
 
     val translationState by viewModel.translationState.collectAsState()
@@ -166,7 +194,7 @@ private fun FeedPostContent(
     var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
 
     val pullState = rememberPullToRefreshState()
-    val topBarScrollBehavior = topAppBarScrollBehavior()
+    val topBarScrollBehavior = if (onClosePanel == null) topAppBarScrollBehavior() else null
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
@@ -179,8 +207,9 @@ private fun FeedPostContent(
             snackbarHostState.showSnackbar(missingCommentMessage)
             return@LaunchedEffect
         }
-        snapshotFlow { proxy.layoutInfo.totalItemsCount }.first { it > index + 2 }
-        proxy.animateScrollToItem(index + 2)
+        val offset = if (onClosePanel == null) 2 else 1
+        snapshotFlow { proxy.layoutInfo.totalItemsCount }.first { it > index + offset }
+        proxy.animateScrollToItem(index + offset)
         highlightedCommentID = id
         requestedCommentID = null
     }
@@ -192,9 +221,11 @@ private fun FeedPostContent(
     }
 
     Scaffold(
+        contentWindowInsets = if (onClosePanel == null) ScaffoldDefaults.contentWindowInsets else WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            FeedPostNavigationBar(
+            if (onClosePanel != null) CommentsPanelHeader(onClosePanel)
+            else FeedPostNavigationBar(
                 navController = navController,
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { reason -> viewModel.reportPost(post.id, reason) },
@@ -217,16 +248,15 @@ private fun FeedPostContent(
             ) {
                 InputBar(
                     viewModel = viewModel,
-                    targetComment = targetComment,
+                    targetComment = viewModel.targetComment,
                     focusRequester = focusRequester,
-                    onCancelReply = { targetComment = null },
+                    onCancelReply = { viewModel.targetComment = null },
                     onCommentUploaded = {
                         if (viewModel.text.isEmpty() || viewModel.isSubmittingComment) return@InputBar
                         scope.launch {
-                            val uploaded = viewModel.submitComment(post.id, targetComment)
+                            val uploaded = viewModel.submitComment(post.id, viewModel.targetComment)
                             if (uploaded != null) {
-                                post.commentCount += 1
-                                targetComment = null
+                                viewModel.targetComment = null
                                 focusManager.clearFocus()
                                 requestedCommentID = uploaded.id
                             }
@@ -238,7 +268,7 @@ private fun FeedPostContent(
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen(
-                "Feed Post",
+                if (onClosePanel == null) "Feed Post" else "Feed Comments Panel",
                 "is_author" to post.isAuthor,
                 "has_comments" to (post.commentCount > 0)
             )
@@ -262,16 +292,16 @@ private fun FeedPostContent(
             LazyColumn(
                 state = proxy,
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize().testTag("feed-comments")
             ) {
-                item {
+                if (onClosePanel == null) item {
                     FeedPostRow(
                         post = post,
                         viewModel = feedViewModel,
                         singleLine = false,
                         onPostDeleted = null,
                         onComment = {
-                            targetComment = null
+                            viewModel.targetComment = null
                             focusRequester.requestFocus()
                         },
                         summarizationState = summarizationState,
@@ -316,7 +346,7 @@ private fun FeedPostContent(
                                 isReply = comment.parentCommentID != null,
                                 onReply = {
                                     if (comment.parentCommentID == null) {
-                                        targetComment = comment
+                                        viewModel.targetComment = comment
                                         focusRequester.requestFocus()
                                     }
                                 },
@@ -538,4 +568,18 @@ private fun AuthorPostPreview() {
     Theme {
         FeedPostView(viewModel = mockVM, mockFeedVM, navController = rememberNavController())
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CommentsPanelHeader(onClose: () -> Unit) {
+    TopAppBar(
+        title = { Text(stringResource(R.string.feed_comments)) },
+        actions = {
+            IconButton(onClick = onClose) {
+                Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.close))
+            }
+        },
+        modifier = Modifier.testTag("feed-comments-header"),
+    )
 }

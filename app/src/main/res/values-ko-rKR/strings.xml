@@ -760,4 +760,5 @@
     <string name="activity_add_time">시간 추가</string>
     <string name="activity_time_number">시간 %1$d</string>
     <string name="activity_remove_time">시간 삭제</string>
+    <string name="feed_comments">댓글</string>
 </resources>
