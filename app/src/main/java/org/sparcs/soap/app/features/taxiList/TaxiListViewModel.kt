@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.taxi.TaxiCreateRoom
@@ -102,7 +103,7 @@ class TaxiListViewModel @Inject constructor(
     override val rooms: StateFlow<List<TaxiRoom>> get() = _rooms
 
     override val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>> =
-        combine(taxiFavoriteUseCase.routes, _locations) { routes, locations -> routes.resolve(locations) }
+        combine(taxiFavoriteUseCase.favoriteRoutes, _locations) { routes, locations -> routes.resolve(locations) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     override val favoritePlaceIDs: StateFlow<List<String>> = taxiFavoriteUseCase.placeIDs
@@ -127,6 +128,7 @@ class TaxiListViewModel @Inject constructor(
 
     // MARK: - Functions
     override fun fetchData() {
+        viewModelScope.launch { taxiFavoriteUseCase.fetchFavoriteRoutes() }
         viewModelScope.launch {
             if (_rooms.value.isEmpty()) {
                 _state.value = ViewState.Loading
@@ -186,14 +188,30 @@ class TaxiListViewModel @Inject constructor(
     override fun toggleFavoritePlace(location: TaxiLocation) = taxiFavoriteUseCase.togglePlace(location)
 
     override fun saveFavoriteRoute() {
-        taxiFavoriteUseCase.saveRoute(source = source ?: return, destination = destination ?: return)
+        val from = source ?: return
+        val to = destination ?: return
+        updateFavoriteRoute { taxiFavoriteUseCase.addFavoriteRoute(from.id, to.id) }
     }
 
-    override fun deleteFavoriteRoute(route: TaxiFavoriteRoute) = taxiFavoriteUseCase.removeRoute(route)
+    override fun deleteFavoriteRoute(route: TaxiFavoriteRoute) {
+        updateFavoriteRoute { taxiFavoriteUseCase.deleteFavoriteRoute(route.id) }
+    }
+
+    private fun updateFavoriteRoute(action: suspend () -> Unit) {
+        viewModelScope.launch {
+            try {
+                action()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                alertState = e.toAlertState(R.string.error_unknown_try_again)
+                isAlertPresented = true
+            }
+        }
+    }
 
     override fun selectFavoriteRoute(favoriteRoute: TaxiFavoriteRoute) {
         source = favoriteRoute.from
         destination = favoriteRoute.to
     }
 }
-

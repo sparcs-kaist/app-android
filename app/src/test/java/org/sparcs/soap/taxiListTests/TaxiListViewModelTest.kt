@@ -9,6 +9,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.sparcs.soap.app.domain.models.taxi.TaxiLocation
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
+import org.sparcs.soap.app.domain.models.taxi.TaxiFavoriteRoute
+import org.sparcs.soap.app.domain.usecases.taxi.MockTaxiFavoriteUseCase
+import org.sparcs.soap.app.domain.usecases.taxi.TaxiFavoriteUseCaseProtocol
 import org.sparcs.soap.app.features.taxiList.TaxiListViewModel
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.buddyTestSupport.repository.MockTaxiRoomRepository
@@ -80,5 +83,43 @@ class TaxiListViewModelTest {
         createViewModel()
 
         assertTrue(viewModel.state.value is TaxiListViewModel.ViewState.Error)
+    }
+
+    @Test
+    fun `favorites refresh independently and mutations use location and server ids`() = runTest {
+        var fetches = 0
+        var saved: Pair<String, String>? = null
+        var deleted: String? = null
+        val favorites = object : TaxiFavoriteUseCaseProtocol by MockTaxiFavoriteUseCase() {
+            override suspend fun fetchFavoriteRoutes() { fetches++ }
+            override suspend fun addFavoriteRoute(fromId: String, toId: String) { saved = fromId to toId }
+            override suspend fun deleteFavoriteRoute(id: String) { deleted = id }
+        }
+        mockTaxiRoomRepository.fetchRoomsResult = Result.failure(Exception("offline"))
+        viewModel = TaxiListViewModel(SavedStateHandle(), mockTaxiRoomRepository, mockTaxiLocationUseCase, favorites)
+        assertEquals(1, fetches)
+        val places = TaxiLocation.mockList()
+        viewModel.source = places[0]
+        viewModel.destination = places[1]
+        viewModel.saveFavoriteRoute()
+        assertEquals(places[0].id to places[1].id, saved)
+        viewModel.deleteFavoriteRoute(TaxiFavoriteRoute("server-id", places[0], places[1]))
+        assertEquals("server-id", deleted)
+    }
+
+    @Test
+    fun `favorite mutation failure presents an alert without replacing room state`() = runTest {
+        val favorites = object : TaxiFavoriteUseCaseProtocol by MockTaxiFavoriteUseCase() {
+            override suspend fun addFavoriteRoute(fromId: String, toId: String) { error("offline") }
+        }
+        viewModel = TaxiListViewModel(SavedStateHandle(), mockTaxiRoomRepository, mockTaxiLocationUseCase, favorites)
+        val before = viewModel.state.value
+        val places = TaxiLocation.mockList()
+        viewModel.source = places[0]
+        viewModel.destination = places[1]
+        viewModel.saveFavoriteRoute()
+        assertTrue(viewModel.isAlertPresented)
+        assertEquals("offline", viewModel.alertState?.message)
+        assertEquals(before, viewModel.state.value)
     }
 }

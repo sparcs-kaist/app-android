@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -15,32 +14,21 @@ class TaxiFavoritesStore internal constructor(private val preferences: SharedPre
     @Inject constructor(@ApplicationContext context: Context) :
         this(context.getSharedPreferences(FILE, Context.MODE_PRIVATE))
 
-    @Serializable
-    data class Route(val sourceID: String, val destinationID: String)
-
     private val json = Json { ignoreUnknownKeys = true }
 
     var placeIDs: List<String>
-        get() = decode(KEY_PLACES)
+        get() = preferences.getString(KEY_PLACES, null)
+            ?.let { runCatching { json.decodeFromString<List<String>>(it) }.getOrNull() }
+            .orEmpty()
         set(value) = preferences.edit { putString(KEY_PLACES, json.encodeToString(value)) }
-
-    var routes: List<Route>
-        get() = decode(KEY_ROUTES)
-        set(value) = preferences.edit { putString(KEY_ROUTES, json.encodeToString(value)) }
 
     fun clear() = preferences.edit {
         remove(KEY_PLACES)
-        remove(KEY_ROUTES)
+        remove("taxi.favoriteRoutes") // Remove routes left by older local-only versions too.
     }
-
-    private inline fun <reified T> decode(key: String): List<T> =
-        preferences.getString(key, null)
-            ?.let { runCatching { json.decodeFromString<List<T>>(it) }.getOrNull() }
-            .orEmpty()
 
     private companion object {
         const val FILE = "taxi_favorites"
         const val KEY_PLACES = "taxi.favoritePlaces"
-        const val KEY_ROUTES = "taxi.favoriteRoutes"
     }
 }

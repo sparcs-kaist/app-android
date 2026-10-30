@@ -84,6 +84,7 @@ import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.weekdaySymbol
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
+import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomSkeletonCell
@@ -100,6 +101,11 @@ fun TaxiListView(
     navController: NavController,
 ) {
     val haptic = LocalHapticFeedback.current
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
     val uiState by viewModel.state.collectAsState()
     val selectedDate = viewModel.selectedDate
 
