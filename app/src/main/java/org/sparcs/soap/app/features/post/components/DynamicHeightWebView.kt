@@ -2,6 +2,7 @@ package org.sparcs.soap.app.features.post.components
 
 import android.content.Intent
 import android.net.Uri
+import android.util.LruCache
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
@@ -39,8 +40,12 @@ fun DynamicHeightWebView(
     onLinkTapped: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var height by remember(html) { mutableIntStateOf(0) }
+    var height by remember(html) { mutableIntStateOf(contentHeights.get(html) ?: 0) }
     val onLink by rememberUpdatedState(onLinkTapped)
+    val onHeight by rememberUpdatedState { contentHeight: Int ->
+        contentHeights.put(html, contentHeight)
+        height = contentHeight
+    }
     val colors = HtmlColors(
         text = MaterialTheme.colorScheme.onSurface,
         link = MaterialTheme.colorScheme.primary,
@@ -63,7 +68,7 @@ fun DynamicHeightWebView(
                     settings.allowFileAccess = false
                     settings.allowContentAccess = false
                     settings.domStorageEnabled = false
-                    addJavascriptInterface(HeightBridge { contentHeight -> post { height = contentHeight } }, HEIGHT_BRIDGE)
+                    addJavascriptInterface(HeightBridge { contentHeight -> post { onHeight(contentHeight) } }, HEIGHT_BRIDGE)
                     webViewClient = PostWebViewClient(onLink = { onLink(it) })
                 }
             },
@@ -86,6 +91,7 @@ fun DynamicHeightWebView(
 }
 
 private const val HEIGHT_BRIDGE = "soapHeight"
+private val contentHeights = LruCache<String, Int>(32)
 private const val MAX_CONTENT_HEIGHT = 200_000
 
 private class HeightBridge(private val onHeight: (Int) -> Unit) {

@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.shared.views.tiptap
 
+import android.util.LruCache
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,7 +32,10 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -198,15 +203,26 @@ private fun TiptapListView(
 
 @Composable
 fun TiptapImageView(image: TiptapImage, modifier: Modifier = Modifier) {
+    var aspectRatio by remember(image.url) { mutableStateOf(imageAspectRatios.get(image.url)) }
+
     SubcomposeAsyncImage(
         model = image.url,
         contentDescription = image.alt,
         contentScale = ContentScale.FillWidth,
         loading = { TiptapImagePlaceholder(failed = false) },
         error = { TiptapImagePlaceholder(failed = true) },
+        onSuccess = { state ->
+            val drawable = state.result.drawable
+            if (drawable.intrinsicWidth > 0 && drawable.intrinsicHeight > 0) {
+                val loaded = drawable.intrinsicWidth.toFloat() / drawable.intrinsicHeight
+                imageAspectRatios.put(image.url, loaded)
+                aspectRatio = loaded
+            }
+        },
         modifier = modifier
             .then(if (image.width != null) Modifier.widthIn(max = image.width.dp) else Modifier)
             .fillMaxWidth()
+            .aspectRatio(aspectRatio ?: PLACEHOLDER_ASPECT_RATIO)
             .clip(MaterialTheme.shapes.small)
     )
 }
@@ -216,8 +232,7 @@ private fun TiptapImagePlaceholder(failed: Boolean) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(4f / 3f)
+            .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
         if (failed) {
@@ -227,6 +242,9 @@ private fun TiptapImagePlaceholder(failed: Boolean) {
         }
     }
 }
+
+private val imageAspectRatios = LruCache<String, Float>(256)
+private const val PLACEHOLDER_ASPECT_RATIO = 4f / 3f
 
 @Composable
 private fun TiptapBookmarkCard(bookmark: TiptapBookmark, onLinkClick: (String) -> Unit) {
