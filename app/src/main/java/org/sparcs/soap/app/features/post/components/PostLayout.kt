@@ -15,22 +15,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowHeightSizeClass
-import androidx.window.core.layout.WindowWidthSizeClass
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
-fun usesPostPanes(): Boolean {
-    val sizeClass = currentWindowAdaptiveInfo().windowSizeClass
-    return sizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED &&
-        sizeClass.windowHeightSizeClass != WindowHeightSizeClass.COMPACT
-}
+fun usesPostPanes(): Boolean = LocalConfiguration.current.screenWidthDp.dp >= POST_MIN_WIDTH + COMMENTS_MIN_WIDTH
 
 @Composable
 fun PostColumn(
@@ -57,7 +51,7 @@ fun PostPanes(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier.fillMaxSize()) {
-        Box(Modifier.weight(1f).fillMaxHeight()) { post() }
+        Box(Modifier.weight(1f).widthIn(min = POST_MIN_WIDTH).fillMaxHeight()) { post() }
         VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         Column(
             Modifier
@@ -69,6 +63,7 @@ fun PostPanes(
     }
 }
 
+private val POST_MIN_WIDTH = 380.dp
 private val COMMENTS_MIN_WIDTH = 320.dp
 private val COMMENTS_MAX_WIDTH = 420.dp
 
