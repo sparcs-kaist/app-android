@@ -53,33 +53,52 @@ private fun HiddenPostListRow(
     post: AraPost,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    val metaColor = MaterialTheme.colorScheme.onSurfaceVariant
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .semantics(mergeDescendants = true) {}
     ) {
-        Icon(
-            imageVector = post.hiddenIcon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.size(18.dp)
-        )
-        Text(
-            text = stringResource(post.hiddenReasonRes),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = post.createdAt.timeAgoDisplay(),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = post.hiddenIcon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = stringResource(post.hiddenReasonRes),
+                style = MaterialTheme.typography.titleMedium,
+                color = metaColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = stringResource(R.string.views, post.views),
+                style = MaterialTheme.typography.bodySmall,
+                color = metaColor
+            )
+
+            Text(
+                text = post.createdAt.timeAgoDisplay(),
+                style = MaterialTheme.typography.bodySmall,
+                color = metaColor
+            )
+        }
     }
 }
 
