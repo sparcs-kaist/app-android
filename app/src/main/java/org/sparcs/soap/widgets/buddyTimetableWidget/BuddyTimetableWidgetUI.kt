@@ -1,7 +1,14 @@
 package org.sparcs.soap.widgets.buddyTimetableWidget
 
+import android.content.Context
+import android.graphics.Paint
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.util.TypedValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -38,86 +45,113 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor.hoursWidth
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.features.timetable.components.PACKED_TEXT_SCALE
+import org.sparcs.soap.app.features.timetable.components.TimetableCellLines
+import org.sparcs.soap.app.features.timetable.components.TimetableCellMetrics
 import org.sparcs.soap.app.shared.formatters.formatHour
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.widgets.theme.ui.TimetableWidgetTheme.grayBB
-import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 @Composable
 private fun TimetableWidgetCell(
     lecture: WidgetLectureEntry,
-    height: Float,
+    width: Dp,
+    height: Dp,
     modifier: GlanceModifier = GlanceModifier,
 ) {
-    if (lecture.title == null || lecture.classroom == null || lecture.startMinutes == null || lecture.durationMinutes == null) return
+    val title = lecture.title ?: return
+    val classroom = lecture.classroom ?: return
+    if (lecture.startMinutes == null || lecture.durationMinutes == null) return
 
-    val compact = height < 44
-    val inset = if (compact) 2 else 6
-    val gap = if (compact) 2 else 4
-    val fontSize = if (compact) 9 else 10
-    val fontScale = LocalContext.current.resources.configuration.fontScale
-    val titleLineHeight = ceil(fontSize * 1.3f * fontScale).toInt().coerceAtLeast(1)
-    val locationLineHeight = ceil(8 * 1.3f * fontScale).toInt()
-    val availableTextHeight = height - gap - inset * 2
-    val showLocation = lecture.classroom.isNotBlank() && availableTextHeight >= titleLineHeight + locationLineHeight + 2
-    val showSubtitle = !lecture.subtitle.isNullOrBlank() &&
-        availableTextHeight >= titleLineHeight + locationLineHeight * (if (showLocation) 2 else 1) + 2
-    val detailHeight = (if (showLocation) locationLineHeight else 0) + (if (showSubtitle) locationLineHeight else 0)
-    val titleLines = ((availableTextHeight - if (detailHeight > 0) detailHeight + 2 else 0) / titleLineHeight).toInt().coerceIn(1, 3)
+    val context = LocalContext.current
+    val cellHeight = (height - CELL_GAP).coerceAtLeast(0.dp)
+    val metrics = TimetableCellMetrics.of(width, cellHeight)
+    val titleSize = if (metrics.isPacked) TITLE_FONT_SIZE * PACKED_TEXT_SCALE else TITLE_FONT_SIZE
+    val room = lecture.packedClassroom?.takeIf { metrics.isPacked } ?: classroom
+    val subtitle = lecture.subtitle?.takeIf { it.isNotBlank() }
+    val lines = context.widgetCellLines(metrics, width, cellHeight, titleSize, subtitle, room)
+
     val backgroundColor = Color(lecture.bgColor.toColorInt())
     val textColor = Color(lecture.textColor.toColorInt())
+    val detailColor = textColor.copy(alpha = 0.8f)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = gap.dp)
-            .height(height.dp)
+            .height(height)
+            .padding(bottom = CELL_GAP)
     ) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .padding(inset.dp)
+                .padding(horizontal = metrics.horizontalPadding, vertical = metrics.verticalPadding)
                 .cornerRadius(4.dp)
-                .background(ColorProvider(day = backgroundColor, night = backgroundColor)),
+                .background(backgroundColor.solid()),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.Start
         ) {
-            if (availableTextHeight >= titleLineHeight) Text(
-                text = lecture.title,
-                style = TextStyle(
-                    color = ColorProvider(day = textColor, night = textColor),
-                    fontSize = fontSize.sp,
-                    fontWeight = FontWeight.Medium
-                ),
-                maxLines = titleLines
+            Text(
+                text = title,
+                style = TextStyle(color = textColor.solid(), fontSize = titleSize, fontWeight = FontWeight.Medium),
+                maxLines = lines.title
             )
 
-            if (showSubtitle || showLocation) Spacer(modifier = GlanceModifier.height(2.dp))
+            if (lines.room > 0) {
+                if (subtitle != null && lines.subtitle > 0) {
+                    Spacer(modifier = GlanceModifier.height(lines.spacing))
+                    Text(
+                        text = subtitle,
+                        style = TextStyle(color = textColor.solid(), fontSize = DETAIL_FONT_SIZE),
+                        maxLines = lines.subtitle
+                    )
+                }
 
-            if (showSubtitle) {
+                Spacer(modifier = GlanceModifier.height(lines.spacing))
                 Text(
-                    text = lecture.subtitle.orEmpty(),
-                    style = TextStyle(
-                        color = ColorProvider(day = textColor, night = textColor),
-                        fontSize = 8.sp
-                    ),
-                    maxLines = 1
-                )
-            }
-
-            if (showLocation) {
-                Text(
-                    text = lecture.classroom,
-                    style = TextStyle(
-                        color = ColorProvider(day = textColor.copy(alpha = 0.8f), night = textColor.copy(alpha = 0.8f)),
-                        fontSize = 8.sp
-                    ),
-                    maxLines = 1
+                    text = room,
+                    style = TextStyle(color = detailColor.solid(), fontSize = DETAIL_FONT_SIZE),
+                    maxLines = lines.room
                 )
             }
         }
     }
 }
+
+private fun Context.widgetCellLines(
+    metrics: TimetableCellMetrics,
+    width: Dp,
+    height: Dp,
+    titleSize: TextUnit,
+    subtitle: String?,
+    room: String,
+): TimetableCellLines {
+    val density = resources.displayMetrics.density
+    val textWidth = ((width - metrics.horizontalPadding * 2).value * density).toInt()
+    val titlePaint = textPaint(titleSize)
+    val detailPaint = textPaint(DETAIL_FONT_SIZE)
+
+    return TimetableCellLines.of(
+        height = height - metrics.verticalPadding * 2,
+        titleLineHeight = (titlePaint.lineHeight() / density).dp,
+        detailLineHeight = (detailPaint.lineHeight() / density).dp,
+        spacing = DETAIL_SPACING,
+        maxTitleLines = metrics.titleMaxLines,
+        maxSubtitleLines = subtitle?.let { minOf(metrics.subtitleMaxLines, detailPaint.lineCount(it, textWidth)) } ?: 0,
+        maxRoomLines = if (room.isBlank()) 0 else minOf(metrics.roomMaxLines, detailPaint.lineCount(room, textWidth)),
+    )
+}
+
+private fun Context.textPaint(fontSize: TextUnit): TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+    textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, fontSize.value, resources.displayMetrics)
+}
+
+private fun TextPaint.lineHeight(): Int = layout(LINE_SAMPLE, Int.MAX_VALUE).height
+
+private fun TextPaint.lineCount(text: String, width: Int): Int = layout(text, width).lineCount
+
+private fun TextPaint.layout(text: String, width: Int): StaticLayout =
+    StaticLayout.Builder.obtain(text, 0, text.length, this, width.coerceAtLeast(1)).build()
 
 private fun Color.solid(): ColorProvider = ColorProvider(day = this, night = this)
 
@@ -146,6 +180,7 @@ fun TimetableLargeWidgetView(
     val labelHeight = 16 * fontScale
     val topInset = labelHeight / 2
     val availableHeight = (size.height.value - headerHeight.value - topInset).coerceAtLeast(0f)
+    val cellWidth = ((size.width - WIDGET_PADDING * 2 - hoursWidth - 8.dp) / visibleDays.size.coerceAtLeast(1) - 4.dp).coerceAtLeast(0.dp)
 
     // Resolve every boundary on the same pixel scale. Stacking rounded hour rows
     // accumulates rounding errors, especially across a full-day timetable.
@@ -198,7 +233,7 @@ fun TimetableLargeWidgetView(
                                     val top = position(begin)
                                     val bottom = position(begin + (entry.durationMinutes ?: 0))
                                     Box(modifier = GlanceModifier.fillMaxWidth().padding(top = top.dp)) {
-                                        TimetableWidgetCell(lecture = entry, height = bottom - top)
+                                        TimetableWidgetCell(lecture = entry, width = cellWidth, height = (bottom - top).dp)
                                     }
                                 }
                             }
@@ -264,12 +299,31 @@ private fun DashedHorizontalLine(
     )
 }
 
+private val WIDGET_PADDING = 8.dp
+private val CELL_GAP = 4.dp
+private val DETAIL_SPACING = 2.dp
+private val TITLE_FONT_SIZE = 10.sp
+private val DETAIL_FONT_SIZE = 8.sp
+private const val LINE_SAMPLE = "Ag가"
+
 @OptIn(ExperimentalGlancePreviewApi::class)
 @Preview(widthDp = 300, heightDp = 600)
 @Composable
 @Suppress("unused")
 private fun TimetableGridPreview() {
     Column(modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color.White, night = Color.White))) {
+        TimetableLargeWidgetView(
+            timetable = WidgetTimetableEntry.mock()
+        )
+    }
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 250, heightDp = 400)
+@Composable
+@Suppress("unused")
+private fun TimetablePackedGridPreview() {
+    Column(modifier = GlanceModifier.fillMaxSize().background(Color.White.solid())) {
         TimetableLargeWidgetView(
             timetable = WidgetTimetableEntry.mock()
         )
