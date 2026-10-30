@@ -31,12 +31,12 @@ import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiLocation
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.taxiList.TaxiFilterCard
 import org.sparcs.soap.app.features.taxiList.TaxiListViewModel
 import org.sparcs.soap.app.features.taxiList.TaxiListViewModelProtocol
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiCapacityPicker
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiCarrierToggleButton
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDepartureTimePicker
-import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationPicker
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiRoomCreationNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
@@ -96,16 +96,10 @@ fun TaxiRoomCreationView(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            TaxiDestinationPicker(
-                source = taxiListViewModel.source,
-                destination = taxiListViewModel.destination,
+            TaxiFilterCard(
+                viewModel = taxiListViewModel,
                 locations = locations,
-                onSourceChange = { taxiListViewModel.source = it },
-                onDestinationChange = { taxiListViewModel.destination = it },
-                favoriteRoutes = favoriteRoutes,
-                onFavoriteSelect = { taxiListViewModel.selectFavoriteRoute(it) },
-                onFavoriteDelete = { taxiListViewModel.deleteFavoriteRoute(it) },
-                onFavoriteAdd = { taxiListViewModel.addFavoriteRoute() }
+                favoriteRoutes = favoriteRoutes
             )
 
             OutlinedTextField(

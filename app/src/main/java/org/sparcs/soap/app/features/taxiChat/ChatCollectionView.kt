@@ -163,6 +163,7 @@ private fun ChatItem(
                 readCount = calculateReadCount(item.chat, room, user),
                 metadata = item.metadata,
                 hasBadge = hasBadge(item.sender.id),
+                rider = if (item.sender.isMine) null else room.participants.firstOrNull { it.id == item.sender.id },
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
                     .padding(

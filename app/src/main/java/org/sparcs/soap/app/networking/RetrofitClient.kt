@@ -810,6 +810,7 @@ object AuthUseCaseModule {
         fcmUseCase: FCMUseCaseProtocol,
         widgetSyncHelper: WidgetSyncHelper,
         timetableCache: TimetableCache,
+        taxiFavoriteUseCase: TaxiFavoriteUseCaseProtocol,
     ): AuthUseCase {
 
         val useCase = AuthUseCase(
@@ -821,6 +822,7 @@ object AuthUseCaseModule {
             fcmUseCase,
             widgetSyncHelper,
             timetableCache,
+            taxiFavoriteUseCase,
         )
 
         useCase.onTokenRefresh = {

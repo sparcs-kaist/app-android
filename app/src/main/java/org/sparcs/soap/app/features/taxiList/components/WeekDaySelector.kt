@@ -3,6 +3,7 @@ package org.sparcs.soap.app.features.taxiList.components
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,13 +22,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -70,18 +75,33 @@ fun WeekDaySelector(
     )
 
     val indicatorShape = RoundedCornerShape(12.dp)
+    val haptic = LocalHapticFeedback.current
+    val currentSelectedIndex by rememberUpdatedState(selectedIndex)
+    val currentOnSelect by rememberUpdatedState(onSelect)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
+            .pointerInput(localWeek) {
+                var dragged = currentSelectedIndex
+                detectHorizontalDragGestures(onDragStart = { dragged = currentSelectedIndex }) { change, _ ->
+                    val x = change.position.x
+                    val index = itemBounds.indexOfFirst { (start, width) -> x >= start && x < start + width }
+                    if (index >= 0 && index != dragged) {
+                        dragged = index
+                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                        currentOnSelect(if (index == 0) null else localWeek[index - 1].toDate())
+                    }
+                }
+            }
     ) {
         if (selectedBounds != null) {
             val day = selectedDate?.toLocalDate()
             val boxColor = when (day?.dayOfWeek) {
                 DayOfWeek.SUNDAY -> Color(0xFFDA4A45)
                 DayOfWeek.SATURDAY -> Color(0xFF45A7DA)
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                else -> MaterialTheme.colorScheme.onSurface
             }
 
             Box(
@@ -120,7 +140,7 @@ fun WeekDaySelector(
                 Text(
                     text = stringResource(R.string.all),
                     style = numberStyle,
-                    color = if (selectedDate == null) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
+                    color = if (selectedDate == null) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -155,13 +175,13 @@ fun WeekDaySelector(
                     Text(
                         text = day.dayOfMonth.toString(),
                         style = numberStyle,
-                        color = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
+                        color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
                         text = day.dayOfWeek.toShortString(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.background else textColor
+                        color = if (isSelected) MaterialTheme.colorScheme.surface else textColor
                     )
                 }
             }

@@ -23,3 +23,8 @@ data class TaxiRoom(
 
     companion object
 }
+
+fun TaxiRoom.ridersWithOwnStatus(userID: String?, isArrived: Boolean, hasCarrier: Boolean): List<TaxiParticipant> =
+    participants.map { rider ->
+        if (rider.id == userID) rider.copy(isArrived = isArrived, hasCarrier = hasCarrier) else rider
+    }

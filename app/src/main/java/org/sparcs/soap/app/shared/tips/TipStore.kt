@@ -90,7 +90,7 @@ class TipStore internal constructor(
             BuddyTip.QuickFill -> eventCount(TipEvent.ActivityCreationOpened) >= 2
             BuddyTip.PostTools -> eventCount(TipEvent.PostOpened) >= 3
             BuddyTip.ThemeActions -> eventCount(TipEvent.ThemeSettingsOpened) >= 2
-            BuddyTip.SummariseReview -> true
+            BuddyTip.SummariseReview, BuddyTip.RideInfo -> true
         }
     }
 

@@ -68,6 +68,9 @@ class PreviewTaxiListViewModel(
     private val _favoriteRoutes = MutableStateFlow<List<TaxiFavoriteRoute>>(emptyList())
     override val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>> = _favoriteRoutes.asStateFlow()
 
+    private val _favoritePlaceIDs = MutableStateFlow<List<String>>(emptyList())
+    override val favoritePlaceIDs: StateFlow<List<String>> = _favoritePlaceIDs.asStateFlow()
+
     override var source: TaxiLocation? by mutableStateOf(null)
     override var destination: TaxiLocation? by mutableStateOf(null)
     override var selectedDate: Date? by mutableStateOf(Date())
@@ -80,25 +83,26 @@ class PreviewTaxiListViewModel(
     override var isAlertPresented by mutableStateOf(false)
 
     override fun fetchData() {}
+    override suspend fun findRoom(id: String): TaxiRoom? = _rooms.value.find { it.id == id }
     override suspend fun createRoom(title: String): String? {
         return null
     }
 
     override fun toggleCarrier(roomID: String, hasCarrier: Boolean) {}
 
-    override fun addFavoriteRoute() {
-        val from = source ?: return
-        val to = destination ?: return
-        val newFavorite = TaxiFavoriteRoute(
-            id = UUID.randomUUID().toString(),
-            from = from,
-            to = to
-        )
-        _favoriteRoutes.value += newFavorite
+    override fun toggleFavoritePlace(location: TaxiLocation) {
+        val ids = _favoritePlaceIDs.value
+        _favoritePlaceIDs.value = if (location.id in ids) ids - location.id else ids + location.id
     }
 
-    override fun deleteFavoriteRoute(id: String) {
-        _favoriteRoutes.value = _favoriteRoutes.value.filter { it.id != id }
+    override fun saveFavoriteRoute() {
+        val from = source ?: return
+        val to = destination ?: return
+        _favoriteRoutes.value = listOf(TaxiFavoriteRoute(id = "${from.id}>${to.id}", from = from, to = to)) + _favoriteRoutes.value
+    }
+
+    override fun deleteFavoriteRoute(route: TaxiFavoriteRoute) {
+        _favoriteRoutes.value = _favoriteRoutes.value.filter { it.id != route.id }
     }
 
     override fun selectFavoriteRoute(favoriteRoute: TaxiFavoriteRoute) {

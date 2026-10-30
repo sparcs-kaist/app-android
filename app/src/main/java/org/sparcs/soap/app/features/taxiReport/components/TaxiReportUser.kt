@@ -1,12 +1,9 @@
 package org.sparcs.soap.app.features.taxiReport.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Icon
@@ -18,16 +15,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiProfilePhoto
 import org.sparcs.soap.app.theme.ui.Theme
 import java.util.Date
 import java.util.UUID
@@ -45,7 +40,7 @@ fun TaxiReportUser(
         else -> null
     }
     ListItem(
-        leadingContent = { UserProfileImage(user = user) },
+        leadingContent = { TaxiProfilePhoto(url = user.profileImageURL?.toString(), modifier = Modifier.size(32.dp)) },
         headlineContent = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(user.nickname)
@@ -64,27 +59,6 @@ fun TaxiReportUser(
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.selectable(selected = isChecked, role = Role.RadioButton, onClick = onClick)
     )
-}
-
-@Composable
-private fun UserProfileImage(user: TaxiParticipant) {
-    val imageModifier = Modifier
-        .size(32.dp)
-        .clip(CircleShape)
-
-    if (user.profileImageURL != null) {
-        AsyncImage(
-            model = user.profileImageURL.toString(),
-            contentDescription = null,
-            modifier = imageModifier,
-            contentScale = ContentScale.Crop
-        )
-    } else {
-        Box(
-            modifier = imageModifier
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        )
-    }
 }
 
 @Composable

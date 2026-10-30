@@ -44,6 +44,12 @@ class PreviewTaxiChatViewModel(
     private val _isUploading = MutableStateFlow(false)
     override val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
 
+    private val _isArrived = MutableStateFlow(false)
+    override val isArrived: StateFlow<Boolean> = _isArrived.asStateFlow()
+
+    private val _hasCarrier = MutableStateFlow(false)
+    override val hasCarrier: StateFlow<Boolean> = _hasCarrier.asStateFlow()
+
     override val isLeaveRoomAvailable: Boolean = true
     override val isCommitSettlementAvailable: Boolean = true
     override val isCommitPaymentAvailable: Boolean = true
@@ -67,8 +73,13 @@ class PreviewTaxiChatViewModel(
         _room.value = newRoom
     }
 
-    override fun toggleCarrier(hasCarrier: Boolean) {}
-    override fun updateArrival(isArrived: Boolean) {}
+    override fun toggleCarrier(hasCarrier: Boolean) {
+        _hasCarrier.value = hasCarrier
+    }
+
+    override fun updateArrival(isArrived: Boolean) {
+        _isArrived.value = isArrived
+    }
 
     companion object {
         // Built the way the app builds them, as Alice ("user1"), so sides and grouping match the app.

@@ -21,6 +21,8 @@ import org.sparcs.soap.app.domain.enums.taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
+import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
+import org.sparcs.soap.app.domain.models.taxi.TaxiRoute
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
@@ -37,8 +39,8 @@ interface TaxiPreviewViewModelProtocol {
     var isAlertPresented: Boolean
 
     fun isJoined(participants: List<TaxiParticipant>): Boolean
-    suspend fun calculateRoutePoints(source: LatLng, destination: LatLng): List<LatLng>
-    suspend fun joinRoom(id: String, onSuccess: () -> Unit = {})
+    suspend fun calculateRoute(source: LatLng, destination: LatLng): TaxiRoute?
+    suspend fun joinRoom(id: String): TaxiRoom?
 }
 
 
@@ -85,21 +87,16 @@ class TaxiPreviewViewModel @Inject constructor(
         return participants.any { it.id == _taxiUser.value?.oid }
     }
 
-    override suspend fun calculateRoutePoints(
+    override suspend fun calculateRoute(
         source: LatLng,
         destination: LatLng,
-    ): List<LatLng> = withContext(Dispatchers.IO) {
+    ): TaxiRoute? = withContext(Dispatchers.IO) {
         val cacheKey =
-            "route_${source.latitude},${source.longitude}_${destination.latitude},${destination.longitude}"
+            "route_v2_${source.latitude},${source.longitude}_${destination.latitude},${destination.longitude}"
 
-        taxiRouteCache.getRoute(cacheKey)?.let {
-            Timber.d("TaxiRoute Cache Hit! key: $cacheKey")
-            return@withContext it
-        }
+        taxiRouteCache.getRoute(cacheKey)?.let { return@withContext it }
 
         try {
-            val client = OkHttpClient()
-
             val url = Constants.MAPS_URL +
                     "origin=${source.longitude},${source.latitude}" +
                     "&destination=${destination.longitude},${destination.latitude}"
@@ -110,54 +107,53 @@ class TaxiPreviewViewModel @Inject constructor(
                 .get()
                 .build()
 
-            client.newCall(request).execute().use { response ->
+            OkHttpClient().newCall(request).execute().use { response ->
                 val responseBody = response.body?.string()
-
                 if (!response.isSuccessful || responseBody == null) {
                     Timber.e("HTTP error: ${response.code}")
-                    return@withContext emptyList()
+                    return@withContext null
                 }
-
-                val json = JSONObject(responseBody)
-                val routes = json.optJSONArray("routes") ?: return@withContext emptyList()
-                val sections = routes.getJSONObject(0).optJSONArray("sections")
-                    ?: return@withContext emptyList()
-
-                val points = mutableListOf<LatLng>()
-                for (i in 0 until sections.length()) {
-                    val roads = sections.getJSONObject(i).optJSONArray("roads") ?: continue
-                    for (j in 0 until roads.length()) {
-                        val vertexes = roads.getJSONObject(j).optJSONArray("vertexes") ?: continue
-                        for (k in 0 until vertexes.length() step 2) {
-                            val lon = vertexes.getDouble(k)
-                            val lat = vertexes.getDouble(k + 1)
-                            points.add(LatLng.from(lat, lon))
-                        }
-                    }
-                }
-
-                if (points.isNotEmpty()) {
-                    taxiRouteCache.store(cacheKey, points)
-                    Timber.d("TaxiRoute Cache Stored! key: $cacheKey")
-                }
-
-                points
+                parseRoute(JSONObject(responseBody))?.also { taxiRouteCache.store(cacheKey, it) }
             }
         } catch (e: Exception) {
             Timber.e(e, "Error parsing route: ${e.message}")
-            listOf(source, destination)
+            null
         }
     }
 
-    override suspend fun joinRoom(id: String, onSuccess: () -> Unit) {
-        try {
+    private fun parseRoute(json: JSONObject): TaxiRoute? {
+        val route = json.optJSONArray("routes")?.optJSONObject(0) ?: return null
+        val summary = route.optJSONObject("summary") ?: return null
+        val sections = route.optJSONArray("sections") ?: return null
+
+        val points = buildList {
+            for (i in 0 until sections.length()) {
+                val roads = sections.getJSONObject(i).optJSONArray("roads") ?: continue
+                for (j in 0 until roads.length()) {
+                    val vertexes = roads.getJSONObject(j).optJSONArray("vertexes") ?: continue
+                    for (k in 0 until vertexes.length() - 1 step 2) {
+                        add(LatLng.from(vertexes.getDouble(k + 1), vertexes.getDouble(k)))
+                    }
+                }
+            }
+        }
+        if (points.isEmpty()) return null
+
+        return TaxiRoute(
+            points = points,
+            distanceMeters = summary.optInt("distance"),
+            durationSeconds = summary.optInt("duration"),
+        )
+    }
+
+    override suspend fun joinRoom(id: String): TaxiRoom? {
+        return try {
             taxiRoomRepository.joinRoom(id)
-            onSuccess()
         } catch (e: Exception) {
             Timber.e("Error joining room: ${e.message}")
             alertState = e.toAlertState(R.string.error_failed_to_join_taxi_room)
             isAlertPresented = true
-            throw e
+            null
         }
     }
 }

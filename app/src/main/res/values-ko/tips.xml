@@ -29,4 +29,6 @@
     <string name="tips_debug_reset_pending">Buddy를 다시 열면 팁이 다시 표시돼요.</string>
     <string name="tips_debug_show_immediately">팁 바로 보기</string>
     <string name="tips_debug_footer">팁 초기화는 모든 팁을 다시 보여 주고, 새 사용자처럼 시간표 안내를 처음부터 시작해요. 두 설정 모두 Buddy를 다시 열 때 적용돼요.</string>
+    <string name="tip_ride_info_title">탑승 정보를 한눈에</string>
+    <string name="tip_ride_info_message">제목을 눌러 도착과 캐리어를 표시하고, 택시를 부르고, 함께 타는 사람을 확인해 보세요.</string>
 </resources>

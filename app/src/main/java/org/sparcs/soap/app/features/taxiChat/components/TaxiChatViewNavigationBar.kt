@@ -1,286 +1,180 @@
 package org.sparcs.soap.app.features.taxiChat.components
 
-import android.content.Intent
-import android.content.res.Configuration
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.components.BackButton
-import org.sparcs.soap.app.features.settings.components.TapTooltip
-import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
-import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiTonalLabel
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.TipAction
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.onSeatsOpenContainer
-import org.sparcs.soap.app.theme.ui.seatsOpenContainer
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiChatViewNavigationBar(
     room: TaxiRoom,
-    myUserId: String?,
+    riders: List<TaxiParticipant>,
+    isCompactHeight: Boolean,
     onDismiss: () -> Unit,
-    onClickCallTaxi: () -> Unit,
-    onReport: () -> Unit,
-    onClickLeave: () -> Unit,
-    onCarrierToggle: (Boolean) -> Unit,
-    onArrivalToggle: (Boolean) -> Unit,
-    isLeaveAvailable: Boolean,
+    onOpenRideInfo: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val shareUrl = "${Constants.TAXI_INVITE_URL}${room.id}"
-    val shareMessage = stringResource(
-        R.string.taxi_share_message,
-        room.departAt.formattedString(),
-        room.source.title,
-        room.destination.title,
-        shareUrl
-    )
-    var showArrivalSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+    Column(modifier = Modifier.statusBarsPadding()) {
+        Box(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+            Box(Modifier.align(Alignment.CenterStart)) {
+                BackButton(onClick = onDismiss)
+            }
 
-    val myParticipant = room.participants.find { it.id == myUserId }
-    val isMineCarrier = myParticipant?.hasCarrier ?: false
-    val isArrived = myParticipant?.isArrived ?: false
-    val arrivedCount = room.participants.count { it.isArrived }
-    val totalCount = room.participants.size
+            TaxiRideTitle(
+                room = room,
+                riders = riders,
+                showsCapsule = !isCompactHeight,
+                onClick = onOpenRideInfo,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 56.dp)
+            )
+        }
 
-    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-        TopAppBar(
-            modifier = Modifier.statusBarsPadding(),
-            navigationIcon = { BackButton(onClick = { onDismiss() }) },
-            title = {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+        TipView(
+            BuddyTip.RideInfo,
+            enabled = !isCompactHeight,
+            actions = listOf(TipAction(stringResource(R.string.taxi_open_ride_info), onOpenRideInfo)),
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+        )
+
+        HorizontalDivider()
+    }
+}
+
+@Composable
+fun TaxiRideTitle(
+    room: TaxiRoom,
+    riders: List<TaxiParticipant>,
+    showsCapsule: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val route = stringResource(R.string.taxi_route_summary, room.source.title.localized(), room.destination.title.localized())
+    val openLabel = stringResource(R.string.taxi_open_ride_info)
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier.clearAndSetSemantics {
+            contentDescription = "${room.title}, $route"
+            role = Role.Button
+            onClick(openLabel) { onClick(); true }
+        }
+    ) {
+        TaxiRiderCluster(
+            riders = riders,
+            size = if (showsCapsule) 38.dp else 30.dp,
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable(onClick = onClick)
+        )
+
+        if (showsCapsule) {
+            Surface(
+                onClick = onClick,
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier.widthIn(max = 280.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier.padding(start = 14.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f, fill = false)) {
                         Text(
-                            text = room.title,
-                            modifier = Modifier.weight(1f, fill = false),
+                            text = "${room.title} ${room.emojiIdentifier.display}",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-
-                        Spacer(Modifier.width(4.dp))
-
-                        TapTooltip(stringResource(R.string.taxi_room_emoji_description)) {
-                            Text(text = room.emojiIdentifier.display)
-                        }
-                    }
-                    if (!isLandscape) {
                         Text(
-                            text = "${room.source.title} → ${room.destination.title}",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = route,
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
-            },
-
-            actions = {
-                TaxiChatViewDropDownMenu(
-                    room = room,
-                    isMineCarrier = isMineCarrier,
-                    onClickShare = {
-                        val sendIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, shareMessage)
-                            type = "text/plain"
-                        }
-
-                        val shareIntent = Intent.createChooser(sendIntent, null)
-                        context.startActivity(shareIntent)
-                    },
-                    onClickCallTaxi = { onClickCallTaxi() },
-                    onClickReport = { onReport() },
-                    onClickLeave = { onClickLeave() },
-                    onCarrierToggle = onCarrierToggle,
-                    isLeaveAvailable = isLeaveAvailable
-                )
-            }
-        )
-
-        ArrivalStatusSection(
-            arrivedCount = arrivedCount,
-            totalCount = totalCount,
-            isArrived = isArrived,
-            isEnabled = isLeaveAvailable,
-            onStatusClick = { showArrivalSheet = !showArrivalSheet },
-            onArrivalToggle = onArrivalToggle
-        )
-
-        HorizontalDivider()
-    }
-
-    if (showArrivalSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showArrivalSheet = false },
-            sheetState = sheetState
-        ) {
-            TaxiArrivalStatusContent(participants = room.participants)
-        }
-    }
-}
-
-/** How many have arrived, a button for everyone's status, and a chip to mark yourself arrived. */
-@Composable
-private fun ArrivalStatusSection(
-    arrivedCount: Int,
-    totalCount: Int,
-    isArrived: Boolean,
-    isEnabled: Boolean,
-    onStatusClick: () -> Unit,
-    onArrivalToggle: (Boolean) -> Unit,
-) {
-    val isAllArrived = totalCount > 0 && arrivedCount == totalCount
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, end = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Crossfade(
-            targetState = when {
-                isAllArrived -> pluralStringResource(R.plurals.taxi_all_arrived, totalCount, totalCount)
-                arrivedCount == 0 -> stringResource(R.string.taxi_arrived_question)
-                else -> pluralStringResource(R.plurals.taxi_arrived_count, arrivedCount, arrivedCount)
-            },
-            label = "ArrivalText",
-            modifier = Modifier.weight(1f)
-        ) { targetText ->
-            Text(text = targetText, style = MaterialTheme.typography.bodyMedium)
-        }
-
-        TextButton(onClick = onStatusClick) {
-            Text(stringResource(R.string.taxi_status))
-        }
-
-        if (isEnabled) {
-            ElevatedFilterChip(
-                selected = isArrived,
-                onClick = { onArrivalToggle(!isArrived) },
-                label = {
-                    Text(stringResource(if (isArrived) R.string.taxi_arrival_complete else R.string.taxi_arrival))
-                },
-                leadingIcon = if (isArrived) {
-                    { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
-                } else null
-            )
-        }
-    }
-}
-
-/** Everyone in the room and whether they have arrived. */
-@Composable
-fun TaxiArrivalStatusContent(participants: List<TaxiParticipant>) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(bottom = 16.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.taxi_arrival_status),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-        )
-
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(participants) { participant ->
-                ListItem(
-                    headlineContent = { Text(participant.nickname) },
-                    trailingContent = {
-                        if (participant.isArrived) {
-                            TaxiTonalLabel(
-                                text = stringResource(R.string.taxi_arrival_complete),
-                                container = MaterialTheme.colorScheme.seatsOpenContainer,
-                                content = MaterialTheme.colorScheme.onSeatsOpenContainer,
-                                icon = Icons.Filled.Check
-                            )
-                        } else {
-                            TaxiTonalLabel(
-                                text = stringResource(R.string.taxi_not_arrived),
-                                container = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                content = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
             }
         }
     }
 }
 
-
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview() {
     Theme {
         Box(Modifier.fillMaxSize()) {
+            val room = TaxiRoom.mock()
             TaxiChatViewNavigationBar(
-                TaxiRoom.mock(),
-                "",
-                {},
-                {},
-                {},
-                {},
-                {},
-                {},
-                true
+                room = room,
+                riders = room.participants,
+                isCompactHeight = false,
+                onDismiss = {},
+                onOpenRideInfo = {}
             )
         }
+    }
+}
+
+@Composable
+@Preview(showBackground = true, widthDp = 640, heightDp = 360)
+private fun CompactHeightPreview() {
+    Theme {
+        val room = TaxiRoom.mock()
+        TaxiChatViewNavigationBar(
+            room = room,
+            riders = room.participants,
+            isCompactHeight = true,
+            onDismiss = {},
+            onOpenRideInfo = {}
+        )
     }
 }

@@ -9,8 +9,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
@@ -24,6 +27,7 @@ import org.sparcs.soap.app.domain.services.TaxiChatServiceProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.MockTaxiFavoriteUseCase
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiFavoriteUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiLocationUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.taxi.resolve
 import org.sparcs.soap.app.shared.extensions.ceilToNextTenMinutes
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import java.util.Calendar
@@ -39,6 +43,7 @@ interface TaxiListViewModelProtocol {
     val rooms: StateFlow<List<TaxiRoom>>
     val locations: StateFlow<List<TaxiLocation>>
     val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>>
+    val favoritePlaceIDs: StateFlow<List<String>>
     var roomHasCarrier: Boolean
 
     // MARK: - View Properties
@@ -54,11 +59,13 @@ interface TaxiListViewModelProtocol {
     var isAlertPresented: Boolean
 
     fun fetchData()
+    suspend fun findRoom(id: String): TaxiRoom?
     suspend fun createRoom(title: String): String?
     fun toggleCarrier(roomID: String, hasCarrier: Boolean)
 
-    fun addFavoriteRoute()
-    fun deleteFavoriteRoute(id: String)
+    fun toggleFavoritePlace(location: TaxiLocation)
+    fun saveFavoriteRoute()
+    fun deleteFavoriteRoute(route: TaxiFavoriteRoute)
     fun selectFavoriteRoute(favoriteRoute: TaxiFavoriteRoute)
 }
 
@@ -94,7 +101,11 @@ class TaxiListViewModel @Inject constructor(
     private val _rooms = MutableStateFlow<List<TaxiRoom>>(emptyList())
     override val rooms: StateFlow<List<TaxiRoom>> get() = _rooms
 
-    override val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>> = taxiFavoriteUseCase.favoriteRoutes
+    override val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>> =
+        combine(taxiFavoriteUseCase.routes, _locations) { routes, locations -> routes.resolve(locations) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    override val favoritePlaceIDs: StateFlow<List<String>> = taxiFavoriteUseCase.placeIDs
 
     init {
         taxiChatService.connectIfNeeded()
@@ -121,8 +132,6 @@ class TaxiListViewModel @Inject constructor(
                 _state.value = ViewState.Loading
             }
             try {
-                taxiFavoriteUseCase.fetchFavoriteRoutes()
-                
                 val roomsDeferred = taxiRoomRepository.fetchRooms()
                 taxiLocationUseCase.fetchLocations()
 
@@ -139,6 +148,9 @@ class TaxiListViewModel @Inject constructor(
             }
         }
     }
+
+    override suspend fun findRoom(id: String): TaxiRoom? =
+        _rooms.value.find { it.id == id } ?: runCatching { taxiRoomRepository.getPublicRoom(id) }.getOrNull()
 
     //Safely capture values before any suspension
     override suspend fun createRoom(title: String): String? {
@@ -171,41 +183,13 @@ class TaxiListViewModel @Inject constructor(
         }
     }
 
-    override fun addFavoriteRoute() {
-        val from = source ?: return
-        val to = destination ?: return
+    override fun toggleFavoritePlace(location: TaxiLocation) = taxiFavoriteUseCase.togglePlace(location)
 
-        if (favoriteRoutes.value.any { it.from.id == from.id && it.to.id == to.id }) {
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                taxiFavoriteUseCase.addFavoriteRoute(from.id, to.id)
-            } catch (e: Exception) {
-                val message = e.message ?: ""
-                if (message.contains("already exists", ignoreCase = true)) {
-                    taxiFavoriteUseCase.fetchFavoriteRoutes()
-                } else {
-                    alertState = AlertState(
-                        titleResId = R.string.error,
-                        messageResId = R.string.route_already_exists
-                    )
-                    isAlertPresented = true
-                }
-            }
-        }
+    override fun saveFavoriteRoute() {
+        taxiFavoriteUseCase.saveRoute(source = source ?: return, destination = destination ?: return)
     }
 
-    override fun deleteFavoriteRoute(id: String) {
-        viewModelScope.launch {
-            try {
-                taxiFavoriteUseCase.deleteFavoriteRoute(id)
-            } catch (_: Exception) {
-                taxiFavoriteUseCase.fetchFavoriteRoutes()
-            }
-        }
-    }
+    override fun deleteFavoriteRoute(route: TaxiFavoriteRoute) = taxiFavoriteUseCase.removeRoute(route)
 
     override fun selectFavoriteRoute(favoriteRoute: TaxiFavoriteRoute) {
         source = favoriteRoute.from

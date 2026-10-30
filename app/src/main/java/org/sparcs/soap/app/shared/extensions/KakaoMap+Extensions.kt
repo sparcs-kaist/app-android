@@ -65,15 +65,14 @@ fun KakaoMap.drawTaxiRoute(
         val segment = RouteLineSegment.from(pathPoints)
             .setStyles(RouteLineStyle.from(12f, pathColor))
         routeLayer.addRouteLine(RouteLineOptions.from(segment))
-
-        this.moveCamera(
-            CameraUpdateFactory.fitMapPoints(pathPoints.toTypedArray(), 100),
-            CameraAnimation.from(1000)
-        )
-    } else {
-        this.moveCamera(
-            CameraUpdateFactory.fitMapPoints(arrayOf(startPos, endPos), 100),
-            CameraAnimation.from(800)
-        )
     }
+    fitTaxiRoute(listOf(startPos, endPos) + pathPoints, animated = true)
 }
+
+fun KakaoMap.fitTaxiRoute(points: List<LatLng>, animated: Boolean = false) {
+    val update = CameraUpdateFactory.fitMapPoints(points.toTypedArray(), ROUTE_MARGIN_PX, MAX_ROUTE_ZOOM_LEVEL)
+    if (animated) moveCamera(update, CameraAnimation.from(800)) else moveCamera(update)
+}
+
+private const val ROUTE_MARGIN_PX = 60
+private const val MAX_ROUTE_ZOOM_LEVEL = 15

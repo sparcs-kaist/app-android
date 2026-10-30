@@ -75,6 +75,7 @@ import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewView
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationPicker
+import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiFavoriteRoutes
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
@@ -118,13 +119,8 @@ fun TaxiListView(
     val taxiRooms by viewModel.rooms.collectAsState()
 
     LaunchedEffect(viewModel.roomId, taxiRooms) {
-        val id = viewModel.roomId
-        if (id != null) {
-            val room = taxiRooms.find { it.id == id }
-            if (room != null) {
-                selectedRoom = room
-            }
-        }
+        val id = viewModel.roomId ?: return@LaunchedEffect
+        viewModel.findRoom(id)?.let { selectedRoom = it }
     }
 
     val configuration = LocalConfiguration.current
@@ -331,22 +327,32 @@ private fun TaxiPortraitLayout(
 }
 
 @Composable
-private fun TaxiFilterCard(
+fun TaxiFilterCard(
     viewModel: TaxiListViewModelProtocol,
     locations: List<TaxiLocation>,
     favoriteRoutes: List<TaxiFavoriteRoute>,
 ) {
-    TaxiDestinationPicker(
-        source = viewModel.source,
-        destination = viewModel.destination,
-        locations = locations,
-        onSourceChange = { viewModel.source = it },
-        onDestinationChange = { viewModel.destination = it },
-        favoriteRoutes = favoriteRoutes,
-        onFavoriteSelect = { viewModel.selectFavoriteRoute(it) },
-        onFavoriteDelete = { viewModel.deleteFavoriteRoute(it) },
-        onFavoriteAdd = { viewModel.addFavoriteRoute() }
-    )
+    val favoritePlaceIDs by viewModel.favoritePlaceIDs.collectAsState()
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        TaxiDestinationPicker(
+            source = viewModel.source,
+            onSourceChange = { viewModel.source = it },
+            destination = viewModel.destination,
+            onDestinationChange = { viewModel.destination = it },
+            locations = locations,
+            favoritePlaceIDs = favoritePlaceIDs,
+            onToggleFavoritePlace = viewModel::toggleFavoritePlace
+        )
+        TaxiFavoriteRoutes(
+            source = viewModel.source,
+            destination = viewModel.destination,
+            routes = favoriteRoutes,
+            onSelect = viewModel::selectFavoriteRoute,
+            onSave = viewModel::saveFavoriteRoute,
+            onRemove = viewModel::deleteFavoriteRoute
+        )
+    }
 }
 
 @Composable

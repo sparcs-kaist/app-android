@@ -32,6 +32,7 @@ import org.sparcs.soap.app.domain.usecases.taxi.TaxiChatUseCaseProtocol
 import org.sparcs.soap.app.features.taxiChat.components.ChatBubblePositionResolver
 import org.sparcs.soap.app.features.taxiChat.components.ChatRenderItemBuilder
 import org.sparcs.soap.app.features.taxiChat.components.DefaultMessagePresentationPolicy
+import org.sparcs.soap.app.features.taxiChat.components.SerialStatusUpdates
 import org.sparcs.soap.app.features.taxiChat.components.TaxiGroupingPolicy
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import timber.log.Timber
@@ -52,6 +53,8 @@ interface TaxiChatViewModelProtocol {
 
     val room: StateFlow<TaxiRoom>
     val isUploading: StateFlow<Boolean>
+    val isArrived: StateFlow<Boolean>
+    val hasCarrier: StateFlow<Boolean>
 
     // MARK: - Computed Properties
     val isLeaveRoomAvailable: Boolean
@@ -127,6 +130,15 @@ class TaxiChatViewModel @Inject constructor(
         }
     private val isBound = AtomicBoolean(false)
 
+    private val _isArrived = MutableStateFlow(false)
+    override val isArrived: StateFlow<Boolean> = _isArrived.asStateFlow()
+
+    private val _hasCarrier = MutableStateFlow(false)
+    override val hasCarrier: StateFlow<Boolean> = _hasCarrier.asStateFlow()
+
+    private val arrivalUpdates = SerialStatusUpdates()
+    private val carrierUpdates = SerialStatusUpdates()
+
     private val builder = ChatRenderItemBuilder(
         policy = TaxiGroupingPolicy(),
         positionResolver = ChatBubblePositionResolver(),
@@ -139,12 +151,16 @@ class TaxiChatViewModel @Inject constructor(
     override suspend fun setup() {
         taxiChatUseCase.setRoom(room.value, owner = this)
         bind()
-        viewModelScope.launch { fetchTaxiUser() }
+        viewModelScope.launch {
+            fetchTaxiUser()
+            syncOwnStatus()
+        }
         viewModelScope.launch { taxiChatUseCase.refreshRoom() }
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
         _room.value = newRoom
+        syncOwnStatus()
         isFetching = false
         fetchedBeforeTimestamps.clear()
         taxiChatUseCase.setRoom(newRoom)
@@ -195,6 +211,7 @@ class TaxiChatViewModel @Inject constructor(
         taxiChatUseCase.roomUpdateFlow
             .onEach { updatedRoom ->
                 _room.value = updatedRoom
+                syncOwnStatus()
             }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
@@ -313,17 +330,10 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     override fun toggleCarrier(hasCarrier: Boolean) {
-        viewModelScope.launch {
+        _hasCarrier.value = hasCarrier
+        carrierUpdates.enqueue(viewModelScope, onSettled = ::syncOwnStatus) {
             try {
-                val updatedRoom = taxiRoomRepository.toggleCarrier(
-                    id = room.value.id,
-                    hasCarrier = hasCarrier
-                )
-
-                _room.value = updatedRoom
-
-                taxiChatUseCase.setRoom(updatedRoom)
-
+                applyRoom(taxiRoomRepository.toggleCarrier(id = room.value.id, hasCarrier = hasCarrier))
             } catch (e: Exception) {
                 alertState = e.toAlertState(R.string.error_toggle_carrier_failed)
                 isAlertPresented = true
@@ -333,23 +343,27 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     override fun updateArrival(isArrived: Boolean) {
-        viewModelScope.launch {
+        _isArrived.value = isArrived
+        arrivalUpdates.enqueue(viewModelScope, onSettled = ::syncOwnStatus) {
             try {
-                val updatedRoom = taxiRoomRepository.updateArrival(
-                    id = room.value.id,
-                    isArrived = isArrived
-                )
-
-                _room.value = updatedRoom
-
-                taxiChatUseCase.setRoom(updatedRoom)
-
+                applyRoom(taxiRoomRepository.updateArrival(id = room.value.id, isArrived = isArrived))
             } catch (e: Exception) {
                 alertState = e.toAlertState(R.string.error_update_arrival_failed)
                 isAlertPresented = true
                 Timber.e(e, "updateArrival failed")
             }
         }
+    }
+
+    private fun applyRoom(updatedRoom: TaxiRoom) {
+        _room.value = updatedRoom
+        taxiChatUseCase.setRoom(updatedRoom)
+    }
+
+    private fun syncOwnStatus() {
+        val me = room.value.participants.firstOrNull { it.id == taxiUser.value?.oid }
+        if (!arrivalUpdates.isPending) _isArrived.value = me?.isArrived ?: false
+        if (!carrierUpdates.isPending) _hasCarrier.value = me?.hasCarrier ?: false
     }
 
     override val isCommitPaymentAvailable: Boolean

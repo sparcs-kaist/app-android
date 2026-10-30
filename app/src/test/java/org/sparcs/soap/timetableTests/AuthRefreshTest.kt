@@ -23,6 +23,7 @@ import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.app.domain.services.AuthenticationServiceProtocol
 import org.sparcs.soap.app.domain.usecases.AuthUseCase
+import org.sparcs.soap.app.domain.usecases.taxi.MockTaxiFavoriteUseCase
 import org.sparcs.soap.app.networking.responseDTO.auth.TokenResponseDTO
 import org.sparcs.soap.testSupport.MainDispatcherRule
 import org.sparcs.soap.wearable.WearableDataManager
@@ -56,6 +57,7 @@ class AuthRefreshTest {
             WidgetSyncHelper(context, TimetableWidgetSyncManager(context), UpComingWidgetSyncManager(context),
                 CreditSummarySyncManager(context, CreditSummarySnapshotStore(context), storage, WearableDataManager(context))),
             TimetableCache(dao),
+            MockTaxiFavoriteUseCase(),
         )
     }
 

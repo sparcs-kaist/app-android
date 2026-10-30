@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Height
+import androidx.compose.material.icons.outlined.LocalTaxi
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Summarize
@@ -67,6 +68,10 @@ enum class BuddyTip(
     ThemeActions(
         "settings.themeActions", R.string.tip_theme_actions_title, R.string.tip_theme_actions_message,
         Icons.Outlined.Palette, maxDisplayCount = 3,
+    ),
+    RideInfo(
+        "taxiChat.rideInfo", R.string.tip_ride_info_title, R.string.tip_ride_info_message,
+        Icons.Outlined.LocalTaxi, maxDisplayCount = 3,
     );
 
     val isOnboarding: Boolean get() = onboardingStep != null

@@ -37,7 +37,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +52,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
+import org.sparcs.soap.app.domain.models.taxi.ridersWithOwnStatus
 import org.sparcs.soap.app.features.fullscreenImage.FullscreenImageView
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.taxiChat.components.CallTaxiDialog
@@ -60,12 +60,17 @@ import org.sparcs.soap.app.features.taxiChat.components.SendPaymentDialog
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatInputBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatViewNavigationBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiSettlementAmountSheet
+import org.sparcs.soap.app.features.taxiChat.rideInfo.TaxiRideInfoPresentation
+import org.sparcs.soap.app.features.taxiChat.rideInfo.TaxiRideInfoView
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModel
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModelProtocol
 import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomList
 import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomListSkeleton
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.rememberTaxiRoomShare
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
@@ -83,27 +88,48 @@ fun TaxiChatView(
     val taxiUser by viewModel.taxiUser.collectAsState()
     val room by viewModel.room.collectAsState()
     val isUploading by viewModel.isUploading.collectAsState()
+    val isArrived by viewModel.isArrived.collectAsState()
+    val hasCarrier by viewModel.hasCarrier.collectAsState()
+    val riders = room.ridersWithOwnStatus(taxiUser?.oid, isArrived, hasCarrier)
 
     var text by remember { mutableStateOf("") }
     var showCallTaxiAlert by remember { mutableStateOf(false) }
     var showPayMoneyAlert by remember { mutableStateOf(false) }
     var showSettlementAmountDialog by remember { mutableStateOf(false) }
+    var showsRideInfo by remember { mutableStateOf(false) }
     var tappedImageID by remember { mutableStateOf<String?>(null) }
 
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val tipStore = LocalTipStore.current
+    val shareRoom = rememberTaxiRoomShare(room)
 
     fun dismissCallTaxiAlert() { showCallTaxiAlert = false }
     fun dismissPayMoneyAlert() { showPayMoneyAlert = false }
-    fun resetSettlementDialog() {
-        showSettlementAmountDialog = false
-    }
+    fun resetSettlementDialog() { showSettlementAmountDialog = false }
     fun dismissFullscreenImage() { tappedImageID = null }
+
+    fun openRideInfo() {
+        tipStore?.invalidate(BuddyTip.RideInfo)
+        showsRideInfo = true
+    }
+
+    fun openReport() {
+        showsRideInfo = false
+        val json = Uri.encode(Gson().toJson(room))
+        navController.navigate("${Channel.TaxiReportView.name}?room_json=$json")
+    }
+
+    fun leaveRoom() {
+        coroutineScope.launch {
+            if (viewModel.leaveRoom()) {
+                showsRideInfo = false
+                navController.popBackStack()
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.setup()
@@ -111,7 +137,6 @@ fun TaxiChatView(
         listViewModel.fetchData()
     }
 
-    // Trigger recomposition when departure time is reached
     var now by remember { mutableStateOf(Date()) }
     LaunchedEffect(room.departAt) {
         val delayMs = room.departAt.time - Date().time
@@ -170,22 +195,10 @@ fun TaxiChatView(
             topBar = {
                 TaxiChatViewNavigationBar(
                     room = room,
-                    myUserId = taxiUser?.oid,
+                    riders = riders,
+                    isCompactHeight = isLandscape,
                     onDismiss = { navController.popBackStack() },
-                    onClickCallTaxi = { showCallTaxiAlert = true },
-                    onReport = {
-                        val json = Uri.encode(Gson().toJson(room))
-                        navController.navigate("${Channel.TaxiReportView.name}?room_json=$json")
-                    },
-                    onClickLeave = {
-                        coroutineScope.launch {
-                            val success = viewModel.leaveRoom()
-                            if (success) { navController.popBackStack() }
-                        }
-                    },
-                    onCarrierToggle = { viewModel.toggleCarrier(it) },
-                    onArrivalToggle = { viewModel.updateArrival(it) },
-                    isLeaveAvailable = viewModel.isLeaveRoomAvailable
+                    onOpenRideInfo = ::openRideInfo
                 )
             },
             bottomBar = {
@@ -255,6 +268,26 @@ fun TaxiChatView(
         }
     } else {
         mainScaffold()
+    }
+
+    if (showsRideInfo) {
+        TaxiRideInfoPresentation(onDismiss = { showsRideInfo = false }) {
+            TaxiRideInfoView(
+                room = room,
+                riders = riders,
+                myUserID = taxiUser?.oid,
+                isArrived = isArrived,
+                hasCarrier = hasCarrier,
+                canMarkArrival = viewModel.isLeaveRoomAvailable && now.before(room.departAt),
+                canLeave = viewModel.isLeaveRoomAvailable,
+                onToggleArrival = { viewModel.updateArrival(!isArrived) },
+                onToggleCarrier = { viewModel.toggleCarrier(!hasCarrier) },
+                onShare = shareRoom,
+                onCallTaxi = { showCallTaxiAlert = true },
+                onReport = ::openReport,
+                onLeave = ::leaveRoom
+            )
+        }
     }
 
     if (showCallTaxiAlert) {

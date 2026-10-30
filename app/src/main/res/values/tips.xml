@@ -29,4 +29,6 @@
     <string name="tips_debug_reset_pending">Tips show again the next time Buddy opens.</string>
     <string name="tips_debug_show_immediately">Show Tips Immediately</string>
     <string name="tips_debug_footer">Reset Tips shows every tip again and starts the timetable onboarding over, as for a new user. Both settings apply the next time Buddy opens.</string>
+    <string name="tip_ride_info_title">Your Ride at a Glance</string>
+    <string name="tip_ride_info_message">Tap the title to mark your arrival and luggage, call a taxi, or see who\'s riding.</string>
 </resources>

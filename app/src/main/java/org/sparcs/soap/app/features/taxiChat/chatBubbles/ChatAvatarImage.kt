@@ -11,12 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import org.sparcs.soap.app.domain.models.taxi.SenderInfo
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiProfilePhoto
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -42,23 +41,7 @@ private fun UserAvatarImage(
     avatarUrl: String?,
     modifier: Modifier = Modifier
 ) {
-    if (avatarUrl != null) {
-        AsyncImage(
-            model = avatarUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = modifier
-                .size(36.dp)
-                .clip(CircleShape)
-        )
-    } else {
-        Box(
-            modifier = modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        )
-    }
+    TaxiProfilePhoto(url = avatarUrl, modifier = modifier.size(36.dp))
 }
 
 @Composable

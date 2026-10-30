@@ -31,6 +31,7 @@ import org.sparcs.soap.app.domain.repositories.feed.FeedUserRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.otl.OTLUserRepositoryProtocol
 import org.sparcs.soap.app.domain.services.AuthenticationService
 import org.sparcs.soap.app.domain.services.AuthenticationServiceProtocol
+import org.sparcs.soap.app.domain.usecases.taxi.TaxiFavoriteUseCaseProtocol
 import org.sparcs.soap.app.networking.responseDTO.ara.AraSignInResponseDTO
 import org.sparcs.soap.widgets.WidgetSyncHelper
 import retrofit2.HttpException
@@ -67,6 +68,7 @@ class AuthUseCase @Inject constructor(
     private val fcmUseCase: FCMUseCaseProtocol,
     private val widgetSyncHelper: WidgetSyncHelper,
     private val timetableCache: TimetableCache,
+    private val taxiFavoriteUseCase: TaxiFavoriteUseCaseProtocol,
 ) : AuthUseCaseProtocol {
 
     private val _isAuthenticated = MutableStateFlow(tokenStorage.hasStoredRefreshToken())
@@ -301,6 +303,7 @@ class AuthUseCase @Inject constructor(
             widgetSyncHelper.clearAllWidgets()
             ChannelManager.clearIdentity()
             timetableCache.clear()
+            taxiFavoriteUseCase.clear()
         }
     }
 }

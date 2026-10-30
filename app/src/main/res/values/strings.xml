@@ -814,4 +814,36 @@
     <string name="activity_add_time">Add Time</string>
     <string name="activity_time_number">Time %1$d</string>
     <string name="activity_remove_time">Remove time</string>
+    <string name="taxi_ride_info">Ride Info</string>
+    <string name="taxi_open_ride_info">Open Ride Info</string>
+    <string name="taxi_my_status">My Status</string>
+    <string name="taxi_im_here">I\'m Here</string>
+    <string name="taxi_with_luggage">With Luggage</string>
+    <string name="taxi_no_luggage">No Luggage</string>
+    <string name="taxi_arrival_only_before_departure">You can mark your arrival only before the ride departs.</string>
+    <string name="taxi_arrived_section">Arrived %1$d</string>
+    <string name="taxi_on_the_way_section">On the Way %1$d</string>
+    <string name="taxi_me">Me</string>
+    <string name="taxi_phone_verified">Phone Verified</string>
+    <string name="taxi_not_verified">Not Verified</string>
+    <string name="taxi_leave_room_title">Leave this room?</string>
+    <string name="taxi_leave_room_message">You\'ll give up your seat in this ride.</string>
+    <string name="taxi_full">Full</string>
+    <string name="taxi_arrives_around">Arrives around %1$s</string>
+    <string name="taxi_route_summary">%1$s → %2$s</string>
+    <string name="taxi_seat_count">%1$d/%2$d</string>
+    <string name="taxi_add_to_favourites">Add to Favourites</string>
+    <string name="taxi_remove_from_favourites">Remove from Favourites</string>
+    <string name="taxi_favourite_places">Favourite Places</string>
+    <string name="taxi_save_route">Save Route</string>
+    <string name="taxi_clear_place">Clear</string>
+    <string name="taxi_departure_day">%1$s · %2$s</string>
+    <string name="taxi_distance_km">%1$.1f km</string>
+    <string name="taxi_distance_m">%1$d m</string>
+    <string name="taxi_duration_minutes">%1$d min</string>
+    <string name="taxi_duration_hours_minutes">%1$d hr %2$d min</string>
+    <plurals name="taxi_seats_left">
+        <item quantity="one">%1$d seat left</item>
+        <item quantity="other">%1$d seats left</item>
+    </plurals>
 </resources>

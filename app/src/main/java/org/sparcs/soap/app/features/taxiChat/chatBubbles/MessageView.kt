@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.taxiChat.chatBubbles
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,17 +11,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,10 +35,12 @@ import org.sparcs.soap.app.domain.models.taxi.ChatBubblePosition
 import org.sparcs.soap.app.domain.models.taxi.MetadataVisibility
 import org.sparcs.soap.app.domain.models.taxi.SenderInfo
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
+import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.features.settings.components.InfoTooltip
 import org.sparcs.soap.app.features.taxiChat.components.ChatReadReceipt
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiRiderCardMenu
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -45,6 +53,7 @@ fun MessageView(
     metadata: MetadataVisibility,
     hasBadge: Boolean,
     modifier: Modifier = Modifier,
+    rider: TaxiParticipant? = null,
     content: @Composable () -> Unit
 ) {
     Row(
@@ -64,8 +73,9 @@ fun MessageView(
             )
             Spacer(modifier = Modifier.width(4.dp))
         } else {
-            ChatAvatarImage(
+            SenderAvatar(
                 sender = sender,
+                rider = rider.takeIf { metadata.showAvatar },
                 modifier = Modifier
                     .padding(end = 4.dp)
                     .size(40.dp)
@@ -116,6 +126,25 @@ fun MessageView(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SenderAvatar(sender: SenderInfo, rider: TaxiParticipant?, modifier: Modifier) {
+    if (rider == null) {
+        ChatAvatarImage(sender = sender, modifier = modifier)
+        return
+    }
+
+    var showsCard by remember { mutableStateOf(false) }
+    Box {
+        ChatAvatarImage(
+            sender = sender,
+            modifier = modifier
+                .clip(CircleShape)
+                .clickable(onClickLabel = rider.nickname, role = Role.Button) { showsCard = true }
+        )
+        TaxiRiderCardMenu(rider, expanded = showsCard, onDismiss = { showsCard = false })
     }
 }
 

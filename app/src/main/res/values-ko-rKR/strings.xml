@@ -760,4 +760,35 @@
     <string name="activity_add_time">시간 추가</string>
     <string name="activity_time_number">시간 %1$d</string>
     <string name="activity_remove_time">시간 삭제</string>
+    <string name="taxi_ride_info">탑승 정보</string>
+    <string name="taxi_open_ride_info">탑승 정보 열기</string>
+    <string name="taxi_my_status">내 상태</string>
+    <string name="taxi_im_here">도착했어요</string>
+    <string name="taxi_with_luggage">캐리어 있음</string>
+    <string name="taxi_no_luggage">캐리어 없음</string>
+    <string name="taxi_arrival_only_before_departure">출발 시간 전까지만 도착을 표시할 수 있어요.</string>
+    <string name="taxi_arrived_section">도착함 %1$d</string>
+    <string name="taxi_on_the_way_section">오는 중 %1$d</string>
+    <string name="taxi_me">나</string>
+    <string name="taxi_phone_verified">전화번호 인증됨</string>
+    <string name="taxi_not_verified">전화번호 미인증</string>
+    <string name="taxi_leave_room_title">이 방을 떠날까요?</string>
+    <string name="taxi_leave_room_message">이 탑승의 자리를 잃게 돼요.</string>
+    <string name="taxi_full">만석</string>
+    <string name="taxi_arrives_around">%1$s쯤 도착</string>
+    <string name="taxi_route_summary">%1$s → %2$s</string>
+    <string name="taxi_seat_count">%1$d/%2$d</string>
+    <string name="taxi_add_to_favourites">즐겨찾기에 추가</string>
+    <string name="taxi_remove_from_favourites">즐겨찾기에서 삭제</string>
+    <string name="taxi_favourite_places">즐겨찾는 장소</string>
+    <string name="taxi_save_route">이 경로 저장</string>
+    <string name="taxi_clear_place">지우기</string>
+    <string name="taxi_departure_day">%1$s · %2$s</string>
+    <string name="taxi_distance_km">%1$.1fkm</string>
+    <string name="taxi_distance_m">%1$dm</string>
+    <string name="taxi_duration_minutes">%1$d분</string>
+    <string name="taxi_duration_hours_minutes">%1$d시간 %2$d분</string>
+    <plurals name="taxi_seats_left">
+        <item quantity="other">%1$d자리 남음</item>
+    </plurals>
 </resources>

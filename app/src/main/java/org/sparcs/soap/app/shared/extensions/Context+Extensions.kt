@@ -15,7 +15,6 @@ import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.MapView
-import com.kakao.vectormap.camera.CameraUpdateFactory
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import timber.log.Timber
 
@@ -74,11 +73,12 @@ fun Context.createKakaoMap(
             }, object : KakaoMapReadyCallback() {
                 override fun onMapReady(map: KakaoMap) {
                     onMapReady(map)
-                    val points = arrayOf(
-                        LatLng.from(room.source.latitude, room.source.longitude),
-                        LatLng.from(room.destination.latitude, room.destination.longitude)
+                    map.fitTaxiRoute(
+                        listOf(
+                            LatLng.from(room.source.latitude, room.source.longitude),
+                            LatLng.from(room.destination.latitude, room.destination.longitude)
+                        )
                     )
-                    map.moveCamera(CameraUpdateFactory.fitMapPoints(points, 100))
                 }
             })
         }
