@@ -1,6 +1,7 @@
 package org.sparcs.soap.postTests
 
 import androidx.lifecycle.SavedStateHandle
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,6 +21,7 @@ import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import org.sparcs.soap.app.features.post.PostViewModel
 import org.sparcs.soap.app.features.settings.ara.BlockedUsersViewModel
+import org.sparcs.soap.app.networking.responseDTO.ara.AraPostAuthorDTO
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.viewModels.TextProcessingDelegate
 import org.sparcs.soap.buddyTestSupport.RecordingAnalyticsService
@@ -61,6 +63,16 @@ class AuthorBlockTest {
         textProcessingDelegate = TextProcessingDelegate(translation, summarization, MockReviewSummaryUseCase()),
         araUserRepository = users,
     ).apply { backgroundDispatcher = Dispatchers.Unconfined }
+
+    @Test
+    fun `author block state is read from the response`() {
+        val json = """{"id":7,"username":"u","profile":{"nickname":"n","picture":null,"user":7},"is_blocked":true}"""
+
+        val author = Gson().fromJson(json, AraPostAuthorDTO::class.java).toModel()
+
+        assertEquals(true, author.isBlocked)
+        assertEquals(7, author.blockableUserId)
+    }
 
     @Test
     fun aNicknameAuthorCanBeBlockedByTheirAccountId() {
