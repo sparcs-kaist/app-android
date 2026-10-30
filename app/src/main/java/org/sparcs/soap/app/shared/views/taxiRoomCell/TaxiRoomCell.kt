@@ -62,6 +62,7 @@ fun TaxiRoomCell(
                     text = room.departAt.taxiTime(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
+                    softWrap = false,
                     maxLines = 1
                 )
                 TaxiDepartureDetail(room.departAt, room.isDeparted, now)
@@ -76,7 +77,7 @@ fun TaxiRoomCell(
                     Column(
                         verticalArrangement = if (showsStatus) Arrangement.Top else Arrangement.Center,
                         modifier = Modifier
-                            .width(TimeColumnWidth)
+                            .width(IntrinsicSize.Max)
                             .fillMaxHeight()
                     ) {
                         departure()

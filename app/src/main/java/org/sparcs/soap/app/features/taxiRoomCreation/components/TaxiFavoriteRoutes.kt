@@ -69,6 +69,7 @@ fun TaxiFavoriteRoutes(
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
         contentPadding = contentPadding,
         modifier = modifier
     ) {

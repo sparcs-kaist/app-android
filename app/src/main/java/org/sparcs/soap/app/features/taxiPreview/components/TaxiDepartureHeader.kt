@@ -3,7 +3,7 @@ package org.sparcs.soap.app.features.taxiPreview.components
 import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Schedule
@@ -17,7 +17,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiTonalLabel
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.departureCountdown
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.isDepartingSoon
@@ -45,10 +44,14 @@ fun TaxiDepartureHeader(departAt: Date, modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            itemVerticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = time,
-                style = MaterialTheme.typography.displayMedium.copy(fontSize = 52.sp),
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
