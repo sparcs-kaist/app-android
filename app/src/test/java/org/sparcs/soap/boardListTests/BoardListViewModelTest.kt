@@ -9,6 +9,8 @@ import org.junit.Test
 import org.sparcs.soap.app.domain.models.ara.AraBoard
 import org.sparcs.soap.app.features.boardList.BoardListViewModel
 import org.sparcs.soap.app.shared.mocks.ara.mockList
+import org.sparcs.soap.buddyTestSupport.helper.TestBoardListSectionStore
+import org.sparcs.soap.buddyTestSupport.helper.TestBoardSeenPostsStore
 import org.sparcs.soap.buddyTestSupport.useCase.MockAraBoardUseCase
 import org.sparcs.soap.testSupport.MainDispatcherRule
 
@@ -23,7 +25,7 @@ class BoardListViewModelTest {
     @Before
     fun setup() {
         mockAraBoardUseCase = MockAraBoardUseCase()
-        viewModel = BoardListViewModel(mockAraBoardUseCase)
+        viewModel = BoardListViewModel(mockAraBoardUseCase, TestBoardListSectionStore(emptyList()), TestBoardSeenPostsStore())
     }
 
     @Test

@@ -5,6 +5,7 @@ import org.sparcs.soap.app.domain.enums.Event
 sealed class BoardListViewEvent : Event {
     data object BoardsLoaded : BoardListViewEvent()
     data class BoardSelected(val boardName: String) : BoardListViewEvent()
+    data class SectionsEdited(val count: Int) : BoardListViewEvent()
 
     override val source: String = "BoardListView"
 
@@ -12,6 +13,7 @@ sealed class BoardListViewEvent : Event {
         get() = when (this) {
             is BoardsLoaded -> "boards_loaded"
             is BoardSelected -> "board_selected"
+            is SectionsEdited -> "board_sections_edited"
         }
 
     override val parameters: Map<String, Any>
@@ -19,6 +21,10 @@ sealed class BoardListViewEvent : Event {
             is BoardSelected -> mapOf(
                 "source" to source,
                 "boardName" to boardName
+            )
+            is SectionsEdited -> mapOf(
+                "source" to source,
+                "count" to count
             )
             else -> mapOf("source" to source)
         }

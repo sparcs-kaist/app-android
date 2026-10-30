@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
@@ -48,8 +51,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraBoard
+import org.sparcs.soap.app.domain.models.ara.AraMarketListing
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.postList.components.TopicFilterBar
+import org.sparcs.soap.app.features.postList.components.marketGrid.MarketGrid
 import org.sparcs.soap.app.features.postList.components.postList.PostList
 import org.sparcs.soap.app.features.postList.components.postListRow.BoardNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -70,7 +76,6 @@ fun PostListView(
 ) {
     var loadedInitialPost by rememberSaveable { mutableStateOf(false) }
     val searchKeyword by viewModel.searchKeyword.collectAsState()
-    // Open whenever a search is active, so a keyword never filters the list out of sight.
     var showSearchBar by rememberSaveable { mutableStateOf(viewModel.searchKeyword.value.isNotEmpty()) }
 
     val scope = rememberCoroutineScope()
@@ -115,8 +120,8 @@ fun PostListView(
 
     val topBarScrollBehavior = topAppBarScrollBehavior()
     val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
 
-    // Closing search also clears it, so the list is never filtered by a hidden keyword.
     val closeSearch = {
         showSearchBar = false
         viewModel.onSearchTextChange("")
@@ -136,8 +141,11 @@ fun PostListView(
         },
         floatingActionButton = {
             if (!board.isReadOnly && board.userWritable == true) {
-                // Shows its label at the top of the list and shrinks to the icon once scrolled.
-                val expanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+                val expanded by remember {
+                    derivedStateOf {
+                        if (board.isMarket) gridState.firstVisibleItemIndex == 0 else listState.firstVisibleItemIndex == 0
+                    }
+                }
                 val writeLabel = stringResource(R.string.write)
                 ExtendedFloatingActionButton(
                     onClick = {
@@ -160,8 +168,6 @@ fun PostListView(
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen(name = "Ara Post List")
     ) { innerPadding ->
-        // Edge to edge: the list scrolls behind the gesture bar, with room at the end to clear it
-        // and the Write button.
         val listPadding = PaddingValues(
             top = 8.dp,
             bottom = innerPadding.calculateBottomPadding() + 88.dp
@@ -176,7 +182,7 @@ fun PostListView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 600.dp),
+                    .then(if (board.isMarket) Modifier else Modifier.widthIn(max = 600.dp)),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (showSearchBar) {
@@ -189,53 +195,63 @@ fun PostListView(
                     )
                 }
 
+                TopicFilterBar(
+                    topics = viewModel.board.topics,
+                    selection = viewModel.selectedTopic,
+                    onSelect = viewModel::selectTopic,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
                 Box(modifier = Modifier.fillMaxSize()) {
-                    when (state) {
-                        is PostListViewModel.ViewState.Loading -> PostList(
+                    when (val currentState = state) {
+                        is PostListViewModel.ViewState.Loading -> PostsContent(
+                            isMarket = board.isMarket,
                             posts = null,
                             onRefresh = {},
                             onLoadMore = {},
                             onPostClick = {},
                             isRefreshing = false,
+                            keyword = searchKeyword,
                             contentPadding = listPadding,
-                            rowPadding = rowPadding
+                            rowPadding = rowPadding,
+                            listState = listState,
+                            gridState = gridState,
+                            isLoadingMore = false
                         )
-                        is PostListViewModel.ViewState.Loaded -> {
-                            val loadedState = state as PostListViewModel.ViewState.Loaded
-                            PostList(
-                                posts = loadedState.posts,
-                                onLoadMore = { scope.launch { viewModel.loadNextPage() } },
-                                onRefresh = {
-                                    isRefreshing = true
-                                    scope.launch {
-                                        viewModel.fetchInitialPosts()
-                                        delay(500)
-                                        isRefreshing = false
-                                    }
-                                },
-                                onPostClick = { post ->
-                                    viewModel.lastClickedPostId = post.id
-                                    navController.navigate(Channel.PostView.name + "?postId=${post.id}")
-                                },
-                                isRefreshing = isRefreshing,
-                                keyword = searchKeyword,
-                                contentPadding = listPadding,
-                                listState = listState,
-                                rowPadding = rowPadding,
-                                isLoadingMore = viewModel.isLoadingMore
-                            )
-                        }
 
-                        is PostListViewModel.ViewState.Error -> {
-                            val errorState = state as PostListViewModel.ViewState.Error
-                            ErrorView(
-                                error = errorState.error,
-                                onRetry = {
-                                    scope.launch { viewModel.fetchInitialPosts() }
-                                    viewModel.bind()
+                        is PostListViewModel.ViewState.Loaded -> PostsContent(
+                            isMarket = board.isMarket,
+                            posts = currentState.posts,
+                            onLoadMore = { scope.launch { viewModel.loadNextPage() } },
+                            onRefresh = {
+                                isRefreshing = true
+                                scope.launch {
+                                    viewModel.fetchInitialPosts()
+                                    delay(500)
+                                    isRefreshing = false
                                 }
-                            )
-                        }
+                            },
+                            onPostClick = { post ->
+                                viewModel.markRead(post.id)
+                                viewModel.lastClickedPostId = post.id
+                                navController.navigate(Channel.PostView.name + "?postId=${post.id}")
+                            },
+                            isRefreshing = isRefreshing,
+                            keyword = searchKeyword,
+                            contentPadding = listPadding,
+                            rowPadding = rowPadding,
+                            listState = listState,
+                            gridState = gridState,
+                            isLoadingMore = viewModel.isLoadingMore
+                        )
+
+                        is PostListViewModel.ViewState.Error -> ErrorView(
+                            error = currentState.error,
+                            onRetry = {
+                                scope.launch { viewModel.fetchInitialPosts() }
+                                viewModel.bind()
+                            }
+                        )
                     }
 
                     if (searchKeyword.isNotEmpty() && viewModel.posts.isEmpty() && state is PostListViewModel.ViewState.Loaded) {
@@ -250,6 +266,49 @@ fun PostListView(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PostsContent(
+    isMarket: Boolean,
+    posts: List<AraPost>?,
+    onRefresh: () -> Unit,
+    onLoadMore: () -> Unit,
+    onPostClick: (AraPost) -> Unit,
+    isRefreshing: Boolean,
+    keyword: String,
+    contentPadding: PaddingValues,
+    rowPadding: PaddingValues,
+    listState: LazyListState,
+    gridState: LazyGridState,
+    isLoadingMore: Boolean,
+) {
+    if (isMarket) {
+        MarketGrid(
+            posts = posts,
+            onRefresh = onRefresh,
+            onLoadMore = onLoadMore,
+            onPostClick = onPostClick,
+            isRefreshing = isRefreshing,
+            keyword = keyword,
+            contentPadding = contentPadding,
+            gridState = gridState,
+            isLoadingMore = isLoadingMore
+        )
+    } else {
+        PostList(
+            posts = posts,
+            onRefresh = onRefresh,
+            onLoadMore = onLoadMore,
+            onPostClick = onPostClick,
+            isRefreshing = isRefreshing,
+            keyword = keyword,
+            contentPadding = contentPadding,
+            listState = listState,
+            rowPadding = rowPadding,
+            isLoadingMore = isLoadingMore
+        )
     }
 }
 
@@ -283,7 +342,6 @@ private fun EmptyView(
     }
 }
 
-// Mark: Preview
 @Preview(name = "Loading State", showBackground = true)
 @Composable
 private fun PreviewPostListLoading() {
@@ -301,6 +359,20 @@ private fun PreviewPostListLoaded() {
         initialState = PostListViewModel.ViewState.Loaded(AraPost.mockList()),
         board = AraBoard.mock(),
         posts = AraPost.mockList()
+    )
+    Theme { PostListView(viewModel = viewModel, rememberNavController()) }
+}
+
+@Preview(name = "Market Board", showBackground = true)
+@Composable
+private fun PreviewPostListMarket() {
+    val posts = AraPost.mockList().mapIndexed { index, post ->
+        post.copy(marketListing = AraMarketListing(price = (index + 1) * 5_000L))
+    }
+    val viewModel = PreviewPostListViewModel(
+        initialState = PostListViewModel.ViewState.Loaded(posts),
+        board = AraBoard.mock().copy(slug = AraBoard.MARKET_SLUG),
+        posts = posts
     )
     Theme { PostListView(viewModel = viewModel, rememberNavController()) }
 }

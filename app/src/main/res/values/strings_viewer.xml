@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="viewer_page_count">%1$d of %2$d</string>
+    <string name="viewer_photo">Photo</string>
+    <string name="viewer_image_load_failed">Couldn\'t load this image.</string>
+    <string name="viewer_share_failed">Unable to Share Image</string>
+    <string name="viewer_save_failed">Unable to Save Image</string>
+    <string name="viewer_copy_failed">Unable to Copy Image</string>
+</resources>

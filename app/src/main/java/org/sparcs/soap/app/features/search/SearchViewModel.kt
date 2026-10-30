@@ -26,6 +26,8 @@ import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiLocationUseCaseProtocol
+import org.sparcs.soap.app.features.postList.markedRead
+import org.sparcs.soap.app.features.postList.updating
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -51,6 +53,7 @@ interface SearchViewModelProtocol {
     fun onSearchTextChange(text: String)
     fun onScopeChange(scope: SearchScope)
     fun onFilterChange(filterState: CourseFilterState)
+    fun markRead(postID: Int)
 }
 
 @HiltViewModel
@@ -257,6 +260,10 @@ class SearchViewModel @Inject constructor(
                 _state.value = ViewState.Error(e)
             }
         }
+    }
+
+    override fun markRead(postID: Int) {
+        _posts.value = _posts.value.updating(postID) { it.markedRead() } ?: return
     }
 
     override fun loadAraNextPage() {

@@ -1,6 +1,7 @@
 package org.sparcs.soap.postTests
 
 import androidx.lifecycle.SavedStateHandle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -17,11 +18,13 @@ import org.sparcs.soap.app.features.post.PostViewModel
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.viewModels.TextProcessingDelegate
+import org.sparcs.soap.buddyTestSupport.repository.MockAraUserRepository
 import org.sparcs.soap.buddyTestSupport.useCase.MockReviewSummaryUseCase
 
 class PostViewModelTest : PostTestBase() {
 
     private lateinit var viewModel: PostViewModel
+    private val mockAraUserRepository = MockAraUserRepository()
 
     private val fakeTranslationUseCase = object : PostTranslationUseCaseProtocol {
         override fun availableLanguages(): List<String> = emptyList()
@@ -49,7 +52,8 @@ class PostViewModelTest : PostTestBase() {
             araCommentUseCase = mockAraCommentUseCase,
             analyticsService = mockAnalyticsService,
             textProcessingDelegate = TextProcessingDelegate(fakeTranslationUseCase, fakeSummarizationUseCase, MockReviewSummaryUseCase()),
-        )
+            araUserRepository = mockAraUserRepository,
+        ).apply { backgroundDispatcher = Dispatchers.Unconfined }
     }
 
     private fun seedPost(post: AraPost) {
@@ -78,6 +82,26 @@ class PostViewModelTest : PostTestBase() {
         assertEquals(1, mockAraBoardUseCase.fetchPostCallCount)
         assertEquals(expectedPost.id, viewModel.post.value?.id)
         assertEquals(PostViewModel.ViewState.Loaded, viewModel.state.value)
+    }
+
+    @Test
+    fun `fetchPost shows the listed post while the full post loads`() = runTest {
+        val listed = AraPost.mock().copy(title = "Listed", comments = mutableListOf())
+        mockAraBoardUseCase.cachedPostResult = listed
+        mockAraBoardUseCase.fetchPostResult = Result.failure(Exception("Offline"))
+
+        createViewModel(listed)
+        viewModel.fetchPost()
+
+        assertEquals("Listed", viewModel.post.value?.title)
+        assertTrue(viewModel.state.value is PostViewModel.ViewState.Error)
+    }
+
+    @Test
+    fun `canEdit stays false for posts by others`() = runTest {
+        seedPost(AraPost.mock().copy(isMine = false))
+
+        assertFalse(viewModel.canEdit.value)
     }
 
     @Test

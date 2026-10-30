@@ -3,6 +3,7 @@ package org.sparcs.soap.app.networking.retrofitAPI.ara
 import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
 import org.sparcs.soap.app.networking.requestDTO.ara.AraPostRequestDTO
+import org.sparcs.soap.app.networking.requestDTO.ara.AraPostUpdateRequestDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraAttachmentDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraBoardDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraBookmarkDTO
@@ -14,6 +15,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -29,8 +31,18 @@ interface AraBoardApi {
         @Query("page") page: Int,
         @Query("page_size") pageSize: Int,
         @Query("parent_board") parentBoard: Int? = null,
+        @Query("parent_topic") parentTopic: Int? = null,
+        @Query("board") board: String? = null,
+        @Query("parent_board__in") parentBoardIn: String? = null,
+        @Query("ordering") ordering: String? = null,
         @Query("created_by") createdBy: Int? = null,
         @Query("main_search__contains") searchKeyword: String? = null
+    ): AraPostPageDTO
+
+    @GET("articles/top/")
+    suspend fun fetchTopPosts(
+        @Query("page") page: Int,
+        @Query("page_size") pageSize: Int,
     ): AraPostPageDTO
 
     @GET("articles/{id}/")
@@ -62,6 +74,12 @@ interface AraBoardApi {
     @POST("articles/")
     suspend fun writePost(
         @Body request: AraPostRequestDTO
+    )
+
+    @PATCH("articles/{id}/")
+    suspend fun updatePost(
+        @Path("id") postID: Int,
+        @Body request: AraPostUpdateRequestDTO
     )
 
     @POST("articles/{id}/vote_positive/")

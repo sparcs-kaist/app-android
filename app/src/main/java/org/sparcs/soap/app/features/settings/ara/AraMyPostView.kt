@@ -74,6 +74,12 @@ fun AraMyPostView(
         }
     }
 
+    val openPost: (Int) -> Unit = { postID ->
+        viewModel.markRead(postID)
+        viewModel.lastClickedPostId = postID
+        navController.navigate(Channel.PostView.name + "?postId=${postID}")
+    }
+
     val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
@@ -118,10 +124,7 @@ fun AraMyPostView(
                         searchKeyword = searchKeyword,
                         onRefresh = { coroutineScope.launch { viewModel.fetchInitialPosts() } },
                         onLoadMore = { coroutineScope.launch { viewModel.loadNextPage() } },
-                        onPostClick = { postID ->
-                            viewModel.lastClickedPostId = postID
-                            navController.navigate(Channel.PostView.name + "?postId=${postID}")
-                        }
+                        onPostClick = openPost
                     )
                 }
 
@@ -131,10 +134,7 @@ fun AraMyPostView(
                         posts = posts,
                         onRefresh = { coroutineScope.launch { viewModel.fetchInitialPosts() } },
                         onLoadMore = { coroutineScope.launch { viewModel.loadNextPage() } },
-                        onPostClick = { postID ->
-                            viewModel.lastClickedPostId = postID
-                            navController.navigate(Channel.PostView.name + "?postId=${postID}")
-                        }
+                        onPostClick = openPost
                     )
                 }
             }

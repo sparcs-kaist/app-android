@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="block_daily_limit">You can block up to 10 people a day.</string>
+    <string name="block_author_named_confirm_title">Block %1$s?</string>
+    <string name="post_translating_to">Translating to %1$s…</string>
+    <string name="post_translated_from_to">Translated from %1$s to %2$s</string>
+    <string name="post_translated_to">Translated to %1$s</string>
+    <string name="post_translation_failed_title">Unable to translate post.</string>
+</resources>

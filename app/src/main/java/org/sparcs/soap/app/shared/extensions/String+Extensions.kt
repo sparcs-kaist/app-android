@@ -35,10 +35,6 @@ fun String.toDate(): Date? {
     return null
 }
 
-fun String.toHTMLParagraphs(): String =
-    this.split("\n")
-        .joinToString(separator = "") { "<p>$it</p>" }
-
 //UseCase 범주에서 stringResource 지원
 interface StringProvider {
     fun get(id: Int, vararg args: Any): String

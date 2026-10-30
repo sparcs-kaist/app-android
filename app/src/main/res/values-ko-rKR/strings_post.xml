@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="block_daily_limit">하루에 10명까지만 차단할 수 있어요.</string>
+    <string name="block_author_named_confirm_title">%1$s 님을 차단할까요?</string>
+    <string name="post_translating_to">%1$s(으)로 번역하는 중…</string>
+    <string name="post_translated_from_to">%1$s에서 %2$s(으)로 번역됨</string>
+    <string name="post_translated_to">%1$s(으)로 번역됨</string>
+    <string name="post_translation_failed_title">게시물을 번역할 수 없어요.</string>
+</resources>
