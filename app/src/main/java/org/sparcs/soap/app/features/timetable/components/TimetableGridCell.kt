@@ -59,11 +59,14 @@ fun TimetableGridCell(
     }
 
     BoxWithConstraints(modifier = modifier.height(cellHeight)) {
-        val layout = CellLayout.of(maxWidth, maxHeight)
+        val metrics = TimetableCellMetrics.of(maxWidth, maxHeight)
+        val titleStyle = titleStyle(metrics.isPacked)
+        val detailStyle = detailStyle(metrics.isPacked)
+
         val title = lectureItem.lecture.name
         val subtitle = lectureItem.lecture.subtitle.subtitleTopic
-        val detail = lectureItem.detailText(placement, layout.isPacked)
-        val detailMaxLines = rememberDetailMaxLines(layout, title, subtitle, detail, maxWidth, maxHeight)
+        val detail = lectureItem.detailText(placement, metrics.isPacked)
+        val lines = rememberCellLines(metrics, titleStyle, detailStyle, title, subtitle, detail, maxWidth, maxHeight)
 
         Box(
             modifier = Modifier
@@ -76,24 +79,24 @@ fun TimetableGridCell(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = layout.horizontalPadding, vertical = layout.verticalPadding),
-                verticalArrangement = Arrangement.spacedBy(LINE_SPACING)
+                    .padding(horizontal = metrics.horizontalPadding, vertical = metrics.verticalPadding),
+                verticalArrangement = Arrangement.spacedBy(lines.spacing)
             ) {
                 Text(
                     text = title,
                     color = contentColor,
-                    style = layout.titleStyle,
-                    maxLines = layout.titleMaxLines,
+                    style = titleStyle,
+                    maxLines = lines.title,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (layout.showsDetails) {
-                    subtitle?.let {
+                if (lines.room > 0) {
+                    if (subtitle != null && lines.subtitle > 0) {
                         Text(
-                            text = it,
+                            text = subtitle,
                             color = contentColor,
-                            style = layout.detailStyle,
-                            maxLines = layout.subtitleMaxLines,
+                            style = detailStyle,
+                            maxLines = lines.subtitle,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
@@ -101,8 +104,8 @@ fun TimetableGridCell(
                     Text(
                         text = detail,
                         color = contentColor.copy(alpha = 0.8f),
-                        style = layout.detailStyle,
-                        maxLines = detailMaxLines,
+                        style = detailStyle,
+                        maxLines = lines.room,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -111,87 +114,64 @@ fun TimetableGridCell(
     }
 }
 
-private class CellLayout(
-    val isPacked: Boolean,
-    val showsDetails: Boolean,
-    val horizontalPadding: Dp,
-    val verticalPadding: Dp,
-    val titleMaxLines: Int,
-    val subtitleMaxLines: Int,
-    val titleStyle: TextStyle,
-    val detailStyle: TextStyle,
-) {
-    companion object {
-        @Composable
-        fun of(width: Dp, height: Dp): CellLayout {
-            val isPacked = width < PACKED_WIDTH || height < PACKED_HEIGHT
-            return CellLayout(
-                isPacked = isPacked,
-                showsDetails = height > DETAILS_MIN_HEIGHT,
-                horizontalPadding = if (isPacked) 3.dp else 6.dp,
-                verticalPadding = if (isPacked) 4.dp else 6.dp,
-                titleMaxLines = if (isPacked && height < PACKED_HEIGHT) 2 else 3,
-                subtitleMaxLines = if (height > SUBTITLE_FULL_HEIGHT) 3 else 1,
-                titleStyle = titleStyle(isPacked),
-                detailStyle = detailStyle(isPacked),
-            )
-        }
-
-        @Composable
-        private fun titleStyle(isPacked: Boolean): TextStyle {
-            val base = MaterialTheme.typography.bodySmall.copy(lineBreak = LineBreak.Heading, fontWeight = FontWeight.Medium)
-            if (!isPacked) return base
-            return base.copy(fontSize = base.fontSize * PACKED_TEXT_SCALE, lineHeight = base.lineHeight * PACKED_TEXT_SCALE)
-        }
-
-        @Composable
-        private fun detailStyle(isPacked: Boolean): TextStyle {
-            val base = MaterialTheme.typography.labelSmall.copy(lineBreak = LineBreak.Simple, fontWeight = FontWeight.Light)
-            return if (isPacked) base.copy(letterSpacing = PACKED_LETTER_SPACING) else base
-        }
-    }
+@Composable
+private fun titleStyle(isPacked: Boolean): TextStyle {
+    val base = MaterialTheme.typography.bodySmall.copy(lineBreak = LineBreak.Heading, fontWeight = FontWeight.Medium)
+    if (!isPacked) return base
+    return base.copy(fontSize = base.fontSize * PACKED_TEXT_SCALE, lineHeight = base.lineHeight * PACKED_TEXT_SCALE)
 }
 
 @Composable
-private fun rememberDetailMaxLines(
-    layout: CellLayout,
+private fun detailStyle(isPacked: Boolean): TextStyle {
+    val base = MaterialTheme.typography.labelSmall.copy(lineBreak = LineBreak.Simple, fontWeight = FontWeight.Light)
+    return if (isPacked) base.copy(letterSpacing = PACKED_LETTER_SPACING) else base
+}
+
+@Composable
+private fun rememberCellLines(
+    metrics: TimetableCellMetrics,
+    titleStyle: TextStyle,
+    detailStyle: TextStyle,
     title: String,
     subtitle: String?,
     detail: String,
     width: Dp,
     height: Dp,
-): Int {
+): TimetableCellLines {
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    return remember(layout.isPacked, title, subtitle, detail, width, height, density) {
-        textMeasurer.detailMaxLines(layout, title, subtitle, detail, width, height, density)
+    return remember(metrics.isPacked, titleStyle, detailStyle, title, subtitle, detail, width, height, density) {
+        textMeasurer.cellLines(metrics, titleStyle, detailStyle, title, subtitle, detail, width, height, density)
     }
 }
 
-private fun TextMeasurer.detailMaxLines(
-    layout: CellLayout,
+private fun TextMeasurer.cellLines(
+    metrics: TimetableCellMetrics,
+    titleStyle: TextStyle,
+    detailStyle: TextStyle,
     title: String,
     subtitle: String?,
     detail: String,
     width: Dp,
     height: Dp,
     density: Density,
-): Int = with(density) {
-    val constraints = Constraints(maxWidth = (width - layout.horizontalPadding * 2).roundToPx().coerceAtLeast(1))
-    val spacing = LINE_SPACING.roundToPx()
+): TimetableCellLines = with(density) {
+    val constraints = Constraints(maxWidth = (width - metrics.horizontalPadding * 2).roundToPx().coerceAtLeast(1))
 
-    val titleHeight = measure(title, layout.titleStyle, maxLines = layout.titleMaxLines, constraints = constraints).size.height
-    val subtitleHeight = subtitle?.let {
-        measure(it, layout.detailStyle, maxLines = layout.subtitleMaxLines, constraints = constraints).size.height + spacing
-    } ?: 0
-    val detailTop = titleHeight + subtitleHeight + spacing
-    val availableHeight = (height - layout.verticalPadding * 2).roundToPx()
+    val titleLineHeight = measure(title, titleStyle, maxLines = 1, constraints = constraints).size.height
+    val detailLayout = measure(detail, detailStyle, constraints = constraints)
+    val detailLineHeight = detailLayout.size.height / detailLayout.lineCount
+    val subtitleLineCount = subtitle?.let { measure(it, detailStyle, constraints = constraints).lineCount } ?: 0
 
-    val detailLayout = measure(detail, layout.detailStyle, constraints = constraints)
-    val fittingLines = (0 until detailLayout.lineCount).count { line ->
-        detailTop + detailLayout.getLineBottom(line) <= availableHeight
-    }
-    fittingLines.coerceAtLeast(1)
+    TimetableCellLines.of(
+        height = height - metrics.verticalPadding * 2,
+        titleLineHeight = titleLineHeight.toDp(),
+        detailLineHeight = detailLineHeight.toDp(),
+        spacing = LINE_SPACING,
+        maxTitleLines = metrics.titleMaxLines,
+        maxSubtitleLines = minOf(metrics.subtitleMaxLines, subtitleLineCount),
+        maxRoomLines = minOf(metrics.roomMaxLines, detailLayout.lineCount),
+    )
 }
 
 internal fun LectureItem.detailText(placement: TimetablePlacement, isPacked: Boolean): String {
@@ -199,7 +179,7 @@ internal fun LectureItem.detailText(placement: TimetablePlacement, isPacked: Boo
     return if (placement == TimetablePlacement.Render && professor != null) professor else lectureClass.roomLabel(isPacked)
 }
 
-private fun LectureClass.roomLabel(isPacked: Boolean): String {
+internal fun LectureClass.roomLabel(isPacked: Boolean): String {
     val room = if (isPacked) roomNumber(roomName) ?: roomName else roomName
     return "($buildingCode) $room"
 }
@@ -209,13 +189,6 @@ internal fun roomNumber(roomName: String): String? =
 
 private val CellShape = RoundedCornerShape(4.dp)
 private val LINE_SPACING = 2.dp
-
-private val PACKED_WIDTH = 72.dp
-private val PACKED_HEIGHT = 60.dp
-private val DETAILS_MIN_HEIGHT = 40.dp
-private val SUBTITLE_FULL_HEIGHT = 90.dp
-
-private const val PACKED_TEXT_SCALE = 0.9f
 private val PACKED_LETTER_SPACING = (-0.3).sp
 
 private val ROOM_NUMBER = Regex("""^\s*\(\s*([^)]+?)\s*호\s*\)""")
