@@ -20,14 +20,18 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -80,7 +84,7 @@ import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun TimetableView(
@@ -171,6 +175,7 @@ fun TimetableView(
                 .hideTopBarOnScroll(topBarScrollBehavior.takeUnless { isLandscape })
                 .analyticsScreen("Timetable")
         ) { innerPadding ->
+            val pullToRefreshState = rememberPullToRefreshState()
             PullToRefreshBox(
                 isRefreshing = loadState.isRefreshing,
                 onRefresh = {
@@ -181,7 +186,15 @@ fun TimetableView(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(innerPadding),
-                contentAlignment = Alignment.TopCenter
+                state = pullToRefreshState,
+                contentAlignment = Alignment.TopCenter,
+                indicator = {
+                    PullToRefreshDefaults.LoadingIndicator(
+                        state = pullToRefreshState,
+                        isRefreshing = loadState.isRefreshing,
+                        modifier = Modifier.align(Alignment.TopCenter)
+                    )
+                }
             ) {
                 if (isLandscape) {
                     TimetableLandscapeLayout(
@@ -228,7 +241,8 @@ fun TimetableView(
                         onClick = {
                             showDeleteDialog = false
                             viewModel.deleteLecture(lecture = lectureToDelete!!)
-                        }
+                        },
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Text(stringResource(R.string.ok))
                     }

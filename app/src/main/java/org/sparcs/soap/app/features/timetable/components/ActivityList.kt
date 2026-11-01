@@ -18,6 +18,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -135,7 +136,7 @@ fun ActivityList(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        IconButton(onClick = { selected = activity; showActions = true }) {
+                        IconButton(onClick = { selected = activity; showActions = true }, shapes = IconButtonDefaults.shapes()) {
                             Icon(
                                 Icons.Default.MoreVert,
                                 stringResource(R.string.activity_options, activity.title)

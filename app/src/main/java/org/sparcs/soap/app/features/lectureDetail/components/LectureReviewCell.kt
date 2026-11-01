@@ -35,6 +35,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -139,7 +140,7 @@ fun LectureReviewCell(
 
                 if (!isMine) {
                     Box {
-                        IconButton(onClick = { expanded = true }) {
+                        IconButton(onClick = { expanded = true }, shapes = IconButtonDefaults.shapes()) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
                                 contentDescription = stringResource(R.string.more)

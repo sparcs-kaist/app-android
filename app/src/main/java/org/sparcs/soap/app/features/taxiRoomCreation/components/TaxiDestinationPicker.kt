@@ -21,6 +21,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -93,6 +94,7 @@ fun TaxiDestinationPicker(
                     onSourceChange(destination)
                     onDestinationChange(source)
                 },
+                shapes = IconButtonDefaults.shapes(),
                 modifier = Modifier.padding(end = 4.dp)
             ) {
                 Icon(Icons.Filled.SwapVert, contentDescription = stringResource(R.string.swap_route))

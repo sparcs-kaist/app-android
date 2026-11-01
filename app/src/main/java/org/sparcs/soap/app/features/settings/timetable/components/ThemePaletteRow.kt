@@ -18,6 +18,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,7 +101,7 @@ internal fun ThemePaletteRow(
         supportingContent = { Text(stringResource(R.string.theme_color_hex_value, color.hex)) },
         trailingContent = {
             Box {
-                IconButton(onClick = { menuExpanded = true }) {
+                IconButton(onClick = { menuExpanded = true }, shapes = IconButtonDefaults.shapes()) {
                     Icon(Icons.Default.MoreVert, stringResource(R.string.theme_options, label))
                 }
                 DropdownMenu(

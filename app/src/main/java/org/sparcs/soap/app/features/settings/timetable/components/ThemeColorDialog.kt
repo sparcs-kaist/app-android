@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -93,7 +94,7 @@ internal fun ThemeColorDialog(
                             .fillMaxWidth()
                             .semantics { contentDescription = label })
                 }
-                if (onRemove != null) TextButton(onClick = onRemove) {
+                if (onRemove != null) TextButton(onClick = onRemove, shapes = ButtonDefaults.shapes()) {
                     Text(
                         stringResource(R.string.theme_remove_color),
                         color = MaterialTheme.colorScheme.error

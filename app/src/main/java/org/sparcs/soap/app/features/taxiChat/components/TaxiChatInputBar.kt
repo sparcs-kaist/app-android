@@ -25,6 +25,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -92,7 +93,7 @@ fun TaxiChatInputBar(
         verticalAlignment = Alignment.Bottom
     ) {
         Box {
-            IconButton(onClick = { expanded = true }) {
+            IconButton(onClick = { expanded = true }, shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Default.Add, contentDescription = "More")
             }
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -174,6 +175,7 @@ fun TaxiChatInputBar(
                     )
                     FilledTonalIconButton(
                         onClick = { selectedImage = null },
+                        shapes = IconButtonDefaults.shapes(),
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(4.dp)

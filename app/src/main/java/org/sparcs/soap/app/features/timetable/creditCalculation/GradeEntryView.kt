@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -179,11 +180,19 @@ private fun GradeEntryRow(
                     .widthIn(min = 64.dp)
                     .semantics { contentDescription = description }
                 if (grade != null) {
-                    FilledTonalButton(onClick = { expanded = true }, modifier = buttonModifier) {
+                    FilledTonalButton(
+                        onClick = { expanded = true },
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = buttonModifier
+                    ) {
                         Text(grade.title)
                     }
                 } else {
-                    OutlinedButton(onClick = { expanded = true }, modifier = buttonModifier) {
+                    OutlinedButton(
+                        onClick = { expanded = true },
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = buttonModifier
+                    ) {
                         Text("\u2014")
                     }
                 }

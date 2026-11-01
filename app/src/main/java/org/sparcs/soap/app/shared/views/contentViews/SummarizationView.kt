@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -169,7 +170,7 @@ private fun SummarizationContent(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     StatusText(stringResource(R.string.summarization_failed), Modifier.weight(1f))
-                    TextButton(onClick = onRetry) {
+                    TextButton(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
                         Text(stringResource(R.string.retry))
                     }
                 }

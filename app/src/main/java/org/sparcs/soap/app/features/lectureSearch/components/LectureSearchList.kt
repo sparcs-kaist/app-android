@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -478,7 +479,7 @@ private fun TimeFilterBottomSheet(
                         .weight(1f)
                         .semantics { heading() },
                 )
-                TextButton(onClick = { onTimeChange(LectureTimeFilter()) }) {
+                TextButton(onClick = { onTimeChange(LectureTimeFilter()) }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.reset))
                 }
             }
@@ -486,7 +487,7 @@ private fun TimeFilterBottomSheet(
                 .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState())) {
                 LectureTimeFilterRow(time, onTimeChange)
-                TextButton(onClick = onChooseOnTimetable) {
+                TextButton(onClick = onChooseOnTimetable, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.choose_time_on_timetable))
                 }
             }
@@ -514,11 +515,11 @@ internal fun LectureCollisionDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = onReplace) {
+            TextButton(onClick = onReplace, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.replace_overlapping_lecture))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) } },
     )
 }
 

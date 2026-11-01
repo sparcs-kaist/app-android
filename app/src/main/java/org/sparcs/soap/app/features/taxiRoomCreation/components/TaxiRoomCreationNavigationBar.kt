@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.taxiRoomCreation.components
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -102,6 +103,7 @@ private fun SendButton(
                 }
             }
         },
+        shapes = ButtonDefaults.shapes(),
         enabled = isEnabled,
         modifier = Modifier.semantics { contentDescription = "Create Room Button" }
     ) {

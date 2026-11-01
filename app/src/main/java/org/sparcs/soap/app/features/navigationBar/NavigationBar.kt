@@ -262,11 +262,15 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         }
     }
 
+    //Expressive short bar and wide rail. Rail whenever the window is wider than a portrait
+    //phone (see usesNavigationRail). Tabletop keeps the bar so the rail does not straddle the
+    //hinge, at the medium size.
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val navigationLayoutType = when {
         !isMainTab -> NavigationSuiteType.None
-        usesNavigationRail(adaptiveInfo) -> NavigationSuiteType.NavigationRail
-        else -> NavigationSuiteType.NavigationBar
+        usesNavigationRail(adaptiveInfo) -> NavigationSuiteType.WideNavigationRailCollapsed
+        adaptiveInfo.windowPosture.isTabletop -> NavigationSuiteType.ShortNavigationBarMedium
+        else -> NavigationSuiteType.ShortNavigationBarCompact
     }
 
     NavigationSuiteScaffold(

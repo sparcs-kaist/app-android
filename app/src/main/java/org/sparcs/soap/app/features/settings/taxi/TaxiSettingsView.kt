@@ -21,11 +21,13 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,7 +66,6 @@ import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.toPhoneNumberFormat
 import org.sparcs.soap.app.shared.extensions.toggle
-import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -154,7 +155,7 @@ fun TaxiSettingsView(
         viewModel.fetchUser()
     }
 
-    val topBarScrollBehavior = topAppBarScrollBehavior()
+    val topBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     fun saveChanges() {
         coroutineScope.launch {
@@ -189,6 +190,7 @@ fun TaxiSettingsView(
                     }
                 },
                 scrollBehavior = topBarScrollBehavior,
+                flexible = true,
                 containerColor = MaterialTheme.colorScheme.surface
             )
         },
@@ -454,7 +456,7 @@ private fun BankPicker(
             placeholder = { Text(stringResource(R.string.select_bank)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth()
         )
 

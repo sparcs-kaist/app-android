@@ -16,6 +16,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -73,7 +74,7 @@ fun FavoriteRouteDropdown(
                             }
                         },
                         trailingIcon = {
-                            IconButton(onClick = { onDelete(favorite.id) }) {
+                            IconButton(onClick = { onDelete(favorite.id) }, shapes = IconButtonDefaults.shapes()) {
                                 Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.delete))
                             }
                         },

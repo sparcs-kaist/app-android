@@ -1,9 +1,15 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.features.settings.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -21,6 +27,12 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.features.navigationBar.components.SearchButton
 
+/**
+ * Top app bar for settings screens.
+ *
+ * @param flexible when true, renders a [MediumFlexibleTopAppBar] whose large title collapses as
+ *   the content scrolls. Pair it with [TopAppBarDefaults.exitUntilCollapsedScrollBehavior].
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsViewNavigationBar(
@@ -35,31 +47,47 @@ fun SettingsViewNavigationBar(
     containerColor: Color = MaterialTheme.colorScheme.background,
     onClickDone: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    flexible: Boolean = false,
 ) {
-    TopAppBar(
-        navigationIcon = { BackButton(onClick = { onDismiss() }) },
-        title = {
-            Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = containerColor
-        ),
-        actions = {
-            if (isSearchEnabled == true) {
-                SearchButton(
-                    onClick = { onClickSearch() },
-                    isSelected = isSelected
-                )
-            } else if (isEditable == true) {
-                DoneButton(
-                    onDoneClick = { onClickDone() },
-                    isDoneEnabled = isDoneEnabled ?: false,
-                    isSaving = isSaving
-                )
-            }
-        },
-        scrollBehavior = scrollBehavior
+    val navigationIcon: @Composable () -> Unit = { BackButton(onClick = { onDismiss() }) }
+    val titleContent: @Composable () -> Unit = {
+        Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+    val colors = TopAppBarDefaults.topAppBarColors(
+        containerColor = containerColor
     )
+    val actions: @Composable RowScope.() -> Unit = {
+        if (isSearchEnabled == true) {
+            SearchButton(
+                onClick = { onClickSearch() },
+                isSelected = isSelected
+            )
+        } else if (isEditable == true) {
+            DoneButton(
+                onDoneClick = { onClickDone() },
+                isDoneEnabled = isDoneEnabled ?: false,
+                isSaving = isSaving
+            )
+        }
+    }
+
+    if (flexible) {
+        MediumFlexibleTopAppBar(
+            navigationIcon = navigationIcon,
+            title = titleContent,
+            colors = colors,
+            actions = actions,
+            scrollBehavior = scrollBehavior
+        )
+    } else {
+        TopAppBar(
+            navigationIcon = navigationIcon,
+            title = titleContent,
+            colors = colors,
+            actions = actions,
+            scrollBehavior = scrollBehavior
+        )
+    }
 }
 
 
@@ -73,14 +101,12 @@ private fun DoneButton(
         onClick = {
             onDoneClick()
         },
+        shapes = ButtonDefaults.shapes(),
         enabled = isDoneEnabled,
         modifier = Modifier.semantics { contentDescription = "Setting Button" }
     ) {
         if (isSaving) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                strokeWidth = 2.dp
-            )
+            LoadingIndicator(modifier = Modifier.size(24.dp))
         } else {
             Text(text = stringResource(R.string.done))
         }

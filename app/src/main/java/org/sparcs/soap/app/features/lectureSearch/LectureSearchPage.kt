@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -177,7 +178,8 @@ fun LecturePreviewToggle(session: LectureSearchSession) {
             focusManager.clearFocus()
             tipStore?.invalidate(BuddyTip.TogglePreview)
             session.showPreview(it)
-        }
+        },
+        shapes = IconButtonDefaults.toggleableShapes()
     ) {
         Icon(
             if (session.showPreview) Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth,

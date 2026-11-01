@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.lectureSearch.components
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,11 +18,11 @@ fun LectureSearchPagination(state: LectureSearchViewModel.PaginationState, cours
     }
     when (state) {
         LectureSearchViewModel.PaginationState.Loading -> LectureSearchSkeletonCard()
-        is LectureSearchViewModel.PaginationState.Error -> TextButton(onClick = onLoadMore) {
+        is LectureSearchViewModel.PaginationState.Error -> TextButton(onClick = onLoadMore, shapes = ButtonDefaults.shapes()) {
             Text(stringResource(R.string.lecture_load_more))
         }
         is LectureSearchViewModel.PaginationState.Idle -> if (state.hasMore) {
-            TextButton(onClick = onLoadMore) { Text(stringResource(R.string.lecture_load_more)) }
+            TextButton(onClick = onLoadMore, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.lecture_load_more)) }
         }
     }
 }

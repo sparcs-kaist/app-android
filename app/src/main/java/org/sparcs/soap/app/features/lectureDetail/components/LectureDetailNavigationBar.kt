@@ -6,9 +6,11 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,7 +45,7 @@ fun LectureDetailNavigationBar(
         LectureSearchNavigationBar(text, { navController.popBackStack() }) {
             navigationActions()
             if (onToggleWishlist != null) WishlistButton(isWishlisted, onToggleWishlist)
-            if (isEnabled) IconButton(onClick = onAdd, enabled = !isCurrentTimetable) {
+            if (isEnabled) IconButton(onClick = onAdd, enabled = !isCurrentTimetable, shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Rounded.Add, stringResource(if (isCurrentTimetable) R.string.lecture_in_timetable else R.string.add_course))
             }
         }
@@ -61,18 +63,18 @@ fun LectureDetailNavigationBar(
             if (onToggleWishlist != null) WishlistButton(isWishlisted, onToggleWishlist)
             if(!isEnabled) return@TopAppBar
             if (isSearchContext && isCurrentTimetable) {
-                TextButton(onClick = {}, enabled = false) { Text(stringResource(R.string.lecture_in_timetable)) }
+                TextButton(onClick = {}, enabled = false, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.lecture_in_timetable)) }
                 return@TopAppBar
             }
             if(!isCurrentTimetable) {
-                IconButton(onClick = onAdd) {
+                IconButton(onClick = onAdd, shapes = IconButtonDefaults.shapes()) {
                     Icon(
                         imageVector = Icons.Rounded.Add,
                         contentDescription = stringResource(R.string.add_course)
                     )
                 }
             } else {
-                IconButton(onClick = onDelete) {
+                IconButton(onClick = onDelete, shapes = IconButtonDefaults.shapes()) {
                     Icon(
                         imageVector = Icons.Outlined.Delete,
                         contentDescription = stringResource(R.string.delete)
@@ -85,7 +87,7 @@ fun LectureDetailNavigationBar(
 
 @Composable
 private fun WishlistButton(isWishlisted: Boolean, onToggleWishlist: () -> Unit) {
-    IconButton(onClick = onToggleWishlist) {
+    IconButton(onClick = onToggleWishlist, shapes = IconButtonDefaults.shapes()) {
         Icon(
             if (isWishlisted) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             stringResource(if (isWishlisted) R.string.wishlist_remove else R.string.wishlist_add),

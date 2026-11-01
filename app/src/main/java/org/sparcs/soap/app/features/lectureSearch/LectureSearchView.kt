@@ -32,6 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -175,7 +176,7 @@ private fun LectureRowMainContent(
         }
 
         if (onToggleWishlist != null) {
-            IconButton(onClick = onToggleWishlist) {
+            IconButton(onClick = onToggleWishlist, shapes = IconButtonDefaults.shapes()) {
                 Icon(
                     imageVector = if (isWishlisted) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = stringResource(
@@ -345,6 +346,7 @@ private fun LectureRowActions(
     ) {
         OutlinedButton(
             onClick = onInfoClick,
+            shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Icon(
@@ -359,6 +361,7 @@ private fun LectureRowActions(
         Button(
             onClick = onAddClick,
             enabled = !isAdded,
+            shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Icon(

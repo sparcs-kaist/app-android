@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -92,6 +93,7 @@ fun DepartmentPickerContent(
             )
             TextButton(
                 onClick = { onSelectionChange(emptySet()) },
+                shapes = ButtonDefaults.shapes(),
                 enabled = selectedDepartmentIDs.isNotEmpty()
             ) {
                 Text(stringResource(R.string.reset))

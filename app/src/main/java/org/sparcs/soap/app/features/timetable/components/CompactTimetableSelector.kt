@@ -17,9 +17,11 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -125,12 +127,12 @@ fun CompactTimetableSelector(
                 TextButton(onClick = {
                     showDeleteDialog = false
                     viewModel.deleteTable()
-                }) {
+                }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = { showDeleteDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -158,11 +160,12 @@ fun CompactTimetableSelector(
                             renameText = ""
                         }
                     },
-                    enabled = renameText.isNotBlank() && !loadState.isReadOnly
+                    enabled = renameText.isNotBlank() && !loadState.isReadOnly,
+                    shapes = ButtonDefaults.shapes()
                 ) { Text(stringResource(R.string.confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) {
+                TextButton(onClick = { showRenameDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -201,7 +204,8 @@ fun SemesterSelector(
                     haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                     coroutineScope.launch { viewModel.selectPreviousSemester() }
                 },
-                enabled = isEnabledPreviousButton
+                enabled = isEnabledPreviousButton,
+                shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
@@ -230,7 +234,8 @@ fun SemesterSelector(
                     haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                     coroutineScope.launch { viewModel.selectNextSemester() }
                 },
-                enabled = isEnabledNextButton
+                enabled = isEnabledNextButton,
+                shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,

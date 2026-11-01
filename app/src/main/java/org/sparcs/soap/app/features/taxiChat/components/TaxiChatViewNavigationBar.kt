@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
@@ -202,7 +203,7 @@ private fun ArrivalStatusSection(
             Text(text = targetText, style = MaterialTheme.typography.bodyMedium)
         }
 
-        TextButton(onClick = onStatusClick) {
+        TextButton(onClick = onStatusClick, shapes = ButtonDefaults.shapes()) {
             Text(stringResource(R.string.taxi_status))
         }
 

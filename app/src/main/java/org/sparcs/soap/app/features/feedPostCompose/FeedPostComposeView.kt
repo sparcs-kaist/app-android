@@ -41,6 +41,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -367,7 +368,11 @@ private fun FeedComposeToolbar(
                 .fillMaxWidth()
                 .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
         ) {
-            IconButton(onClick = onPhotoButton, enabled = !isUploading) {
+            IconButton(
+                onClick = onPhotoButton,
+                enabled = !isUploading,
+                shapes = IconButtonDefaults.shapes()
+            ) {
                 Icon(
                     imageVector = Icons.Outlined.AddPhotoAlternate,
                     contentDescription = stringResource(R.string.add_photo)

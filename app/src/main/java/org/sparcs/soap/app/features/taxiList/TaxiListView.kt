@@ -18,14 +18,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +35,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -91,7 +93,7 @@ import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiListViewModel
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TaxiListView(
     viewModel: TaxiListViewModelProtocol = hiltViewModel<TaxiListViewModel>(),
@@ -174,6 +176,13 @@ fun TaxiListView(
                 }
             },
             state = pullState,
+            indicator = {
+                PullToRefreshDefaults.LoadingIndicator(
+                    state = pullState,
+                    isRefreshing = isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            },
             modifier = Modifier.padding(innerPadding)
         ) {
             Box(
@@ -558,6 +567,7 @@ private fun EmptyView(navController: NavController) {
             onClick = {
                 navController.navigate(Channel.TaxiRoomCreation.name)
             },
+            shapes = ButtonDefaults.shapes(),
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {
             Text(stringResource(R.string.create_a_new_group))
@@ -609,8 +619,8 @@ private fun EmptyResultView(
                 onClick = {
                     navController.navigate(Channel.TaxiRoomCreation.name)
                 },
-                modifier = Modifier.fillMaxWidth(0.6f),
-                shape = RoundedCornerShape(12.dp)
+                shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.fillMaxWidth(0.6f)
             ) {
                 Text(stringResource(R.string.create_a_new_group))
             }
@@ -619,8 +629,8 @@ private fun EmptyResultView(
 
             OutlinedButton(
                 onClick = onClear,
-                modifier = Modifier.fillMaxWidth(0.6f),
-                shape = RoundedCornerShape(12.dp)
+                shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.fillMaxWidth(0.6f)
             ) {
                 Text(stringResource(R.string.clear_selection))
             }

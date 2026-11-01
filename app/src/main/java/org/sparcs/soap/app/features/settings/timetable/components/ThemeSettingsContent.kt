@@ -15,9 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,13 +46,18 @@ internal fun ThemeSettingsContent(
     onImport: () -> Unit,
 ) {
     val newName = stringResource(R.string.theme_my_name)
+    val topBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = Modifier.analyticsScreen("TimetableThemeSettings"),
+        modifier = Modifier
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
+            .analyticsScreen("TimetableThemeSettings"),
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.timetable_theme),
                 onDismiss = onBack,
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = MaterialTheme.colorScheme.surface,
+                scrollBehavior = topBarScrollBehavior,
+                flexible = true,
             )
         },
         containerColor = MaterialTheme.colorScheme.surface

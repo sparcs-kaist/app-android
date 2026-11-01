@@ -178,7 +178,7 @@ fun Placeholder(width: Dp, height: Dp, systemImage: ImageVector? = null) {
     Box(
         modifier = Modifier
             .size(width, height)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)),
         contentAlignment = Alignment.Center
     ) {

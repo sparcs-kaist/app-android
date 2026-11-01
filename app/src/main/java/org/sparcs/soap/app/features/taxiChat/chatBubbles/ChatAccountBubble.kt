@@ -18,6 +18,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,7 +59,10 @@ fun ChatAccountBubble(
                     )
                     Text("$bank $accountNumber", style = MaterialTheme.typography.bodyLarge)
                 }
-                IconButton(onClick = { context.copyChatText("$bank $accountNumber") }) {
+                IconButton(
+                    onClick = { context.copyChatText("$bank $accountNumber") },
+                    shapes = IconButtonDefaults.shapes()
+                ) {
                     Icon(Icons.Outlined.ContentCopy, contentDescription = stringResource(R.string.copy))
                 }
             }
@@ -97,7 +101,7 @@ fun ChatAccountBubble(
             onClick = markAsSent,
             enabled = isCommitPaymentAvailable && !isPayer,
             // Rounded rectangles nest inside the card's corners.
-            shape = MaterialTheme.shapes.medium,
+            shapes = ButtonDefaults.shapes(shape = MaterialTheme.shapes.medium),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
             modifier = Modifier.fillMaxWidth()
         ) {

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.shared.sharing
 
 import android.graphics.Bitmap
@@ -31,10 +33,11 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -125,7 +128,7 @@ internal fun ShareSheetContent(
         preview()
         options(!state.preparing)
         if (state.preparing) Row(Modifier.padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            LoadingIndicator(Modifier.size(24.dp))
             Text(stringResource(R.string.share_preparing))
         }
         if (state.failed) Text(state.errorMessage ?: stringResource(R.string.share_image_failed), Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.error)

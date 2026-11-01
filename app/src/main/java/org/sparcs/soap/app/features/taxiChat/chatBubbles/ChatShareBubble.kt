@@ -51,7 +51,7 @@ fun ChatShareBubble(
                 context.startActivity(Intent.createChooser(sendIntent, null))
             },
             // Rounded rectangles nest inside the card's corners.
-            shape = MaterialTheme.shapes.medium,
+            shapes = ButtonDefaults.shapes(shape = MaterialTheme.shapes.medium),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
             modifier = Modifier.fillMaxWidth()
         ) {

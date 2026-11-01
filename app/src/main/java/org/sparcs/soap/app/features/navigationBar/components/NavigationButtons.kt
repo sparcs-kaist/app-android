@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.features.navigationBar.components
 
 import androidx.compose.foundation.layout.Box
@@ -9,10 +11,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,7 +33,7 @@ import org.sparcs.soap.app.theme.ui.Theme
 /** Up navigation for pushed screens. */
 @Composable
 fun BackButton(onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, shapes = IconButtonDefaults.shapes()) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = stringResource(R.string.back)
@@ -39,7 +44,7 @@ fun BackButton(onClick: () -> Unit) {
 /** Dismisses a full-screen dialog such as a compose or creation screen. */
 @Composable
 fun CloseButton(onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, shapes = IconButtonDefaults.shapes()) {
         Icon(
             imageVector = Icons.Filled.Close,
             contentDescription = stringResource(R.string.close)
@@ -53,14 +58,14 @@ fun AddButton(
     onClick: () -> Unit,
     isEnabled: Boolean = true
 ) {
-    IconButton(onClick = onClick, enabled = isEnabled) {
+    IconButton(onClick = onClick, enabled = isEnabled, shapes = IconButtonDefaults.shapes()) {
         Icon(imageVector = Icons.Filled.Add, contentDescription = contentDescription)
     }
 }
 
 @Composable
 fun ChatButton(onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, shapes = IconButtonDefaults.shapes()) {
         Icon(
             imageVector = Icons.Outlined.ChatBubbleOutline,
             contentDescription = stringResource(R.string.chats)
@@ -73,7 +78,11 @@ fun SearchButton(
     onClick: () -> Unit = {},
     isSelected: Boolean = false
 ) {
-    IconToggleButton(checked = isSelected, onCheckedChange = { onClick() }) {
+    IconToggleButton(
+        checked = isSelected,
+        onCheckedChange = { onClick() },
+        shapes = IconButtonDefaults.toggleableShapes()
+    ) {
         Icon(
             imageVector = Icons.Filled.Search,
             contentDescription = stringResource(R.string.search)
@@ -91,12 +100,13 @@ fun TopBarTextAction(
     modifier: Modifier = Modifier,
 ) {
     if (isBusy) {
-        Box(modifier = modifier.padding(horizontal = 16.dp)) {
-            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+        Box(modifier = modifier.padding(horizontal = 12.dp)) {
+            LoadingIndicator(modifier = Modifier.size(32.dp))
         }
     } else {
         TextButton(
             onClick = onClick,
+            shapes = ButtonDefaults.shapes(),
             enabled = enabled,
             modifier = modifier.semantics { contentDescription = text }
         ) {

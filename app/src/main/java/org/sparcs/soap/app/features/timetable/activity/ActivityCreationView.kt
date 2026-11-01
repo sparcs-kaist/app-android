@@ -30,15 +30,18 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -98,7 +101,7 @@ internal fun activityTimeRange(time: ActivityTime): String {
     return "$day ${activityTime(time.begin)} – ${activityTime(time.end)}"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ActivityCreationView(
     timetable: Timetable,
@@ -156,7 +159,8 @@ fun ActivityCreationView(
                     navigationIcon = {
                         IconButton(
                             onClick = onClose,
-                            enabled = !saving
+                            enabled = !saving,
+                            shapes = IconButtonDefaults.shapes()
                         ) {
                             Icon(
                                 Icons.Rounded.Close,
@@ -165,14 +169,14 @@ fun ActivityCreationView(
                         }
                     },
                     actions = {
-                        if (saving) CircularProgressIndicator(
+                        if (saving) LoadingIndicator(
                             Modifier
                                 .padding(16.dp)
-                                .size(24.dp),
-                            strokeWidth = 2.dp
+                                .size(24.dp)
                         )
                         else TextButton(
                             enabled = needsRefresh || (draft.isValid && !conflict),
+                            shapes = ButtonDefaults.shapes(),
                             onClick = {
                                 focus.clearFocus()
                                 scope.launch {
@@ -267,6 +271,7 @@ fun ActivityCreationView(
                         times = times + ActivityDraft.freeTime(timetable, times.last().day, times)
                     },
                     enabled = !saving && !needsRefresh,
+                    shapes = ButtonDefaults.shapes(),
                     contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
                 ) {
                     Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize))
@@ -285,7 +290,7 @@ fun ActivityCreationView(
         confirmButton = {
             TextButton(onClick = {
                 error = 0
-            }) { Text(stringResource(R.string.ok)) }
+            }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ok)) }
         })
 }
 
@@ -341,7 +346,7 @@ private fun ActivityTimeCard(
                         .semantics { heading() }
                 )
                 if (onRemove != null) {
-                    IconButton(onClick = onRemove, enabled = enabled) {
+                    IconButton(onClick = onRemove, enabled = enabled, shapes = IconButtonDefaults.shapes()) {
                         Icon(Icons.Outlined.Delete, stringResource(R.string.activity_remove_time))
                     }
                 }
@@ -365,7 +370,7 @@ private fun ActivityTimeCard(
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedDay) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(expanded = expandedDay, onDismissRequest = { expandedDay = false }) {
                         DayType.entries.sortedBy { it.value }.forEach { option ->
@@ -431,6 +436,7 @@ private fun ActivityTimeCard(
                 OutlinedButton(
                     onClick = onAdjust,
                     enabled = enabled,
+                    shapes = ButtonDefaults.shapes(),
                     contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -449,6 +455,7 @@ private val activityTimesSaver = listSaver<List<ActivityTime>, Int>(
 )
 
 /** Describe the activity in words; the on-device model fills in the fields below. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActivityQuickFillField(
     state: ActivityQuickFillState,
@@ -471,9 +478,9 @@ private fun ActivityQuickFillField(
         keyboardActions = KeyboardActions(onDone = { if (canFill) onFill(description) }),
         trailingIcon = {
             if (state.isParsing) {
-                CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                LoadingIndicator(Modifier.size(24.dp))
             } else {
-                IconButton(onClick = { onFill(description) }, enabled = canFill) {
+                IconButton(onClick = { onFill(description) }, enabled = canFill, shapes = IconButtonDefaults.shapes()) {
                     Icon(Icons.Outlined.AutoAwesome, stringResource(R.string.activity_quick_fill_action))
                 }
             }

@@ -1,8 +1,8 @@
 package org.sparcs.soap.app.features.taxiChatList.components
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -11,13 +11,14 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.theme.ui.Theme
 
+/** The chat list's top app bar, whose large title collapses as the list scrolls. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiChatListViewNavigationBar(
     onDismiss: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
-    TopAppBar(
+    MediumFlexibleTopAppBar(
         navigationIcon = { BackButton(onClick = { onDismiss() }) },
         title = { Text(text = stringResource(R.string.chats)) },
         scrollBehavior = scrollBehavior

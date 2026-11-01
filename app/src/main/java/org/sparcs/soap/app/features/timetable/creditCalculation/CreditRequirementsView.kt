@@ -485,6 +485,7 @@ private fun CreditRequirementsEditorContent(
                         val defaults = CreditRequirements()
                         rows.forEach { drafts[it.key] = it.read!!(defaults).toString() }
                     },
+                    shapes = ButtonDefaults.shapes(),
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
                 ) { Text(stringResource(R.string.credit_reset)) }

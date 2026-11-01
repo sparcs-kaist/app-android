@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -225,6 +226,7 @@ fun TimetableThemeEditor(
             item {
                 OutlinedButton(
                     onClick = { updatePalette(palette.add()) },
+                    shapes = ButtonDefaults.shapes(),
                     enabled = palette.canAdd,
                     modifier = Modifier
                         .fillMaxWidth()

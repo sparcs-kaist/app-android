@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -97,11 +99,17 @@ fun TipCard(
                 Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (actions.isNotEmpty()) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        actions.forEach { action -> TextButton(onClick = action.onClick) { Text(action.label) } }
+                        actions.forEach { action ->
+                            TextButton(onClick = action.onClick, shapes = ButtonDefaults.shapes()) { Text(action.label) }
+                        }
                     }
                 }
             }
-            IconButton(onClick = onClose, modifier = Modifier.align(Alignment.Top)) {
+            IconButton(
+                onClick = onClose,
+                shapes = IconButtonDefaults.shapes(),
+                modifier = Modifier.align(Alignment.Top)
+            ) {
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = stringResource(R.string.close),

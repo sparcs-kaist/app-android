@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -40,7 +42,7 @@ import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewActivityParsingUseCase
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ActivityCreationRoute(
     model: TimetableViewModelProtocol,
@@ -89,7 +91,7 @@ fun ActivityCreationRoute(
                 TopAppBar(
                     title = {},
                     navigationIcon = {
-                        IconButton(onClick = onClose) {
+                        IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
                             Icon(
                                 Icons.Default.Close,
                                 stringResource(R.string.activity_close)
@@ -111,7 +113,7 @@ fun ActivityCreationRoute(
                         defaultMessageResId = R.string.activity_load_error,
                         onRetry = { table = null; retry++ }
                     )
-                } else CircularProgressIndicator()
+                } else LoadingIndicator()
             }
         }
     }

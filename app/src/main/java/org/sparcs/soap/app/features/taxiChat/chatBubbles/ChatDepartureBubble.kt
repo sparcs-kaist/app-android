@@ -77,7 +77,7 @@ fun ChatDepartureBubble(room: TaxiRoom, chatTime: Date) {
         Button(
             onClick = { showDialog = true },
             // Rounded rectangles nest inside the card's corners.
-            shape = MaterialTheme.shapes.medium,
+            shapes = ButtonDefaults.shapes(shape = MaterialTheme.shapes.medium),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
             modifier = Modifier.fillMaxWidth()
         ) {

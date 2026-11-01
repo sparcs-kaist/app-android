@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,6 +34,7 @@ import org.sparcs.soap.app.features.timetable.activity.activityTimeRange
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun ActivityDetailsDialog(
     activity: TimetableActivity?,
@@ -61,7 +64,7 @@ internal fun ActivityDetailsDialog(
             }
         },
         confirmButton = {
-            if (deleting) CircularProgressIndicator()
+            if (deleting) LoadingIndicator()
             else if ((showActions && !loadState.isReadOnly) || refreshing) TextButton(onClick = {
                 val tableID = timetable?.id?.toIntOrNull() ?: return@TextButton
                 scope.launch {
@@ -81,12 +84,13 @@ internal fun ActivityDetailsDialog(
                         deleting = false
                     }
                 }
-            }) { Text(stringResource(if (refreshing) R.string.activity_refresh else R.string.activity_delete)) }
-            else TextButton(onClick = onDismiss) { Text(stringResource(R.string.activity_close)) }
+            }, shapes = ButtonDefaults.shapes()) { Text(stringResource(if (refreshing) R.string.activity_refresh else R.string.activity_delete)) }
+            else TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.activity_close)) }
         },
         dismissButton = {
             if (showActions && !refreshing && !loadState.isReadOnly) TextButton(
                 enabled = !deleting,
+                shapes = ButtonDefaults.shapes(),
                 onClick = { onDismiss(); onEdit(activity) }) {
                 Text(stringResource(R.string.activity_edit))
             }

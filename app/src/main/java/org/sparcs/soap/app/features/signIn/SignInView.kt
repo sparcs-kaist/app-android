@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.features.signIn
 
 import android.app.Activity
@@ -11,13 +13,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -102,19 +107,21 @@ fun SignInView(
         Button(
             onClick = {
                 viewModel.signIn(context as Activity)
-            }, enabled = !isLoading, modifier = Modifier
+            },
+            shapes = ButtonDefaults.shapes(),
+            enabled = !isLoading,
+            contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
+                .heightIn(ButtonDefaults.MediumContainerHeight)
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(24.dp)
-                )
+                LoadingIndicator(modifier = Modifier.size(24.dp))
             } else {
                 Text(
-                    text = stringResource(R.string.sign_in_sso)
+                    text = stringResource(R.string.sign_in_sso),
+                    style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight)
                 )
             }
         }

@@ -27,6 +27,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Surface
@@ -70,7 +71,7 @@ fun TaxiChatViewDropDownMenu(
     var expanded by remember { mutableStateOf(false) }
     var showLeaveDialog by remember { mutableStateOf(false) }
 
-    IconButton(onClick = { expanded = !expanded }) {
+    IconButton(onClick = { expanded = !expanded }, shapes = IconButtonDefaults.shapes()) {
         Icon(
             imageVector = Icons.Filled.MoreVert,
             contentDescription = stringResource(R.string.more)
@@ -101,11 +102,12 @@ fun TaxiChatViewDropDownMenu(
                         showLeaveDialog = false
                         onClickLeave()
                     },
+                    shapes = ButtonDefaults.shapes(),
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) { Text(stringResource(R.string.leave)) }
             },
             dismissButton = {
-                TextButton(onClick = { showLeaveDialog = false }) { Text(stringResource(R.string.cancel)) }
+                TextButton(onClick = { showLeaveDialog = false }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
