@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.search
 
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,8 +16,10 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,6 +83,18 @@ fun SearchView(
     var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
     val filterSheetState = rememberModalBottomSheetState()
 
+    // The search bar and scope chips slide away together while results scroll down and come back
+    // as soon as they scroll up, leaving more of a phone screen to the results.
+    val topBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val showsResults = state !is SearchViewModel.ViewState.Error &&
+        !(searchText.isBlank() && (searchScope != SearchScope.Courses || courseFilterState.isEmpty()))
+    // A new scope or an empty or error state starts a fresh page, so bring the bar back: those
+    // states don't scroll, and a hidden bar would have no way to return.
+    LaunchedEffect(searchScope, showsResults) {
+        val scrollState = topBarScrollBehavior.scrollState
+        animate(scrollState.scrollOffset, 0f) { value, _ -> scrollState.scrollOffset = value }
+    }
+
     Scaffold(
         topBar = {
             Column(
@@ -86,6 +102,7 @@ fun SearchView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
+                    .then(topBarScrollBehavior.searchBarScrollBehaviorModifier)
                     .padding(top = 8.dp)
             ) {
                 Column(Modifier.widthIn(max = 600.dp)) {
@@ -108,6 +125,7 @@ fun SearchView(
         },
         modifier = Modifier
             .navigationBarsPadding()
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
             .analyticsScreen("Search")
     ) { innerPadding ->
         Box(
