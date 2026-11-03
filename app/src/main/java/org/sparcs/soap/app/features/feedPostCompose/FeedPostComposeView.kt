@@ -83,6 +83,7 @@ import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostComposeViewMod
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -342,6 +343,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
             MenuGroup(index = 0, count = 1) {
                 typeLabels.entries.forEachIndexed { index, (type, label) ->
                     SelectableDropdownMenuItem(
+                        colors = selectableMenuItemColors(),
                         selected = selectedType == type,
                         text = { Text(label ?: stringResource(R.string.unknown)) },
                         onClick = {

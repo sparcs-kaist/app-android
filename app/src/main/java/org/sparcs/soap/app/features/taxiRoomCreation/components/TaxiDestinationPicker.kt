@@ -51,6 +51,7 @@ import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 /**
@@ -157,6 +158,7 @@ fun LocationMenu(
 
             MenuGroup(index = groupIndex++, count = groupCount) {
                 SelectableDropdownMenuItem(
+                    colors = selectableMenuItemColors(),
                     selected = selection == null,
                     text = { Text(stringResource(R.string.taxi_route_none)) },
                     onClick = {
@@ -209,6 +211,7 @@ private fun LocationMenuItem(
 ) {
     // A selected place shows the check in place of its popular star.
     SelectableDropdownMenuItem(
+        colors = selectableMenuItemColors(),
         selected = isSelected,
         text = {
             LocalizedText(text = location.title)

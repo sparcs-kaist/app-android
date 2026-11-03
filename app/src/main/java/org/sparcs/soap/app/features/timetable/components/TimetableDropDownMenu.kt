@@ -32,6 +32,7 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
 import org.sparcs.soap.app.shared.views.contentViews.menuItemShape
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -74,6 +75,7 @@ fun TimetableListItems(
     }
 
     SelectableDropdownMenuItem(
+        colors = selectableMenuItemColors(),
         selected = isMyTableSelected,
         text = { Text(stringResource(R.string.my_table)) },
         onClick = {
@@ -86,6 +88,7 @@ fun TimetableListItems(
 
     timetableList.forEachIndexed { index, timetableInfo ->
         SelectableDropdownMenuItem(
+            colors = selectableMenuItemColors(),
             selected = selectedId == timetableInfo.id,
             text = {
                 Text(timetableInfo.title.ifEmpty { stringResource(R.string.untitled) })

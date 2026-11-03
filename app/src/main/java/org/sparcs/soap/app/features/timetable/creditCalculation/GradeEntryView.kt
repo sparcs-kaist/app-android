@@ -57,6 +57,7 @@ import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
 import org.sparcs.soap.app.shared.views.contentViews.menuItemShape
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -210,6 +211,7 @@ private fun GradeEntryRow(
                     MenuGroup(index = 0, count = groupCount, maxHeight = 320.dp) {
                         options.forEachIndexed { index, option ->
                             SelectableDropdownMenuItem(
+                                colors = selectableMenuItemColors(),
                                 selected = grade == option,
                                 onClick = { onGrade(option); expanded = false },
                                 text = { Text(gradeTitle(option)) },

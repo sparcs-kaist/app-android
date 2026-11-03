@@ -28,6 +28,7 @@ import org.sparcs.soap.app.features.postCompose.PostComposeViewModelProtocol
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostComposeViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -80,6 +81,7 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
 @Composable
 private fun TopicMenuItem(name: String, selected: Boolean, shapes: MenuItemShapes, onClick: () -> Unit) {
     SelectableDropdownMenuItem(
+        colors = selectableMenuItemColors(),
         selected = selected,
         text = { Text(name) },
         onClick = onClick,

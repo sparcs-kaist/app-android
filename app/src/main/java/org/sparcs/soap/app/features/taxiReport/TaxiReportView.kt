@@ -66,6 +66,7 @@ import org.sparcs.soap.app.features.taxiReport.components.TaxiReportUser
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiReportViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -247,6 +248,7 @@ fun ReasonCard(
                 )
                 reasons.forEachIndexed { index, (reason, enabled) ->
                     SelectableDropdownMenuItem(
+                        colors = selectableMenuItemColors(),
                         selected = selectedReason == reason,
                         text = { Text(stringResource(reason.text)) },
                         enabled = enabled,

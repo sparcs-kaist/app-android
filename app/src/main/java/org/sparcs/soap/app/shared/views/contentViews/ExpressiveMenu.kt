@@ -9,8 +9,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuPopup
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorPosition
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.SelectableMenuItemColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
@@ -70,3 +72,18 @@ fun MenuGroup(
 /** Shape of the item at [index] of the [count] items in its group. */
 @Composable
 fun menuItemShape(index: Int, count: Int): Shape = MenuDefaults.itemShape(index, count).shape
+
+/**
+ * Colors for a picker's current choice: the brand's secondary container, the same purple as the
+ * navigation bar's selected indicator, instead of the spec's tertiary container (pink in this palette).
+ */
+@Composable
+fun selectableMenuItemColors(): SelectableMenuItemColors {
+    val colors = MaterialTheme.colorScheme
+    return MenuDefaults.selectableItemColors(
+        selectedContainerColor = colors.secondaryContainer,
+        selectedTextColor = colors.onSecondaryContainer,
+        selectedLeadingIconColor = colors.onSecondaryContainer,
+        selectedTrailingContentColor = colors.onSecondaryContainer,
+    )
+}

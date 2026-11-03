@@ -33,6 +33,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.LectureTimeFilter
 import org.sparcs.soap.app.shared.formatters.formattedTime
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -102,6 +103,7 @@ private fun TimeField(label: String, value: Int?, options: List<Int>, modifier: 
                 Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
             }
             SelectableDropdownMenuItem(
+                colors = selectableMenuItemColors(),
                 selected = value == null,
                 onClick = { onChange(null); expanded = false },
                 text = { Text(stringResource(R.string.lecture_time_any)) },
@@ -111,6 +113,7 @@ private fun TimeField(label: String, value: Int?, options: List<Int>, modifier: 
             )
             options.forEachIndexed { index, minutes ->
                 SelectableDropdownMenuItem(
+                    colors = selectableMenuItemColors(),
                     selected = value == minutes,
                     onClick = { onChange(minutes); expanded = false },
                     text = { Text(formattedTime(minutes)) },

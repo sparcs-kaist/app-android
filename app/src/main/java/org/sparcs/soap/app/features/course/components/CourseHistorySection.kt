@@ -52,6 +52,7 @@ import org.sparcs.soap.app.shared.extensions.bleedHorizontally
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -283,6 +284,7 @@ private fun ProfessorMenuItem(
     onClick: () -> Unit,
 ) {
     SelectableDropdownMenuItem(
+        colors = selectableMenuItemColors(),
         selected = selected,
         onClick = onClick,
         text = { Text(name) },

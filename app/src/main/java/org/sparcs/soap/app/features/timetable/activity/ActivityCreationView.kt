@@ -89,6 +89,7 @@ import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.shared.views.contentViews.PickerField
 import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -383,6 +384,7 @@ private fun ActivityTimeCard(
                         val days = DayType.entries.sortedBy { it.value }
                         days.forEachIndexed { index, option ->
                             SelectableDropdownMenuItem(
+                                colors = selectableMenuItemColors(),
                                 selected = option.value == time.day,
                                 onClick = {
                                     onChange(time.move(time.begin, option.value))

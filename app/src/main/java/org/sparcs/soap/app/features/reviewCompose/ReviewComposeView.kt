@@ -61,6 +61,7 @@ import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureDetailViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewReviewComposeViewModel
@@ -245,6 +246,7 @@ private fun RatingPicker(
                 MenuGroup(index = 0, count = 1) {
                     ratings.forEachIndexed { index, itValue ->
                         SelectableDropdownMenuItem(
+                            colors = selectableMenuItemColors(),
                             selected = itValue == value,
                             onClick = {
                                 onValueChange(itValue)
