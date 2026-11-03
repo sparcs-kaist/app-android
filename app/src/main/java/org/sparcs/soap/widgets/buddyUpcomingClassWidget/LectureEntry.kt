@@ -20,6 +20,7 @@ data class WidgetLectureEntry(
     /** Palette slot this entry occupies, so a theme change recolors it without a network sync. */
     val colorID: Int? = null,
     val subtitle: String? = null,
+    val packedClassroom: String? = null,
 ) {
     companion object
 

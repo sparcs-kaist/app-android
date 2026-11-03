@@ -6,6 +6,7 @@ import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.activitySlots
 import org.sparcs.soap.app.domain.models.otl.subtitleTopic
+import org.sparcs.soap.app.features.timetable.components.roomLabel
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.widgets.toWidgetHex
 
@@ -30,7 +31,8 @@ fun Timetable.toWidgetUiState(theme: TimetableTheme = TimetableTheme.Default): T
             WidgetLectureEntry(
                 title = lecture.name,
                 subtitle = lecture.subtitle.subtitleTopic,
-                classroom = "(${ct.buildingCode}) ${ct.roomName}",
+                classroom = ct.roomLabel(isPacked = false),
+                packedClassroom = ct.roomLabel(isPacked = true),
                 day = ct.day,
                 startMinutes = ct.begin,
                 durationMinutes = ct.end - ct.begin,
