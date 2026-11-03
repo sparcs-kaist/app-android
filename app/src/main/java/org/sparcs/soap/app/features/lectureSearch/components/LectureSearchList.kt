@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
@@ -77,6 +76,7 @@ import org.sparcs.soap.app.shared.tips.TipEvent
 import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
+import org.sparcs.soap.app.shared.views.contentViews.FilterSheetHeader
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.wishlistColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
@@ -472,22 +472,12 @@ private fun TimeFilterBottomSheet(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = stringResource(R.string.lecture_time_filter),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { heading() },
-                )
-                TextButton(onClick = { onTimeChange(LectureTimeFilter()) }, shapes = ButtonDefaults.shapes()) {
-                    Text(stringResource(R.string.reset))
-                }
-            }
+            FilterSheetHeader(
+                title = stringResource(R.string.lecture_time_filter),
+                selectedCount = 0,
+                onReset = { onTimeChange(LectureTimeFilter()) },
+                resetEnabled = !time.isEmpty,
+            )
             Column(Modifier
                 .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState())) {

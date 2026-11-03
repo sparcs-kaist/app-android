@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,7 +27,6 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -83,27 +81,12 @@ fun DepartmentPickerContent(
     onRetry: () -> Unit,
 ) {
     Column {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp)
-        ) {
-            val count = selectedDepartmentIDs.size
-            Text(
-                text = stringResource(R.string.department) +
-                    if (count > 0) " " + stringResource(R.string.selected_count, count) else "",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f)
-            )
-            TextButton(
-                onClick = { onSelectionChange(emptySet()) },
-                shapes = ButtonDefaults.shapes(),
-                enabled = selectedDepartmentIDs.isNotEmpty()
-            ) {
-                Text(stringResource(R.string.reset))
-            }
-        }
+        FilterSheetHeader(
+            title = stringResource(R.string.department),
+            selectedCount = selectedDepartmentIDs.size,
+            onReset = { onSelectionChange(emptySet()) },
+            modifier = Modifier.padding(start = 20.dp, end = 8.dp, bottom = 8.dp)
+        )
         DepartmentList(
             state = state,
             selectedDepartmentIDs = selectedDepartmentIDs,
