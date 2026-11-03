@@ -51,12 +51,12 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.components.LectureListRow
 import org.sparcs.soap.app.features.timetable.components.LectureListRowDetail
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
-import org.sparcs.soap.app.features.timetable.creditCalculation.components.CreditSegmentedGroup
 import org.sparcs.soap.app.shared.extensions.onlyBottom
 import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.SegmentedSection
 import org.sparcs.soap.app.shared.views.contentViews.menuItemShape
 import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
@@ -133,6 +133,7 @@ internal fun GradeEntryView(
 @Composable
 private fun GradeEntryTimetable(timetable: Timetable?, modifier: Modifier) {
     Card(
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = LocalTimetableTheme.current.backgroundColor ?: MaterialTheme.colorScheme.background
         ),
@@ -149,7 +150,7 @@ private fun GradeEntryList(
     onGrade: (LectureGrade?, Int) -> Unit,
 ) {
     val lectures = timetable?.lectures.orEmpty()
-    CreditSegmentedGroup(
+    SegmentedSection(
         pluralStringResource(R.plurals.lectures_count, lectures.size, lectures.size),
         lectures.size,
         contentPadding = PaddingValues(start = 16.dp, end = 12.dp, top = 4.dp, bottom = 4.dp)

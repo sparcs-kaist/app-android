@@ -357,6 +357,7 @@ private fun TimetableLandscapeLayout(
                         modifier = Modifier
                             .weight(1.2f)
                             .height(contentHeight),
+                        shape = MaterialTheme.shapes.large,
                         colors = CardDefaults.cardColors(
                             containerColor = LocalTimetableTheme.current.backgroundColor
                                 ?: MaterialTheme.colorScheme.background
@@ -383,17 +384,13 @@ private fun TimetableLandscapeLayout(
                             },
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Card(modifier = Modifier.fillMaxWidth()) {
-                            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                                LectureList(
-                                    lectures = selectedTimetable?.lectures ?: emptyList(),
-                                    onLectureSelected = { lecture ->
-                                        val json = Gson().toJson(lecture).escapeHash()
-                                        navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                                    }
-                                )
+                        LectureList(
+                            lectures = selectedTimetable?.lectures ?: emptyList(),
+                            onLectureSelected = { lecture ->
+                                val json = Gson().toJson(lecture).escapeHash()
+                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                             }
-                        }
+                        )
 
                         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
                             ActivityList(
@@ -464,6 +461,7 @@ private fun TimetablePortraitLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(screenHeight * 0.66f),
+            shape = MaterialTheme.shapes.large,
             colors = CardDefaults.cardColors(
                 containerColor = LocalTimetableTheme.current.backgroundColor
                     ?: MaterialTheme.colorScheme.background
@@ -482,17 +480,13 @@ private fun TimetablePortraitLayout(
             }
         }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                LectureList(
-                    lectures = selectedTimetable?.lectures ?: emptyList(),
-                    onLectureSelected = { lecture ->
-                        val json = Gson().toJson(lecture).escapeHash()
-                        navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                    }
-                )
+        LectureList(
+            lectures = selectedTimetable?.lectures ?: emptyList(),
+            onLectureSelected = { lecture ->
+                val json = Gson().toJson(lecture).escapeHash()
+                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
             }
-        }
+        )
 
         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
             ActivityList(

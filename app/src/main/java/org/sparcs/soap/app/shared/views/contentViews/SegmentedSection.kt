@@ -1,4 +1,4 @@
-package org.sparcs.soap.app.features.timetable.creditCalculation.components
+package org.sparcs.soap.app.shared.views.contentViews
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,13 +27,14 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.theme.ui.Theme
 
 /**
- * A titled section of the credits screens as one Material 3 Expressive segmented group: the
- * [title] (with an optional [icon]) above [count] rows, where the first and last rows take the
- * group's rounded corners and the rows between are split by small gaps. The screen insets it;
- * the title lines up with the rows' content.
+ * A titled section as one Material 3 Expressive segmented group: the [title] (with an optional
+ * [icon]) above [count] rows, where the first and last rows take the group's rounded corners and
+ * the rows between are split by small gaps. For screens that already inset their content, unlike
+ * the Settings groups; the title lines up with the rows' content. A row that handles taps can
+ * pass a zero [contentPadding] and pad itself, so its ripple fills the tile.
  */
 @Composable
-internal fun CreditSegmentedGroup(
+fun SegmentedSection(
     title: String,
     count: Int,
     modifier: Modifier = Modifier,
@@ -41,7 +42,7 @@ internal fun CreditSegmentedGroup(
     contentPadding: PaddingValues = PaddingValues(16.dp),
     row: @Composable (index: Int) -> Unit,
 ) {
-    // The credits screens' card color, so groups sit with the cards beside them.
+    // The default card color, so groups sit with the cards beside them.
     val color = CardDefaults.cardColors().containerColor
     Column(modifier.fillMaxWidth()) {
         Row(
@@ -80,7 +81,7 @@ internal fun CreditSegmentedGroup(
 @Composable
 private fun Preview() {
     Theme {
-        CreditSegmentedGroup("Graduation", count = 2, icon = Icons.Outlined.School) {
+        SegmentedSection("Graduation", count = 2, icon = Icons.Outlined.School) {
             Text("Row ${it + 1}")
         }
     }

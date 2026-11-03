@@ -27,7 +27,7 @@ import org.sparcs.soap.app.theme.ui.Theme
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun CreditsSummaryCard(state: CreditCalculationViewState, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(

@@ -72,9 +72,9 @@ import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsSegmentRow
 import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
 import org.sparcs.soap.app.features.timetable.creditCalculation.components.CreditRequirementsNavigationBar
-import org.sparcs.soap.app.features.timetable.creditCalculation.components.CreditSegmentedGroup
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.SegmentedSection
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.creditCompleteColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCreditCalculationViewModel
@@ -189,7 +189,7 @@ private fun RequirementGroupCard(
     group: RequirementGroup,
     modifier: Modifier = Modifier,
 ) {
-    CreditSegmentedGroup(group.title, group.rows.size, modifier, icon = group.icon) { index ->
+    SegmentedSection(group.title, group.rows.size, modifier, icon = group.icon) { index ->
         RequirementProgress(group.rows[index])
     }
 }

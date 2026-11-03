@@ -97,7 +97,7 @@ fun TimetableSummary(
             }
         }
     } else {
-        Card(modifier = Modifier.fillMaxWidth()) {
+        Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
             Row(
                 modifier = Modifier
                     .padding(16.dp)

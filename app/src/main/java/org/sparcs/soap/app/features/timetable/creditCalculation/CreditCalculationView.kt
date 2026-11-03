@@ -288,9 +288,9 @@ internal fun CreditCard(
         )
     }
     if (onClick != null) {
-        Card(onClick = onClick, modifier = modifier.fillMaxWidth(), content = body)
+        Card(onClick = onClick, modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, content = body)
     } else {
-        Card(modifier = modifier.fillMaxWidth(), content = body)
+        Card(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, content = body)
     }
 }
 
