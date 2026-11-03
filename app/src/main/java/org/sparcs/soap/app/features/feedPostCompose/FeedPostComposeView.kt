@@ -36,7 +36,6 @@ import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -80,6 +79,7 @@ import org.sparcs.soap.app.features.postCompose.TermsOfUseButton
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostComposeViewModel
+import org.sparcs.soap.app.shared.views.contentViews.ComposeToolbar
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
@@ -365,37 +365,31 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
     }
 }
 
-/** Attachment actions on the left and the character count on the right, above the keyboard. */
+/** Attachment actions in a floating toolbar, with the character count at the end, above the keyboard. */
 @Composable
 private fun FeedComposeToolbar(
     characterCount: Int,
     isUploading: Boolean,
     onPhotoButton: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth()) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
-        ) {
-            IconButton(
-                onClick = onPhotoButton,
-                enabled = !isUploading,
-                shapes = IconButtonDefaults.shapes()
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.AddPhotoAlternate,
-                    contentDescription = stringResource(R.string.add_photo)
-                )
-            }
-            Spacer(Modifier.weight(1f))
+    ComposeToolbar(
+        trailing = {
             Text(
                 stringResource(R.string.feed_character_count, characterCount, MAX_CHARACTERS),
                 style = MaterialTheme.typography.labelMedium,
                 color = if (characterCount > MAX_CHARACTERS) MaterialTheme.colorScheme.error
                 else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    ) {
+        IconButton(
+            onClick = onPhotoButton,
+            enabled = !isUploading,
+            shapes = IconButtonDefaults.shapes()
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.AddPhotoAlternate,
+                contentDescription = stringResource(R.string.add_photo)
             )
         }
     }
