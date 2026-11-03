@@ -738,6 +738,7 @@
     <string name="activity_end_handle">종료 시간 조정</string>
     <string name="activity_list_empty">시간표에 활동이 없어요</string>
     <string name="activity_options">%1$s 옵션</string>
+    <string name="timetable_options">%1$s 옵션</string>
     <plurals name="activities_count">
         <item quantity="one">활동 %d개</item>
         <item quantity="other">활동 %d개</item>

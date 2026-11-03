@@ -768,6 +768,7 @@
     <string name="activity_end_handle">Adjust end time</string>
     <string name="activity_list_empty">No activities in this timetable</string>
     <string name="activity_options">Options for %1$s</string>
+    <string name="timetable_options">Options for %1$s</string>
     <plurals name="activities_count">
         <item quantity="one">%d Activity</item>
         <item quantity="other">%d Activities</item>

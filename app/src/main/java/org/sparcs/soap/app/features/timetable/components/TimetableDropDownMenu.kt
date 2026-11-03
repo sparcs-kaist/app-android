@@ -37,8 +37,26 @@ import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
+/** The semester's tables to switch between, opened from the table name. */
 @Composable
-fun TimetableDropDownMenu(
+fun TimetableListMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    viewModel: TimetableViewModelProtocol,
+) {
+    ExpressiveMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+    ) {
+        MenuGroup(index = 0, count = 1, maxHeight = TimetableListMaxHeight) {
+            TimetableListItems(viewModel, onDismiss)
+        }
+    }
+}
+
+/** What can be done with the tables, opened from the arrow beside the table name. */
+@Composable
+fun TimetableActionsMenu(
     expanded: Boolean,
     onDismiss: () -> Unit,
     onRenameClick: () -> Unit,
@@ -46,14 +64,11 @@ fun TimetableDropDownMenu(
     viewModel: TimetableViewModelProtocol,
     onShareClick: (() -> Unit)? = null,
 ) {
-    // Groups: the tables to pick from, creating one, acting on the selected one, and deleting it.
+    // Groups: creating a table, acting on the selected one, and deleting it.
     ExpressiveMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
     ) {
-        MenuGroup(index = 0, count = 4, maxHeight = TimetableListMaxHeight) {
-            TimetableListItems(viewModel, onDismiss)
-        }
         TimetableManagementItems(viewModel, onDismiss, onRenameClick, onDeleteClick, onShareClick)
     }
 }
@@ -126,7 +141,7 @@ private fun TimetableManagementItems(
         leadingIconColor = MaterialTheme.colorScheme.error
     )
 
-    MenuGroup(index = 1, count = 4) {
+    MenuGroup(index = 0, count = 3) {
         DropdownMenuItem(
             text = { Text(stringResource(R.string.timetable_add)) },
             enabled = !loadState.isReadOnly,
@@ -162,7 +177,7 @@ private fun TimetableManagementItems(
         )
     }
 
-    MenuGroup(index = 2, count = 4) {
+    MenuGroup(index = 1, count = 3) {
         val actionCount = if (onShareClick != null) 2 else 1
         if (onShareClick != null) {
             val semester by viewModel.selectedSemester.collectAsState()
@@ -195,7 +210,7 @@ private fun TimetableManagementItems(
         )
     }
 
-    MenuGroup(index = 3, count = 4) {
+    MenuGroup(index = 2, count = 3) {
         DropdownMenuItem(
             text = { Text(stringResource(R.string.timetable_delete)) },
             onClick = {
@@ -226,7 +241,7 @@ private fun Preview() {
                 onClick = {},
                 shapes = ButtonDefaults.shapes()
             ) {
-                TimetableDropDownMenu(
+                TimetableActionsMenu(
                     expanded = true,
                     onDismiss = {},
                     onRenameClick = {},
