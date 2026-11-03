@@ -4,10 +4,15 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,17 +35,16 @@ import org.sparcs.soap.app.features.feed.event.FeedPostRowEvent
 import org.sparcs.soap.app.features.feedPost.event.FeedPostViewEvent
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.app.shared.viewModels.TextProcessingProtocol
-import javax.inject.Inject
 
 interface FeedPostViewModelProtocol : TextProcessingProtocol {
     val state: StateFlow<FeedPostViewModel.ViewState>
     val post: FeedPost?
-    val initialCommentID: String? get() = null
     val isLoadingComments: Boolean get() = false
     var comments: List<FeedComment>
     var text: String
     var image: Bitmap?
     var isAnonymous: Boolean
+    var targetComment: FeedComment?
     var isSubmittingComment: Boolean
     val feedUser: FeedUser?
 
@@ -56,6 +60,7 @@ interface FeedPostViewModelProtocol : TextProcessingProtocol {
         allowDownload: Boolean = false,
     )
 
+    fun retry()
     fun fetchComments(postID: String, initial: Boolean)
     suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment?
     fun reportPost(postID: String, reason: FeedReportType) {}
@@ -66,9 +71,8 @@ interface FeedPostViewModelProtocol : TextProcessingProtocol {
     fun reportComment(commentID: String, reason: FeedReportType)
 }
 
-@HiltViewModel
-class FeedPostViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+class FeedPostViewModel @AssistedInject constructor(
+    @Assisted private val feedId: String,
     private val feedCommentUseCase: FeedCommentUseCaseProtocol,
     private val feedPostUseCase: FeedPostUseCaseProtocol,
     private val userUseCase: UserUseCaseProtocol,
@@ -90,6 +94,7 @@ class FeedPostViewModel @Inject constructor(
     override var text by mutableStateOf("")
     override var image by mutableStateOf<Bitmap?>(null)
     override var isAnonymous: Boolean by mutableStateOf(true)
+    override var targetComment: FeedComment? by mutableStateOf(null)
     override var isSubmittingComment: Boolean by mutableStateOf(false)
     override var feedUser: FeedUser? by mutableStateOf(null)
     override var alertState: AlertState? by mutableStateOf(null)
@@ -98,19 +103,14 @@ class FeedPostViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    private val feedId: String =
-        savedStateHandle["feedId"] ?: throw IllegalArgumentException("feedId is missing")
-
-    override val initialCommentID: String? = savedStateHandle["commentId"]
+    private var loadJob: Job? = null
 
     override val post: FeedPost?
         get() = (state.value as? ViewState.Loaded)?.post
 
     // MARK: - Initializer
     init {
-        viewModelScope.launch {
-            loadInitialPage()
-        }
+        loadInitialPage()
     }
 
     // MARK: - Functions
@@ -133,15 +133,23 @@ class FeedPostViewModel @Inject constructor(
         translateComment(commentId, content, targetLanguage, allowDownload, viewModelScope)
     }
 
-    private suspend fun loadInitialPage() {
-        _state.value = ViewState.Loading
-        try {
-            val postData = feedPostUseCase.fetchPost(feedId)
-            _state.value = ViewState.Loaded(postData)
+    override fun retry() = loadInitialPage()
 
-            fetchComments(feedId, initial = true)
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e)
+    private fun loadInitialPage() {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            _state.value = ViewState.Loading
+            try {
+                val postData = feedPostUseCase.fetchPost(feedId)
+                ensureActive()
+                _state.value = ViewState.Loaded(postData)
+
+                fetchComments(feedId, initial = true)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e)
+            }
         }
     }
 
@@ -151,10 +159,13 @@ class FeedPostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val fetchedComments = feedCommentUseCase.fetchComments(postID)
+                ensureActive()
                 comments = fetchedComments
                 if (!initial) {
                     analyticsService.logEvent(FeedPostViewEvent.CommentsRefreshed)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _state.value = ViewState.Error(e)
                 crashlyticsService.recordException(e)
@@ -164,7 +175,10 @@ class FeedPostViewModel @Inject constructor(
         }
     }
 
-    override suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment? {
+    override suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment? =
+        viewModelScope.async { uploadComment(postID, replyingTo) }.await()
+
+    private suspend fun uploadComment(postID: String, replyingTo: FeedComment?): FeedComment? {
         if (isSubmittingComment) return null
         isSubmittingComment = true
         return try {
@@ -191,8 +205,12 @@ class FeedPostViewModel @Inject constructor(
                     isAnonymous = isAnonymous
                 )
             )
+            post?.let { _state.value = ViewState.Loaded(it.copy(commentCount = it.commentCount + 1)) }
             text = ""
+            targetComment = null
             uploaded
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             alertState = e.toAlertState(R.string.unexpected_error_uploading_comment)
             isAlertPresented = true
@@ -224,6 +242,8 @@ class FeedPostViewModel @Inject constructor(
                 )
                 isAlertPresented = true
                 analyticsService.logEvent(FeedPostRowEvent.PostReported(reason.name))
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 alertState = e.toAlertState(R.string.error_unable_to_submit_report)
                 isAlertPresented = true
@@ -261,6 +281,8 @@ class FeedPostViewModel @Inject constructor(
                 } else {
                     feedCommentUseCase.vote(comment.id, type)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 this@FeedPostViewModel.comments = prevComments
                 alertState = e.toAlertState(R.string.error_failed_to_upvote)
@@ -274,6 +296,8 @@ class FeedPostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 feedCommentUseCase.deleteComment(comment.id)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 updateCommentLocally(comment.id) { it.copy(isDeleted = false) }
                 val useCaseError = e as? FeedCommentUseCaseError
@@ -299,6 +323,8 @@ class FeedPostViewModel @Inject constructor(
                     messageResId = R.string.report_submitted_message
                 )
                 isAlertPresented = true
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 alertState = e.toAlertState(R.string.error_unable_to_submit_report)
                 isAlertPresented = true
@@ -320,5 +346,10 @@ class FeedPostViewModel @Inject constructor(
                 comment
             }
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(feedId: String): FeedPostViewModel
     }
 }
