@@ -87,6 +87,5 @@ class TimetableCellLinesTest {
         assertTrue(TimetableCellMetrics.of(71.dp, 100.dp).isPacked)
         assertTrue(TimetableCellMetrics.of(100.dp, 59.dp).isPacked)
         assertFalse(TimetableCellMetrics.of(72.dp, 60.dp).isPacked)
-        assertEquals(1, TimetableCellMetrics.of(50.dp, 100.dp).roomMaxLines)
     }
 }

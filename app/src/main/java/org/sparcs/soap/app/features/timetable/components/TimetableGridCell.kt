@@ -170,7 +170,7 @@ private fun TextMeasurer.cellLines(
         spacing = LINE_SPACING,
         maxTitleLines = metrics.titleMaxLines,
         maxSubtitleLines = minOf(metrics.subtitleMaxLines, subtitleLineCount),
-        maxRoomLines = minOf(metrics.roomMaxLines, detailLayout.lineCount),
+        maxRoomLines = detailLayout.lineCount,
     )
 }
 

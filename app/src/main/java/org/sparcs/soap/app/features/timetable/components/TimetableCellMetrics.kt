@@ -9,7 +9,6 @@ internal class TimetableCellMetrics private constructor(
     val verticalPadding: Dp,
     val titleMaxLines: Int,
     val subtitleMaxLines: Int,
-    val roomMaxLines: Int,
 ) {
     companion object {
         fun of(width: Dp, height: Dp): TimetableCellMetrics {
@@ -20,7 +19,6 @@ internal class TimetableCellMetrics private constructor(
                 verticalPadding = if (isPacked) 4.dp else 6.dp,
                 titleMaxLines = if (isPacked && height < PACKED_HEIGHT) 2 else 3,
                 subtitleMaxLines = if (height > SUBTITLE_FULL_HEIGHT) 3 else 1,
-                roomMaxLines = if (isPacked) 1 else 2,
             )
         }
     }

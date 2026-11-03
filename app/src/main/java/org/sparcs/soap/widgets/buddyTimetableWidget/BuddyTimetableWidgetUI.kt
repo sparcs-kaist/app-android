@@ -138,7 +138,7 @@ private fun Context.widgetCellLines(
         spacing = DETAIL_SPACING,
         maxTitleLines = metrics.titleMaxLines,
         maxSubtitleLines = subtitle?.let { minOf(metrics.subtitleMaxLines, detailPaint.lineCount(it, textWidth)) } ?: 0,
-        maxRoomLines = if (room.isBlank()) 0 else minOf(metrics.roomMaxLines, detailPaint.lineCount(room, textWidth)),
+        maxRoomLines = if (room.isBlank()) 0 else detailPaint.lineCount(room, textWidth),
     )
 }
 
@@ -175,9 +175,8 @@ fun TimetableLargeWidgetView(
 
     val context = LocalContext.current
     val metrics = context.resources.displayMetrics
-    val fontScale = context.resources.configuration.fontScale
     val headerHeight = 22.dp
-    val labelHeight = 16 * fontScale
+    val labelHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 16f, metrics) / metrics.density
     val topInset = labelHeight / 2
     val availableHeight = (size.height.value - headerHeight.value - topInset).coerceAtLeast(0f)
     val cellWidth = ((size.width - WIDGET_PADDING * 2 - hoursWidth - 8.dp) / visibleDays.size.coerceAtLeast(1) - 4.dp).coerceAtLeast(0.dp)
@@ -229,7 +228,7 @@ fun TimetableLargeWidgetView(
                         timetable?.getEntries(day).orEmpty().chunked(10).forEach { entries ->
                             Box(modifier = GlanceModifier.fillMaxSize()) {
                                 entries.forEach { entry ->
-                                    val begin = entry.startMinutes ?: startHour * 60
+                                    val begin = entry.startMinutes ?: (startHour * 60)
                                     val top = position(begin)
                                     val bottom = position(begin + (entry.durationMinutes ?: 0))
                                     Box(modifier = GlanceModifier.fillMaxWidth().padding(top = top.dp)) {
