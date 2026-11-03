@@ -384,7 +384,9 @@ private fun CreditRequirementsEditor(
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        // Edge to edge, like the screens: without it the dialog's window stops above the gesture
+        // bar and the screen beneath shows through below it.
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
         CreditRequirementsEditorContent(groups, requirements, onDismiss, onSave)
     }

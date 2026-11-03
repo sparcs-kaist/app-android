@@ -205,7 +205,7 @@ fun LectureSearchList(
     if (showTimeRangePicker) {
         Dialog(
             onDismissRequest = { showTimeRangePicker = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
         ) {
             LectureTimeRangeContent(timetable, time, viewModel::onTimeChange) {
                 showTimeRangePicker = false
