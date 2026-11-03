@@ -1,26 +1,25 @@
 package org.sparcs.soap.app.features.lectureSearch.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,100 +27,163 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.LectureTimeFilter
 import org.sparcs.soap.app.shared.formatters.formattedTime
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
 import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
+import org.sparcs.soap.app.theme.ui.Theme
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * The class time filter: the day as a Material 3 Expressive connected button group, then the
+ * earliest start and latest end as a segmented group of rows that open the time menus.
+ * [onChooseOnTimetable], when set, adds a last row that picks the range on the timetable instead.
+ */
 @Composable
-fun LectureTimeFilterRow(time: LectureTimeFilter, onTimeChange: (LectureTimeFilter) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = time.day == null,
-                onClick = { onTimeChange(time.copy(day = null)) },
-                label = { Text(stringResource(R.string.lecture_time_any)) },
-            )
-            DayType.entries.sortedBy { it.value }.forEach { day ->
-                FilterChip(
-                    selected = time.day == day,
-                    onClick = { onTimeChange(time.copy(day = day)) },
-                    label = { Text(stringResource(day.stringValue)) },
-                    )
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TimeField(
+fun LectureTimeFilterRow(
+    time: LectureTimeFilter,
+    onTimeChange: (LectureTimeFilter) -> Unit,
+    onChooseOnTimetable: (() -> Unit)? = null,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        DayButtonGroup(time.day) { onTimeChange(time.copy(day = it)) }
+
+        val count = if (onChooseOnTimetable != null) 3 else 2
+        Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {
+            TimeRow(
                 label = stringResource(R.string.lecture_time_begin),
                 value = time.begin,
                 options = LectureTimeFilter.selectableTimes.dropLast(1),
-                modifier = Modifier.weight(1f),
+                index = 0,
+                count = count,
             ) { begin ->
                 onTimeChange(time.copy(begin = begin, end = time.end?.let { if (begin != null && it <= begin) begin + 30 else it }))
             }
-            TimeField(
+            TimeRow(
                 label = stringResource(R.string.lecture_time_end),
                 value = time.end,
                 options = LectureTimeFilter.selectableTimes.drop(1),
-                modifier = Modifier.weight(1f),
+                index = 1,
+                count = count,
             ) { end ->
                 onTimeChange(time.copy(end = end, begin = time.begin?.let { if (end != null && it >= end) end - 30 else it }))
+            }
+            if (onChooseOnTimetable != null) {
+                SegmentedListItem(
+                    onClick = onChooseOnTimetable,
+                    shapes = ListItemDefaults.segmentedShapes(2, count),
+                    colors = sheetSegmentedColors(),
+                    leadingContent = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
+                ) { Text(stringResource(R.string.choose_time_on_timetable)) }
             }
         }
     }
 }
 
-/** Read-only dropdown field for a begin or end time, with "Any" first. */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Monday to Sunday as one connected group of toggle buttons. Tapping a day selects it; tapping
+ * the selected day again clears it back to any day.
+ */
 @Composable
-private fun TimeField(label: String, value: Int?, options: List<Int>, modifier: Modifier, onChange: (Int?) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
-        OutlinedTextField(
-            value = value?.let { formattedTime(it) } ?: stringResource(R.string.lecture_time_any),
-            onValueChange = {},
-            readOnly = true,
-            singleLine = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 320.dp),
-            shape = MenuDefaults.standaloneGroupShape,
-            containerColor = MenuDefaults.groupStandardContainerColor,
-        ) {
-            val count = options.size + 1
-            val checkIcon: @Composable () -> Unit = {
-                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
-            }
-            SelectableDropdownMenuItem(
-                colors = selectableMenuItemColors(),
-                selected = value == null,
-                onClick = { onChange(null); expanded = false },
-                text = { Text(stringResource(R.string.lecture_time_any)) },
-                shapes = MenuDefaults.itemShape(0, count),
-                selectedLeadingIcon = checkIcon,
-                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-            )
-            options.forEachIndexed { index, minutes ->
-                SelectableDropdownMenuItem(
-                    colors = selectableMenuItemColors(),
-                    selected = value == minutes,
-                    onClick = { onChange(minutes); expanded = false },
-                    text = { Text(formattedTime(minutes)) },
-                    shapes = MenuDefaults.itemShape(index + 1, count),
-                    selectedLeadingIcon = checkIcon,
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
+private fun DayButtonGroup(selected: DayType?, onSelect: (DayType?) -> Unit) {
+    val days = DayType.entries.sortedBy { it.value }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        days.forEachIndexed { index, day ->
+            ToggleButton(
+                checked = selected == day,
+                onCheckedChange = { onSelect(if (it) day else null) },
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    days.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                // The rows' container, as the default would vanish into the bottom sheet.
+                colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                // Seven days share a phone's width, so keep the side padding small.
+                contentPadding = PaddingValues(horizontal = 4.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { role = Role.RadioButton },
+            ) {
+                Text(stringResource(day.stringValue), maxLines = 1, overflow = TextOverflow.Clip)
             }
         }
+    }
+}
+
+/** A start or end time as a segmented row; tapping it opens the times, with "Any" first. */
+@Composable
+private fun TimeRow(
+    label: String,
+    value: Int?,
+    options: List<Int>,
+    index: Int,
+    count: Int,
+    onChange: (Int?) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    SegmentedListItem(
+        onClick = { expanded = true },
+        shapes = ListItemDefaults.segmentedShapes(index, count),
+        colors = sheetSegmentedColors(),
+        trailingContent = {
+            Box {
+                Text(
+                    value?.let { formattedTime(it) } ?: stringResource(R.string.lecture_time_any),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (expanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                ExpressiveMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    val total = options.size + 1
+                    val checkIcon: @Composable () -> Unit = {
+                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
+                    }
+                    MenuGroup(index = 0, count = 1, maxHeight = 320.dp) {
+                        SelectableDropdownMenuItem(
+                            colors = selectableMenuItemColors(),
+                            selected = value == null,
+                            onClick = { onChange(null); expanded = false },
+                            text = { Text(stringResource(R.string.lecture_time_any)) },
+                            shapes = MenuDefaults.itemShape(0, total),
+                            selectedLeadingIcon = checkIcon,
+                        )
+                        options.forEachIndexed { i, minutes ->
+                            SelectableDropdownMenuItem(
+                                colors = selectableMenuItemColors(),
+                                selected = value == minutes,
+                                onClick = { onChange(minutes); expanded = false },
+                                text = { Text(formattedTime(minutes)) },
+                                shapes = MenuDefaults.itemShape(i + 1, total),
+                                selectedLeadingIcon = checkIcon,
+                            )
+                        }
+                    }
+                }
+            }
+        },
+    ) { Text(label) }
+}
+
+/** One step above the bottom sheet's own container, so the rows stand out on it. */
+@Composable
+private fun sheetSegmentedColors() =
+    ListItemDefaults.segmentedColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+
+@Preview(showBackground = true)
+@Composable
+private fun Preview() {
+    Theme {
+        LectureTimeFilterRow(LectureTimeFilter(day = DayType.TUE, begin = 600), {}, onChooseOnTimetable = {})
     }
 }

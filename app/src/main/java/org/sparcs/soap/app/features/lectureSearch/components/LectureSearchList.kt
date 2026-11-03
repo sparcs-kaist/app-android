@@ -491,10 +491,7 @@ private fun TimeFilterBottomSheet(
             Column(Modifier
                 .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState())) {
-                LectureTimeFilterRow(time, onTimeChange)
-                TextButton(onClick = onChooseOnTimetable, shapes = ButtonDefaults.shapes()) {
-                    Text(stringResource(R.string.choose_time_on_timetable))
-                }
+                LectureTimeFilterRow(time, onTimeChange, onChooseOnTimetable)
             }
         }
     }
