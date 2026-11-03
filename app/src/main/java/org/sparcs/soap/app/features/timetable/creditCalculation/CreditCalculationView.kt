@@ -56,6 +56,9 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -147,7 +150,7 @@ private fun CreditCalculationLandscapeLayout(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding)
+            .padding(padding.withoutBottom())
             .padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -156,6 +159,7 @@ private fun CreditCalculationLandscapeLayout(
                 .weight(1f)
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState())
+                .padding(padding.onlyBottom())
                 .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -166,7 +170,7 @@ private fun CreditCalculationLandscapeLayout(
             modifier = Modifier
                 .weight(1.2f)
                 .fillMaxHeight(),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp) + padding.onlyBottom(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             semesterItems(state, onSemester)

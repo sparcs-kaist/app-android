@@ -39,6 +39,8 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDepartureTim
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationPicker
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiRoomCreationNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiRoomCreationViewModel
 import org.sparcs.soap.app.theme.ui.Theme
@@ -91,9 +93,10 @@ fun TaxiRoomCreationView(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding.withoutBottom())
                 .imePadding()
                 .verticalScroll(rememberScrollState())
+                .padding(innerPadding.onlyBottom())
                 .padding(16.dp)
         ) {
             TaxiDestinationPicker(

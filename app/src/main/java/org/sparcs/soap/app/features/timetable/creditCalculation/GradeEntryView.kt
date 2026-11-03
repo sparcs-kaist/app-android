@@ -53,6 +53,8 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.components.LectureListRow
 import org.sparcs.soap.app.features.timetable.components.LectureListRowDetail
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
@@ -78,8 +80,9 @@ internal fun GradeEntryView(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(padding.withoutBottom())
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 GradeEntryTimetable(
@@ -87,12 +90,16 @@ internal fun GradeEntryView(
                     Modifier
                         .weight(1.2f)
                         .fillMaxHeight()
+                        .padding(padding.onlyBottom())
+                        .padding(bottom = 16.dp)
                 )
                 Column(
                     Modifier
                         .weight(1f)
                         .fillMaxHeight()
                         .verticalScroll(rememberScrollState())
+                        .padding(padding.onlyBottom())
+                        .padding(bottom = 16.dp)
                 ) {
                     GradeEntryList(timetable, state, onGrade)
                 }

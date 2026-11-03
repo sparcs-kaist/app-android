@@ -44,8 +44,11 @@ import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.ara.mockList
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewBoardListViewModel
@@ -83,7 +86,7 @@ fun BoardListView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding.withoutBottom()),
             contentAlignment = Alignment.TopCenter
         ) {
             if (state is BoardListViewModel.ViewState.Error) {
@@ -115,7 +118,7 @@ fun BoardListView(
                     modifier = Modifier
                         .fillMaxSize()
                         .widthIn(max = 600.dp),
-                    contentPadding = PaddingValues(bottom = 8.dp)
+                    contentPadding = PaddingValues(bottom = 8.dp) + innerPadding.onlyBottom()
                 ) {
                     viewModel.sections.forEach { section ->
                         val board = (section as? BoardListSection.Board)?.let { s ->

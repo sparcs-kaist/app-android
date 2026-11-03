@@ -66,6 +66,7 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.formatters.formatTimeRange
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.LocalTipStore
@@ -92,8 +93,10 @@ fun LectureSearchView(
         },
         modifier = Modifier.analyticsScreen("Lecture Search")
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        // The list scrolls behind the gesture bar and ends clear of it.
+        Box(modifier = Modifier.padding(innerPadding.withoutBottom())) {
             LectureSearchList(
+                bottomInset = innerPadding.calculateBottomPadding(),
                 timetableViewModel = timetableViewModel,
                 viewModel = lectureSearchViewModel,
                 onOpenLecture = { lecture ->

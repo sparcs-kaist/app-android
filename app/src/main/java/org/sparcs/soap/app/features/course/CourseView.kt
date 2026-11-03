@@ -3,6 +3,7 @@ package org.sparcs.soap.app.features.course
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -66,6 +67,8 @@ import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestin
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
 import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -117,7 +120,7 @@ private fun CourseContent(
         modifier = Modifier.analyticsScreen("Course")
     ) { paddingValues ->
         LectureSearchResultsLayout(
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            modifier = Modifier.fillMaxSize().padding(paddingValues.withoutBottom()),
             floatingPreview = floatingTopContent,
             header = {},
             preview = topContent,
@@ -125,9 +128,9 @@ private fun CourseContent(
                 BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                     val isLandscape = maxWidth >= 840.dp
                     if (isLandscape) {
-                        CourseLandscapeLayout(state, viewModel, topInset)
+                        CourseLandscapeLayout(state, viewModel, topInset, paddingValues.onlyBottom())
                     } else {
-                        CoursePortraitLayout(state, viewModel, topInset)
+                        CoursePortraitLayout(state, viewModel, topInset, paddingValues.onlyBottom())
                     }
                 }
             },
@@ -147,6 +150,7 @@ private fun CourseLandscapeLayout(
     state: CourseViewModel.ViewState,
     viewModel: CourseViewModelProtocol,
     topInset: Dp,
+    bottomPadding: PaddingValues,
 ) {
     Row(
         modifier = Modifier
@@ -158,6 +162,7 @@ private fun CourseLandscapeLayout(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
+                .padding(bottomPadding)
                 .padding(top = topInset)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -169,6 +174,7 @@ private fun CourseLandscapeLayout(
             modifier = Modifier
                 .weight(1.2f)
                 .verticalScroll(rememberScrollState())
+                .padding(bottomPadding)
                 .padding(top = topInset)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -184,12 +190,14 @@ private fun CoursePortraitLayout(
     state: CourseViewModel.ViewState,
     viewModel: CourseViewModelProtocol,
     topInset: Dp,
+    bottomPadding: PaddingValues,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .widthIn(max = 600.dp)
             .verticalScroll(rememberScrollState())
+            .padding(bottomPadding)
             .padding(top = topInset)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally

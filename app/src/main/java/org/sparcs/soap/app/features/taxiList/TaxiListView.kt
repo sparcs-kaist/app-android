@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -80,9 +81,11 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationP
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
 import org.sparcs.soap.app.shared.extensions.toLocalDate
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.weekdaySymbol
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
@@ -183,7 +186,7 @@ fun TaxiListView(
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
             },
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding.withoutBottom())
         ) {
             Box(
                 modifier = Modifier
@@ -205,7 +208,8 @@ fun TaxiListView(
                         },
                         navController = navController,
                         haptic = haptic,
-                        scrollState = scrollState
+                        scrollState = scrollState,
+                        bottomPadding = innerPadding.onlyBottom()
                     )
                 } else {
                     TaxiPortraitLayout(
@@ -221,7 +225,8 @@ fun TaxiListView(
                         },
                         navController = navController,
                         haptic = haptic,
-                        scrollState = scrollState
+                        scrollState = scrollState,
+                        bottomPadding = innerPadding.onlyBottom()
                     )
                 }
             }
@@ -265,6 +270,7 @@ private fun TaxiLandscapeLayout(
     navController: NavController,
     haptic: HapticFeedback,
     scrollState: ScrollState,
+    bottomPadding: PaddingValues,
 ) {
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -274,6 +280,7 @@ private fun TaxiLandscapeLayout(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
+                .padding(bottomPadding)
                 .padding(start = 24.dp, top = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -285,6 +292,7 @@ private fun TaxiLandscapeLayout(
             modifier = Modifier
                 .weight(1.5f)
                 .verticalScroll(scrollState)
+                .padding(bottomPadding)
                 .padding(end = 24.dp, top = 16.dp, bottom = 16.dp)
         ) {
             TaxiResultContent(
@@ -311,12 +319,14 @@ private fun TaxiPortraitLayout(
     navController: NavController,
     haptic: HapticFeedback,
     scrollState: ScrollState,
+    bottomPadding: PaddingValues,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .widthIn(max = 600.dp)
             .verticalScroll(scrollState)
+            .padding(bottomPadding)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),

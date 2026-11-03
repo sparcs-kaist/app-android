@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,7 +76,9 @@ import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.escapeHash
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.sharing.ScreenshotEffect
 import org.sparcs.soap.app.shared.sharing.navigateToShareFeed
 import org.sparcs.soap.app.shared.tips.BuddyTip
@@ -185,7 +188,7 @@ fun TimetableView(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
-                    .padding(innerPadding),
+                    .padding(innerPadding.withoutBottom()),
                 state = pullToRefreshState,
                 contentAlignment = Alignment.TopCenter,
                 indicator = {
@@ -212,6 +215,7 @@ fun TimetableView(
                         isEditable = isEditable,
                         creditsContent = creditsContent,
                         onSelectorDialogChange = { isSelectorDialogPresented = it },
+                        bottomPadding = innerPadding.onlyBottom(),
                     )
                 } else {
                     TimetablePortraitLayout(
@@ -228,6 +232,7 @@ fun TimetableView(
                         scrollState = scrollState,
                         creditsContent = creditsContent,
                         onSelectorDialogChange = { isSelectorDialogPresented = it },
+                        bottomPadding = innerPadding.onlyBottom(),
                     )
                 }
             }
@@ -276,6 +281,7 @@ private fun TimetableLandscapeLayout(
     isEditable: Boolean,
     creditsContent: @Composable () -> Unit,
     onSelectorDialogChange: (Boolean) -> Unit,
+    bottomPadding: PaddingValues,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
@@ -339,6 +345,7 @@ private fun TimetableLandscapeLayout(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
+                    .padding(bottomPadding)
             ) {
                 Row(
                     modifier = Modifier
@@ -418,6 +425,7 @@ private fun TimetablePortraitLayout(
     scrollState: ScrollState,
     creditsContent: @Composable () -> Unit,
     onSelectorDialogChange: (Boolean) -> Unit,
+    bottomPadding: PaddingValues,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
@@ -427,6 +435,7 @@ private fun TimetablePortraitLayout(
             .fillMaxSize()
             .widthIn(max = 600.dp)
             .verticalScroll(scrollState)
+            .padding(bottomPadding)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally

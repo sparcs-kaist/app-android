@@ -96,6 +96,7 @@ fun LectureSearchList(
     listState: LazyListState = rememberLazyListState(),
     timetablePreview: (@Composable () -> Unit)? = null,
     floatingTimetablePreview: Boolean = false,
+    bottomInset: Dp = 0.dp,
 ) {
     val state by viewModel.state.collectAsState()
     val searchText by viewModel.searchText.collectAsState()
@@ -147,6 +148,7 @@ fun LectureSearchList(
             Box(Modifier.fillMaxSize()) {
                 LectureSearchContent(
                     topInset = topInset,
+                    bottomInset = bottomInset,
                     listState = listState,
                     showsWishlist = showsWishlist,
                     state = displayedState,
@@ -258,6 +260,7 @@ private fun WishlistHeader() {
 @Composable
 private fun LectureSearchContent(
     topInset: Dp,
+    bottomInset: Dp,
     listState: LazyListState,
     showsWishlist: Boolean,
     state: LectureSearchViewModel.ViewState,
@@ -295,6 +298,7 @@ private fun LectureSearchContent(
 
         else -> CourseLazyList(
             topInset = topInset,
+            bottomInset = bottomInset,
             listState = listState,
             showsWishlist = showsWishlist,
             displayedCourses = displayedCourses,
@@ -332,6 +336,7 @@ private fun LectureSearchPlaceholder(
 @Composable
 private fun CourseLazyList(
     topInset: Dp,
+    bottomInset: Dp,
     listState: LazyListState,
     showsWishlist: Boolean,
     displayedCourses: List<CourseLecture>,
@@ -352,7 +357,7 @@ private fun CourseLazyList(
     val cardColor = CardDefaults.cardColors().containerColor
     LazyColumn(
         state = listState,
-        contentPadding = PaddingValues(top = topInset + if (showsWishlist) 0.dp else 12.dp, bottom = 12.dp)
+        contentPadding = PaddingValues(top = topInset + if (showsWishlist) 0.dp else 12.dp, bottom = 12.dp + bottomInset)
     ) {
         if (showsWishlist) {
             item(key = "wishlist-header") { WishlistHeader() }

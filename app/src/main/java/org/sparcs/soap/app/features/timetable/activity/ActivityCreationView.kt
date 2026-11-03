@@ -82,6 +82,8 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.models.otl.withActivityTimes
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.formatters.formattedTime
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.BuddyTip
@@ -213,9 +215,10 @@ fun ActivityCreationView(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(padding.withoutBottom())
                     .imePadding()
                     .verticalScroll(rememberScrollState())
+                    .padding(padding.onlyBottom())
                     .padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {

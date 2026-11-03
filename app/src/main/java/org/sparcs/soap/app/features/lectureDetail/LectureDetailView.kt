@@ -3,6 +3,7 @@ package org.sparcs.soap.app.features.lectureDetail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -53,6 +54,8 @@ import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResult
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
@@ -150,7 +153,7 @@ fun LectureDetailContent(
         LectureSearchResultsLayout(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues.withoutBottom()),
             floatingPreview = floatingTopContent,
             header = {},
             preview = topContent,
@@ -167,6 +170,7 @@ fun LectureDetailContent(
                             selectedTimetable?.conflicts(lecture).orEmpty(),
                             isContained,
                             topInset,
+                            paddingValues.onlyBottom(),
                             addFromDetailTip,
                         )
                     } else {
@@ -179,6 +183,7 @@ fun LectureDetailContent(
                             selectedTimetable?.conflicts(lecture).orEmpty(),
                             isContained,
                             topInset,
+                            paddingValues.onlyBottom(),
                             addFromDetailTip,
                         )
                     }
@@ -218,6 +223,7 @@ private fun LectureLandscapeLayout(
     conflicts: List<String>,
     isContained: Boolean,
     topInset: Dp,
+    bottomPadding: PaddingValues,
     header: @Composable () -> Unit,
 ) {
     Row(
@@ -230,6 +236,7 @@ private fun LectureLandscapeLayout(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
+                .padding(bottomPadding)
                 .padding(top = topInset)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -242,6 +249,7 @@ private fun LectureLandscapeLayout(
             modifier = Modifier
                 .weight(1.2f)
                 .verticalScroll(rememberScrollState())
+                .padding(bottomPadding)
                 .padding(top = topInset)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -262,6 +270,7 @@ private fun LecturePortraitLayout(
     conflicts: List<String>,
     isContained: Boolean,
     topInset: Dp,
+    bottomPadding: PaddingValues,
     header: @Composable () -> Unit,
 ) {
     Column(
@@ -269,6 +278,7 @@ private fun LecturePortraitLayout(
             .fillMaxSize()
             .widthIn(max = 600.dp)
             .verticalScroll(rememberScrollState())
+            .padding(bottomPadding)
             .padding(top = topInset)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

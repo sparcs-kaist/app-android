@@ -73,7 +73,10 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.feed.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -213,7 +216,7 @@ fun FeedView(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(innerPadding.withoutBottom())
                     .testTag("feed-timeline-content")
                     .consumeWindowInsets(innerPadding),
                 contentAlignment = Alignment.TopCenter,
@@ -242,7 +245,7 @@ fun FeedView(
                     LazyColumn(
                         state = listState,
                         // Bottom room so the last post can scroll clear of the Write button.
-                        contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp),
+                        contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp) + innerPadding.onlyBottom(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxSize()
                     ) {

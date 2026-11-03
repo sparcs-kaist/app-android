@@ -50,6 +50,9 @@ import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewView
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.viewModelMocks.MockSearchViewModel
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -110,7 +113,7 @@ fun SearchView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding.withoutBottom()),
             contentAlignment = Alignment.TopCenter
         ) {
             Box(
@@ -126,6 +129,7 @@ fun SearchView(
                     viewModel = viewModel,
                     navController = navController,
                     coroutineScope = coroutineScope,
+                    bottomPadding = innerPadding.onlyBottom(),
                     onTaxiClick = { selectedRoom = it }
                 )
             }
@@ -176,6 +180,7 @@ private fun SearchResultContent(
     viewModel: SearchViewModelProtocol,
     navController: NavController,
     coroutineScope: CoroutineScope,
+    bottomPadding: PaddingValues,
     onTaxiClick: (TaxiRoom) -> Unit
 ) {
     val searchScope by viewModel.searchScope.collectAsState()
@@ -204,7 +209,8 @@ private fun SearchResultContent(
                 ResultView(
                     viewModel = viewModel,
                     navController = navController,
-                    onTaxiClick = onTaxiClick
+                    onTaxiClick = onTaxiClick,
+                    bottomPadding = bottomPadding,
                 )
             }
         }
@@ -216,6 +222,7 @@ fun ResultView(
     viewModel: SearchViewModelProtocol,
     navController: NavController,
     onTaxiClick: (TaxiRoom) -> Unit,
+    bottomPadding: PaddingValues = PaddingValues(),
 ) {
     val hasMoreCourses by viewModel.hasMoreCourses.collectAsState()
     val isLoadingMoreCourses by viewModel.isLoadingMoreCourses.collectAsState()
@@ -234,7 +241,7 @@ fun ResultView(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp) + bottomPadding
     ) {
         if (searchScope == SearchScope.All) {
             item {
