@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.ara.AraContentReportType
+import org.sparcs.soap.app.domain.models.ara.AraPostAuthor
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
@@ -35,14 +36,19 @@ fun LazyListScope.postCommentsSection(
     onReport: (Int, AraContentReportType) -> Unit,
     onDeleteComment: (AraPostComment) -> Unit,
     onTranslateComment: (AraPostComment) -> Unit,
+    onSetAuthorBlocked: (AraPostAuthor, Boolean) -> Unit,
+    showsTopDivider: Boolean = true,
+    reservesReplySpace: Boolean = false,
 ) {
     if (comments.isEmpty()) {
         item(key = "comments-empty") {
             Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 32.dp)) {
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+                if (showsTopDivider) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                }
                 UnavailableView(
                     icon = Icons.Outlined.ChatBubbleOutline,
                     title = stringResource(R.string.no_one_has_commented_yet),
@@ -52,8 +58,8 @@ fun LazyListScope.postCommentsSection(
         }
         return
     }
-    val rows = comments.flatMap { comment -> listOf(comment to false) + comment.comments.map { it to true } }
-    items(rows, key = { (comment, _) -> "comment-${comment.id}" }) { (comment, isThreaded) ->
+    val rows = commentRows(comments)
+    items(rows, key = { (comment, _) -> commentKey(comment.id) }) { (comment, isThreaded) ->
         Box(Modifier.animateItem()) {
             CommentCell(
                 comment = comment,
@@ -65,12 +71,28 @@ fun LazyListScope.postCommentsSection(
                 onDownVote = onDownVote,
                 onReport = onReport,
                 onDeleteComment = onDeleteComment,
-                onTranslateComment = onTranslateComment
+                onTranslateComment = onTranslateComment,
+                onSetAuthorBlocked = onSetAuthorBlocked
             )
         }
     }
     item(key = "comments-bottom") { Spacer(Modifier.height(32.dp)) }
+    if (reservesReplySpace) {
+        item(key = "comments-reply-space") { Spacer(Modifier.fillParentMaxHeight()) }
+    }
 }
+
+fun commentIndex(comments: List<AraPostComment>, commentId: Int, totalItemsCount: Int, reservesReplySpace: Boolean): Int? {
+    val rows = commentRows(comments)
+    val position = rows.indexOfFirst { (comment, _) -> comment.id == commentId }.takeIf { it >= 0 } ?: return null
+    val trailingItems = if (reservesReplySpace) 2 else 1
+    return (totalItemsCount - trailingItems - (rows.size - position)).takeIf { it >= 0 }
+}
+
+private fun commentRows(comments: List<AraPostComment>): List<Pair<AraPostComment, Boolean>> =
+    comments.flatMap { comment -> listOf(comment to false) + comment.comments.map { it to true } }
+
+private fun commentKey(commentId: Int) = "comment-$commentId"
 
 @Composable
 private fun CommentCell(
@@ -84,7 +106,9 @@ private fun CommentCell(
     onReport: (Int, AraContentReportType) -> Unit,
     onDeleteComment: (AraPostComment) -> Unit,
     onTranslateComment: (AraPostComment) -> Unit,
+    onSetAuthorBlocked: (AraPostAuthor, Boolean) -> Unit,
 ) {
+    val isBlockable = comment.isMine != true && comment.author.blockableUserId != null
     PostCommentCell(
         comment = comment,
         isThreaded = isThreaded,
@@ -95,7 +119,10 @@ private fun CommentCell(
         onDownVote = { onDownVote(comment) },
         onReport = { type -> onReport(comment.id, type) },
         onDeleteComment = { onDeleteComment(comment) },
-        onTranslate = { onTranslateComment(comment) }
+        onTranslate = { onTranslateComment(comment) },
+        onSetAuthorBlocked = if (isBlockable) {
+            { blocked -> onSetAuthorBlocked(comment.author, blocked) }
+        } else null
     )
 }
 
@@ -116,7 +143,8 @@ private fun Preview() {
             onDownVote = {},
             onReport = { _, _ -> },
             onDeleteComment = {},
-            onTranslateComment = {}
+            onTranslateComment = {},
+            onSetAuthorBlocked = { _, _ -> }
             )
         }
     }

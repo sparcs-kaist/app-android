@@ -6,6 +6,7 @@ sealed class PostListViewEvent : Event {
     data object PostsRefreshed : PostListViewEvent()
     data object NextPageLoaded : PostListViewEvent()
     data class SearchPerformed(val keyword: String) : PostListViewEvent()
+    data class TopicSelected(val topic: String?) : PostListViewEvent()
 
     override val source: String = "PostListView"
 
@@ -14,6 +15,7 @@ sealed class PostListViewEvent : Event {
             is PostsRefreshed -> "posts_refreshed"
             is NextPageLoaded -> "next_page_loaded"
             is SearchPerformed -> "search_performed"
+            is TopicSelected -> "topic_selected"
         }
 
     override val parameters: Map<String, Any>
@@ -21,6 +23,10 @@ sealed class PostListViewEvent : Event {
             is SearchPerformed -> mapOf(
                 "source" to source,
                 "keyword" to keyword
+            )
+            is TopicSelected -> mapOf(
+                "source" to source,
+                "topic" to (topic ?: "all")
             )
             else -> mapOf("source" to source)
         }

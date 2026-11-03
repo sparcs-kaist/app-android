@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="translate_to_language">%1$s(으)로 번역</string>
+    <string name="translate_other_languages">다른 언어…</string>
+    <string name="translate_change_language">언어 변경…</string>
+    <string name="translate_search_languages">언어 검색</string>
+    <string name="translate_no_matches">“%1$s”와(과) 일치하는 언어가 없어요</string>
+    <string name="translate_no_languages">번역할 수 있는 언어가 없어요.</string>
+</resources>

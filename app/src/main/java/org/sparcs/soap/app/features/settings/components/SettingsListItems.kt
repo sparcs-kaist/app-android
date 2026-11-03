@@ -75,12 +75,14 @@ fun SettingsNavigationItem(
     enabled: Boolean = true,
     supportingText: String? = null,
     leadingContent: (@Composable () -> Unit)? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val disabled = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     ListItem(
         headlineContent = { Text(text) },
         supportingContent = supportingText?.let { { Text(it) } },
         leadingContent = leadingContent,
+        trailingContent = trailingContent,
         colors = if (enabled) ListItemDefaults.colors() else ListItemDefaults.colors(
             headlineColor = disabled,
             supportingColor = disabled,

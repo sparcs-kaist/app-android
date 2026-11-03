@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraPostAttachment
+import java.net.URLDecoder
 
 /** Where an attachment's download stands. */
 internal sealed interface AttachmentStatus {
@@ -55,13 +56,13 @@ internal class AttachmentDownloader(context: Context) {
             io {
                 manager.enqueue(
                     DownloadManager.Request(url.toUri())
-                        .setTitle(attachment.filename)
+                        .setTitle(attachment.displayName)
                         .setDescription(appContext.getString(R.string.downloading))
                         .setMimeType(attachment.mimeType)
                         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                         .setDestinationInExternalPublicDir(
                             Environment.DIRECTORY_DOWNLOADS,
-                            safeFileName(attachment.filename)
+                            attachment.localFileName
                         )
                 )
             }
@@ -139,8 +140,16 @@ internal class AttachmentDownloader(context: Context) {
     private companion object {
         const val PREFERENCES = "ara_attachment_downloads"
         const val POLL_INTERVAL_MS = 300L
-
-        /** Replaces characters that are not allowed in a file name. */
-        fun safeFileName(name: String) = name.replace(Regex("""[\\/:*?"<>|]"""), "_")
     }
 }
+
+private val UNSAFE_FILE_NAME_CHARACTERS = Regex("[\\\\/:*?\"<>|\u0000]")
+
+val AraPostAttachment.displayName: String
+    get() = runCatching { URLDecoder.decode(filename.replace("+", "%2B"), Charsets.UTF_8.name()) }.getOrDefault(filename)
+
+val AraPostAttachment.localFileName: String
+    get() {
+        val name = displayName.replace(UNSAFE_FILE_NAME_CHARACTERS, "_").trim()
+        return if (name.isEmpty() || name.all { it == '.' }) "attachment" else name
+    }

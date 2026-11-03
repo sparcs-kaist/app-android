@@ -9,7 +9,6 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import org.sparcs.soap.app.domain.enums.ara.AraContentReportType
 import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -18,11 +17,8 @@ import org.sparcs.soap.app.theme.ui.Theme
 fun PostNavigationBar(
     boardGroup: String,
     onClick: () -> Unit,
-    onDelete: () -> Unit,
-    onReport: (AraContentReportType) -> Unit,
-    onTranslate: () -> Unit,
-    onSummarize: () -> Unit = {},
-    isMine: Boolean?,
+    menuState: PostMenuState,
+    menuActions: PostMenuActions,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
@@ -34,28 +30,24 @@ fun PostNavigationBar(
                 overflow = TextOverflow.Ellipsis
             )
         },
-        actions = {
-            PostCommentActionsMenu(
-                enumClass = AraContentReportType::class,
-                isMine = isMine,
-                onDelete = onDelete,
-                onReport = onReport,
-                onTranslate = onTranslate,
-                onSummarize = onSummarize,
-                isComment = false
-            )
-        },
+        actions = { PostActionsMenu(state = menuState, actions = menuActions) },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         ),
         scrollBehavior = scrollBehavior
     )
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ PostNavigationBar("Board", {}, {}, {}, {}, {}, false) }
+private fun Preview() {
+    Theme {
+        PostNavigationBar(
+            boardGroup = "Board",
+            onClick = {},
+            menuState = PostMenuState(isMine = false),
+            menuActions = PostMenuActions(),
+        )
+    }
 }

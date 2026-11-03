@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="viewer_page_count">%2$d개 중 %1$d</string>
+    <string name="viewer_photo">사진</string>
+    <string name="viewer_image_load_failed">이미지를 불러오지 못했어요.</string>
+    <string name="viewer_share_failed">이미지를 공유할 수 없어요</string>
+    <string name="viewer_save_failed">이미지를 저장할 수 없어요</string>
+    <string name="viewer_copy_failed">이미지를 복사할 수 없어요</string>
+</resources>

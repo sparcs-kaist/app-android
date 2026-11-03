@@ -1,19 +1,19 @@
 package org.sparcs.soap.app.networking.responseDTO.ara
 
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.app.domain.models.ara.AraPostAuthor
 
 data class AraPostAuthorDTO(
-    @SerialName("id")
+    @SerializedName("id")
     val id: Any,
 
-    @SerialName("username")
+    @SerializedName("username")
     val username: String,
 
-    @SerialName("profile")
+    @SerializedName("profile")
     val profile: AraPostAuthorProfileDTO,
 
-    @SerialName("is_blocked")
+    @SerializedName("is_blocked")
     val isBlocked: Boolean?
 ) {
 

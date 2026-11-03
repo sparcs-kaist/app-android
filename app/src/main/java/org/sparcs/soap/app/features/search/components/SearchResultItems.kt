@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.search.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,9 +46,17 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
+import org.sparcs.soap.app.features.postList.components.postListRow.UpdatedMarker
+import org.sparcs.soap.app.features.postList.components.postListRow.accentColor
+import org.sparcs.soap.app.features.postList.components.postListRow.hiddenIcon
+import org.sparcs.soap.app.features.postList.components.postListRow.hiddenReasonRes
+import org.sparcs.soap.app.features.postList.components.postListRow.isUpdatedSinceRead
+import org.sparcs.soap.app.features.postList.components.postListRow.metaColor
 import org.sparcs.soap.app.features.postList.components.postListRow.title
+import org.sparcs.soap.app.features.postList.components.postListRow.titleColor
 import org.sparcs.soap.app.shared.extensions.relativeTimeString
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
+import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
@@ -55,13 +65,9 @@ import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
 import org.sparcs.soap.app.theme.ui.upvote
 
-// Rows of the search results. Each is a ListItem on the section's OutlinedCard, so the container
-// is transparent.
-
 private val itemColors
     @Composable get() = ListItemDefaults.colors(containerColor = Color.Transparent)
 
-/** Code and type above the course name, then its summary. */
 @Composable
 fun CourseCell(course: CourseSummary, onClick: () -> Unit) {
     ListItem(
@@ -84,32 +90,66 @@ fun CourseCell(course: CourseSummary, onClick: () -> Unit) {
     )
 }
 
-/** Title with the topic in front, then author, views and age; votes and comments at the end. */
 @Composable
 fun SearchPostItem(post: AraPost, onClick: () -> Unit) {
+    if (post.isHidden) {
+        SearchHiddenPostItem(post)
+    } else {
+        SearchVisiblePostItem(post, onClick)
+    }
+}
+
+@Composable
+private fun SearchHiddenPostItem(post: AraPost) {
+    ListItem(
+        leadingContent = {
+            Icon(post.hiddenIcon, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+        },
+        headlineContent = {
+            Text(
+                text = stringResource(post.hiddenReasonRes),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        trailingContent = {
+            Text(post.createdAt.timeAgoDisplay(), style = MaterialTheme.typography.labelMedium)
+        },
+        colors = itemColors,
+        modifier = Modifier.semantics(mergeDescendants = true) {}
+    )
+}
+
+@Composable
+private fun SearchVisiblePostItem(post: AraPost, onClick: () -> Unit) {
     val voteCount = post.upVotes - post.downVotes
-    val primary = MaterialTheme.colorScheme.primary
+    val accent = post.accentColor()
+    val metaColor = post.metaColor()
     val postTitle = title(post) { stringResource(it) }
     ListItem(
         headlineContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (post.isUpdatedSinceRead) {
+                    UpdatedMarker(Modifier.padding(end = 6.dp))
+                }
                 Text(
                     text = buildAnnotatedString {
                         post.topic?.name?.localized()?.let { topic ->
-                            withStyle(SpanStyle(color = primary)) { append("[$topic] ") }
+                            withStyle(SpanStyle(color = accent)) { append("[$topic] ") }
                         }
                         append(postTitle)
                     },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = if (post.isHidden) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    color = post.titleColor(),
                     modifier = Modifier.weight(1f, fill = false)
                 )
                 if (post.attachmentType == AraPost.AttachmentType.IMAGE || post.attachmentType == AraPost.AttachmentType.BOTH) {
-                    AttachmentIcon(Icons.Outlined.Image)
+                    AttachmentIcon(Icons.Outlined.Image, metaColor)
                 }
                 if (post.attachmentType == AraPost.AttachmentType.NON_IMAGE || post.attachmentType == AraPost.AttachmentType.BOTH) {
-                    AttachmentIcon(Icons.Outlined.AttachFile)
+                    AttachmentIcon(Icons.Outlined.AttachFile, metaColor)
                 }
             }
         },
@@ -121,7 +161,8 @@ fun SearchPostItem(post: AraPost, onClick: () -> Unit) {
                     post.createdAt.timeAgoDisplay()
                 ).joinToString(" · "),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = metaColor
             )
         },
         trailingContent = if (voteCount != 0 || post.commentCount > 0) {
@@ -129,28 +170,26 @@ fun SearchPostItem(post: AraPost, onClick: () -> Unit) {
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     if (voteCount != 0) {
                         CountLabel(
-                            // Same arrows as the board list and the vote pill.
                             icon = if (voteCount > 0) Icons.Filled.ArrowUpward else Icons.Filled.ArrowDownward,
                             text = voteCount.toString().replace('-', '−'),
-                            color = if (voteCount > 0) upvote else downvote
+                            color = post.accentColor(if (voteCount > 0) upvote else downvote)
                         )
                     }
                     if (post.commentCount > 0) {
                         CountLabel(
                             icon = Icons.Outlined.ChatBubbleOutline,
                             text = post.commentCount.toString(),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = metaColor
                         )
                     }
                 }
             }
         } else null,
         colors = itemColors,
-        modifier = Modifier.clickable(enabled = !post.isHidden, onClick = onClick)
+        modifier = Modifier.clickable(onClick = onClick)
     )
 }
 
-/** Route, departure and room name, with the number of riders at the end. */
 @Composable
 fun SearchTaxiRoomItem(room: TaxiRoom, onClick: () -> Unit) {
     ListItem(
@@ -186,10 +225,6 @@ fun SearchTaxiRoomItem(room: TaxiRoom, onClick: () -> Unit) {
     )
 }
 
-/**
- * Placeholder with the same text styles and paddings as the rows above: an optional overline,
- * the headline, [supportingLines] lines of supporting text and an optional leading icon.
- */
 @Composable
 fun SearchItemSkeleton(overline: Boolean = false, supportingLines: Int = 1, leading: Boolean = false) {
     val typography = MaterialTheme.typography
@@ -224,9 +259,9 @@ fun SearchItemSkeleton(overline: Boolean = false, supportingLines: Int = 1, lead
 }
 
 @Composable
-private fun AttachmentIcon(icon: ImageVector) {
+private fun AttachmentIcon(icon: ImageVector, tint: Color) {
     Spacer(Modifier.width(4.dp))
-    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+    Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
 }
 
 @Composable
@@ -246,11 +281,27 @@ private fun Preview() {
             HorizontalDivider()
             SearchPostItem(AraPost.mockList().first()) {}
             HorizontalDivider()
+            SearchPostItem(AraPost.mock().copy(readStatus = AraPost.ReadStatus.READ)) {}
+            HorizontalDivider()
+            SearchPostItem(AraPost.mock().copy(readStatus = AraPost.ReadStatus.UPDATED)) {}
+            HorizontalDivider()
             SearchTaxiRoomItem(TaxiRoom.mockList().first()) {}
             HorizontalDivider()
             SearchItemSkeleton(overline = true, supportingLines = 2)
             HorizontalDivider()
             SearchItemSkeleton(leading = true)
+        }
+    }
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xFF1F1F1F, name = "Read vs unread dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun ReadStateDarkPreview() {
+    val post = AraPost.mock().copy(upVotes = 5, commentCount = 2)
+    Theme {
+        Column {
+            SearchPostItem(post.copy(readStatus = AraPost.ReadStatus.UNREAD)) {}
+            SearchPostItem(post.copy(readStatus = AraPost.ReadStatus.READ)) {}
         }
     }
 }

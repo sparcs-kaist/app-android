@@ -3,9 +3,11 @@ package org.sparcs.soap.app.shared.viewModels
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.domain.models.translation.TranslationState
@@ -15,6 +17,7 @@ import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCase
 import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.translation.PostBatchTranslationResult
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import javax.inject.Inject
@@ -37,6 +40,19 @@ interface TextProcessingProtocol {
 
     fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean = false, scope: CoroutineScope)
     fun showCommentOriginal(commentId: String)
+
+    suspend fun detectLanguage(text: String): String? = null
+
+    suspend fun translateTexts(
+        texts: List<String>,
+        sourceLanguage: String?,
+        targetLanguage: String,
+        allowDownload: Boolean,
+    ): PostBatchTranslationResult = PostBatchTranslationResult.Unsupported
+
+    suspend fun isSummarizationAvailable(): Boolean = false
+
+    fun streamPostSummary(content: String): Flow<String> = emptyFlow()
 }
 
 class TextProcessingDelegate @Inject constructor(
@@ -149,4 +165,17 @@ class TextProcessingDelegate @Inject constructor(
     override fun showCommentOriginal(commentId: String) {
         _commentTranslations.value -= commentId
     }
+
+    override suspend fun detectLanguage(text: String): String? = postTranslationUseCase.detectLanguage(text)
+
+    override suspend fun translateTexts(
+        texts: List<String>,
+        sourceLanguage: String?,
+        targetLanguage: String,
+        allowDownload: Boolean,
+    ): PostBatchTranslationResult = postTranslationUseCase.translateAll(texts, sourceLanguage, targetLanguage, allowDownload)
+
+    override suspend fun isSummarizationAvailable(): Boolean = summarizationUseCase.isPostSummaryAvailable()
+
+    override fun streamPostSummary(content: String): Flow<String> = summarizationUseCase.streamPostSummary(content)
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="compose_discard_post">작성 취소</string>
+    <string name="compose_discard_changes">변경 사항 폐기</string>
+    <string name="compose_discard_changes_message">이 게시글의 변경 사항을 폐기하시겠습니까?</string>
+    <string name="compose_market_description_placeholder">물건의 상태와 연락 방법 등을 적어 주세요.</string>
+    <string name="compose_hide_keyboard">키보드 가리기</string>
+    <string name="compose_paste_image">이미지 붙여넣기</string>
+    <string name="compose_style_title">제목</string>
+    <string name="compose_style_heading">머리말</string>
+    <string name="compose_style_subheading">부머리말</string>
+    <string name="compose_style_body">본문</string>
+    <string name="compose_style_monospaced">고정폭</string>
+    <string name="compose_format_code">코드</string>
+    <string name="compose_format_indent">들여쓰기</string>
+    <string name="compose_format_outdent">내어쓰기</string>
+    <string name="compose_format_text_color">글자 색</string>
+    <string name="compose_color_default">기본</string>
+    <string name="compose_color_red">빨간색</string>
+    <string name="compose_color_orange">주황색</string>
+    <string name="compose_color_green">초록색</string>
+    <string name="compose_color_blue">파란색</string>
+    <string name="compose_color_purple">보라색</string>
+    <string name="compose_color_gray">회색</string>
+</resources>

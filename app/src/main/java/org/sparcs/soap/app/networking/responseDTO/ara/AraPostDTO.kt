@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.networking.responseDTO.ara
 
 import com.google.gson.annotations.SerializedName
+import org.sparcs.soap.app.domain.enums.ara.AraPostNicknameType
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import java.time.Instant
 import java.time.format.DateTimeParseException
@@ -81,7 +82,13 @@ data class AraPostDTO(
     val myVote: Boolean?,
 
     @SerializedName("my_scrap")
-    val myScrap: AraScrapDTO?
+    val myScrap: AraScrapDTO?,
+
+    @SerializedName("name_type")
+    val nameType: Int? = null,
+
+    @SerializedName("metadata")
+    val metadata: AraMarketMetadataDTO? = null,
 ) {
     fun toModel(): AraPost = AraPost(
         id = id,
@@ -112,6 +119,9 @@ data class AraPostDTO(
         content = content,
         myVote = myVote,
         myScrap = myScrap != null,
-        scrapID = myScrap?.id
+        scrapID = myScrap?.id,
+        nicknameType = nameType?.let(AraPostNicknameType::fromCode),
+        marketListing = metadata?.toModel(),
+        readStatus = AraPost.ReadStatus.fromCode(readStatus),
     )
 }

@@ -32,7 +32,6 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
     val selectedTopic = viewModel.selectedTopic
 
     Box {
-        // The same elevated chip as the feed compose user picker.
         ElevatedFilterChip(
             selected = false,
             onClick = { expanded = !expanded },

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="board_highlight_comments">
+        <item quantity="one">%d comment</item>
+        <item quantity="other">%d comments</item>
+    </plurals>
+    <string name="board_sections_shown">Shown</string>
+    <string name="board_sections_highlights">Highlights</string>
+    <string name="board_sections_reset">Reset to Default</string>
+    <string name="board_sections_add">Add %1$s</string>
+    <string name="board_sections_remove">Remove %1$s</string>
+    <string name="blocked_users_footer">You don’t see their posts or comments on Ara.</string>
+    <string name="blocked_users_empty_description">People you block from a post or comment appear here.</string>
+    <string name="debug_boards">Boards</string>
+    <string name="debug_reset_new_post_dots">Reset New Post Dots</string>
+    <string name="debug_reset_new_post_dots_footer">Forgets the newest post seen in each board’s list, so every board with an unread newest post shows a dot again.</string>
+    <string name="debug_dots_reset_title">Dots Reset</string>
+    <string name="debug_dots_reset_message">Boards show new post dots again the next time the Boards list appears.</string>
+</resources>

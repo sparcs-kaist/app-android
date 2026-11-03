@@ -22,6 +22,9 @@ import org.sparcs.soap.app.domain.models.ara.AraPostAuthor
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.app.features.postList.event.PostListViewEvent
+import org.sparcs.soap.app.features.postList.markedRead
+import org.sparcs.soap.app.features.postList.refreshed
+import org.sparcs.soap.app.features.postList.updating
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -41,6 +44,7 @@ interface UserPostListViewModelProtocol {
     fun fetchInitialPosts()
     suspend fun loadNextPage()
     fun refreshItem(postID: Int)
+    fun markRead(postID: Int)
     fun removePost(postID: Int)
     fun bind()
 }
@@ -52,7 +56,6 @@ class UserPostListViewModel @Inject constructor(
     private val analyticsService: AnalyticsServiceProtocol,
 ) : ViewModel(), UserPostListViewModelProtocol {
 
-    //Mark - ViewState
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val posts: List<AraPost>) : ViewState()
@@ -67,7 +70,6 @@ class UserPostListViewModel @Inject constructor(
 
     override var user: AraPostAuthor = initialAuthor
 
-    //Mark - State
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
@@ -76,11 +78,9 @@ class UserPostListViewModel @Inject constructor(
 
     override var lastClickedPostId: Int? = null
 
-    //Mark - Search
     private val _searchKeyword = MutableStateFlow("")
     override var searchKeyword: StateFlow<String> = _searchKeyword.asStateFlow()
 
-    //Mark - Paging
     private val _isLoadingMore = MutableStateFlow(false)
     override val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
 
@@ -89,7 +89,6 @@ class UserPostListViewModel @Inject constructor(
     private var totalPages = 0
     private val pageSize = 30
 
-    //Mark - Search Properties
     override fun onSearchTextChange(text: String) {
         _searchKeyword.value = text
     }
@@ -143,26 +142,22 @@ class UserPostListViewModel @Inject constructor(
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             try {
-                val updated =
-                    araBoardUseCase.fetchPost(origin = PostOrigin.None, postID = postID)
-                val updatedPosts = _posts.value.toMutableList()
-                val idx = updatedPosts.indexOfFirst { it.id == updated.id }
-                if (idx != -1) {
-                    val prev = updatedPosts[idx]
-                    val merged = prev.copy(
-                        upVotes = updated.upVotes,
-                        downVotes = updated.downVotes,
-                        commentCount = updated.commentCount
-                    )
-                    updatedPosts[idx] = merged
-                    _posts.value = updatedPosts
-                    _state.value = ViewState.Loaded(updatedPosts)
-                }
+                val updated = araBoardUseCase.fetchPost(origin = PostOrigin.None, postID = postID)
+                updatePost(postID) { it.refreshed(updated) }
             } catch (e: Exception) {
-                Timber.e("Failed to refresh item")
-                _state.value = ViewState.Error(e)
+                Timber.e(e, "Failed to refresh item")
             }
         }
+    }
+
+    override fun markRead(postID: Int) {
+        updatePost(postID) { it.markedRead() }
+    }
+
+    private fun updatePost(postID: Int, transform: (AraPost) -> AraPost) {
+        val updated = _posts.value.updating(postID, transform) ?: return
+        _posts.value = updated
+        _state.value = ViewState.Loaded(updated)
     }
 
     override fun removePost(postID: Int) {

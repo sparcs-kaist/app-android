@@ -48,6 +48,7 @@ class MockSearchViewModel(initialState: SearchViewModel.ViewState) : SearchViewM
     override suspend fun scopedFetch() {}
     override fun onSearchTextChange(text: String) {}
     override fun onScopeChange(scope: SearchScope) {}
+    override fun markRead(postID: Int) {}
     override fun onFilterChange(filterState: CourseFilterState) {
         _courseFilterState.value = filterState
     }

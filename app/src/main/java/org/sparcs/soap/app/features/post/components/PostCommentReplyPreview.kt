@@ -22,7 +22,7 @@ fun PostCommentReplyPreview(
     } else rawName
     CommentReplyPreview(
         authorName = authorName,
-        content = if (comment.isHidden == true) stringResource(R.string.this_comment_has_been_deleted)
+        content = if (comment.content == null) stringResource(R.string.this_comment_has_been_deleted)
         else comment.content.orEmpty(),
         onCancel = onCancel,
         modifier = modifier

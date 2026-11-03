@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="translate_to_language">Translate to %1$s</string>
+    <string name="translate_other_languages">Other languages…</string>
+    <string name="translate_change_language">Change language…</string>
+    <string name="translate_search_languages">Search languages</string>
+    <string name="translate_no_matches">No languages match “%1$s”</string>
+    <string name="translate_no_languages">No languages are available for translation.</string>
+</resources>

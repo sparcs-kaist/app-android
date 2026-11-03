@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.networking.responseDTO.ara
 
 import com.google.gson.annotations.SerializedName
+import org.sparcs.soap.app.domain.enums.ara.AraPostNicknameType
 import org.sparcs.soap.app.domain.helpers.LocalizedString
 import org.sparcs.soap.app.domain.models.ara.AraBoard
 import org.sparcs.soap.app.domain.models.ara.AraBoardGroup
@@ -31,7 +32,10 @@ data class AraBoardDTO (
     val userReadable: Boolean?,
 
     @SerializedName("user_writable")
-    val userWritable: Boolean?
+    val userWritable: Boolean?,
+
+    @SerializedName("name_type")
+    val nameType: Int?
 
 ) {
     fun toModel(): AraBoard {
@@ -48,7 +52,8 @@ data class AraBoardDTO (
             topics = topics?.map { it.toModel() } ?: emptyList(),
             isReadOnly = isReadOnly,
             userReadable = userReadable,
-            userWritable = userWritable
+            userWritable = userWritable,
+            nicknameTypes = nameType?.let(AraPostNicknameType::allowed).orEmpty()
         )
     }
 

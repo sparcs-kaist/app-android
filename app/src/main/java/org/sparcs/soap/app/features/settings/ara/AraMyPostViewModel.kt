@@ -20,6 +20,9 @@ import org.sparcs.soap.app.domain.models.ara.AraPostPage
 import org.sparcs.soap.app.domain.models.ara.AraUser
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
+import org.sparcs.soap.app.features.postList.markedRead
+import org.sparcs.soap.app.features.postList.refreshed
+import org.sparcs.soap.app.features.postList.updating
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -37,6 +40,7 @@ interface AraMyPostViewModelProtocol {
     suspend fun fetchInitialPosts()
     suspend fun loadNextPage()
     fun refreshItem(postID: Int)
+    fun markRead(postID: Int)
 }
 
 @HiltViewModel
@@ -165,21 +169,20 @@ class AraMyPostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val updated = araBoardUseCase.fetchPost(PostOrigin.None, postID)
-                val idx = _posts.value.indexOfFirst { it.id == updated.id }
-                if (idx != -1) {
-                    val newPosts = _posts.value.toMutableList()
-                    val previous = newPosts[idx]
-                    newPosts[idx] = previous.copy(
-                        upVotes = updated.upVotes,
-                        downVotes = updated.downVotes,
-                        commentCount = updated.commentCount
-                    )
-                    _posts.value = newPosts
-                    _state.value = ViewState.Loaded(_posts.value)
-                }
-            } catch (_: Exception) {
-                Timber.e("refreshItem failed")
+                updatePost(postID) { it.refreshed(updated) }
+            } catch (e: Exception) {
+                Timber.e(e, "refreshItem failed")
             }
         }
+    }
+
+    override fun markRead(postID: Int) {
+        updatePost(postID) { it.markedRead() }
+    }
+
+    private fun updatePost(postID: Int, transform: (AraPost) -> AraPost) {
+        val updated = _posts.value.updating(postID, transform) ?: return
+        _posts.value = updated
+        _state.value = ViewState.Loaded(updated)
     }
 }

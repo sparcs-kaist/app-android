@@ -47,8 +47,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
@@ -57,11 +55,9 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.enums.DeepLinkEventBus
 import org.sparcs.soap.app.domain.enums.feed.FeedVoteType
-import org.sparcs.soap.app.domain.models.feed.FeedImage
 import org.sparcs.soap.app.domain.models.feed.FeedPost
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
-import org.sparcs.soap.app.features.fullscreenImage.FullscreenImagesViewer
 import org.sparcs.soap.app.features.post.components.PostCommentButton
 import org.sparcs.soap.app.features.post.components.PostVoteButton
 import org.sparcs.soap.app.features.settings.components.InfoTooltip
@@ -297,31 +293,8 @@ private fun Content(
     }
 
     if (post.images.isNotEmpty()) {
-        var fullscreenRequest by remember {
-            mutableStateOf<Pair<List<FeedImage>, Int>?>(
-                null
-            )
-        }
-
         Spacer(Modifier.height(8.dp))
-        PostImagesStrip(
-            images = post.images,
-            onComment = onComment,
-            onImageClick = { images, index -> fullscreenRequest = images to index }
-        )
-
-        fullscreenRequest?.let { (images, startIndex) ->
-            Dialog(
-                onDismissRequest = { fullscreenRequest = null },
-                properties = DialogProperties(usePlatformDefaultWidth = false)
-            ) {
-                FullscreenImagesViewer(
-                    images = images,
-                    startIndex = startIndex,
-                    onDismiss = { fullscreenRequest = null }
-                )
-            }
-        }
+        PostImagesStrip(images = post.images)
     }
 }
 

@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -162,10 +163,11 @@ private fun LoadingView(contentPadding: PaddingValues, rowPadding: PaddingValues
 /** An empty board, still pullable to refresh: the message sits in a one-item list filling the screen. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EmptyPostsView(
+fun EmptyPostsView(
     onRefresh: () -> Unit,
     isRefreshing: Boolean,
     contentPadding: PaddingValues,
+    icon: ImageVector = Icons.AutoMirrored.Outlined.Article,
 ) {
     val pullState = rememberPullToRefreshState()
 
@@ -186,7 +188,7 @@ private fun EmptyPostsView(
                         .padding(32.dp)
                 ) {
                     Icon(
-                        Icons.AutoMirrored.Outlined.Article,
+                        icon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(48.dp)

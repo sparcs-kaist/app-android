@@ -6,6 +6,7 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 import org.sparcs.soap.app.shared.extensions.htmlToPlainText
 import java.util.Locale
@@ -24,6 +25,18 @@ sealed interface PostTranslationResult {
     data class Failed(val error: Throwable) : PostTranslationResult
 }
 
+sealed interface PostBatchTranslationResult {
+    data class Success(val texts: List<String>, val sourceLanguage: String) : PostBatchTranslationResult
+    data object Unsupported : PostBatchTranslationResult
+
+    data class NeedsDownload(
+        val sourceLanguage: String,
+        val targetLanguage: String,
+    ) : PostBatchTranslationResult
+
+    data class Failed(val error: Throwable) : PostBatchTranslationResult
+}
+
 interface PostTranslationUseCaseProtocol {
     fun availableLanguages(): List<String>
     fun suggestedLanguages(): List<String>
@@ -34,6 +47,15 @@ interface PostTranslationUseCaseProtocol {
         isHtml: Boolean,
         allowDownload: Boolean = false,
     ): PostTranslationResult
+
+    suspend fun detectLanguage(text: String): String? = null
+
+    suspend fun translateAll(
+        texts: List<String>,
+        sourceLanguage: String?,
+        targetLanguage: String,
+        allowDownload: Boolean = false,
+    ): PostBatchTranslationResult = PostBatchTranslationResult.Unsupported
 }
 
 class PostTranslationUseCase @Inject constructor() : PostTranslationUseCaseProtocol {
@@ -99,6 +121,49 @@ class PostTranslationUseCase @Inject constructor() : PostTranslationUseCaseProto
         }
     }
 
+    override suspend fun detectLanguage(text: String): String? {
+        val plain = text.trim().takeIf { it.length >= MIN_LENGTH } ?: return null
+        return try {
+            LanguageIdentification.getClient().use { it.identifyLanguage(plain).await() }
+                .takeIf { it != UNDETERMINED && TranslateLanguage.fromLanguageTag(it) != null }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    override suspend fun translateAll(
+        texts: List<String>,
+        sourceLanguage: String?,
+        targetLanguage: String,
+        allowDownload: Boolean,
+    ): PostBatchTranslationResult {
+        val target = TranslateLanguage.fromLanguageTag(targetLanguage)
+            ?: return PostBatchTranslationResult.Unsupported
+        val detected = sourceLanguage ?: detectLanguage(texts.joinToString(LINE_SEPARATOR))
+            ?: return PostBatchTranslationResult.Unsupported
+        val source = TranslateLanguage.fromLanguageTag(detected)
+            ?: return PostBatchTranslationResult.Unsupported
+        if (source == target) return PostBatchTranslationResult.Unsupported
+
+        return try {
+            if (!allowDownload && !areModelsDownloaded(source, target)) {
+                return PostBatchTranslationResult.NeedsDownload(detected, targetLanguage)
+            }
+            val options = TranslatorOptions.Builder().setSourceLanguage(source).setTargetLanguage(target).build()
+            Translation.getClient(options).use { translator ->
+                translator.downloadModelIfNeeded().await()
+                val translated = texts.map { text ->
+                    if (text.isBlank()) text else translator.translate(text).await()
+                }
+                PostBatchTranslationResult.Success(translated, detected)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            PostBatchTranslationResult.Failed(e)
+        }
+    }
+
     private suspend fun areModelsDownloaded(source: String, target: String): Boolean {
         val downloaded = RemoteModelManager.getInstance()
             .getDownloadedModels(TranslateRemoteModel::class.java)
@@ -112,5 +177,6 @@ class PostTranslationUseCase @Inject constructor() : PostTranslationUseCaseProto
     private companion object {
         const val MIN_LENGTH = 2
         const val UNDETERMINED = "und"
+        const val LINE_SEPARATOR = "\n"
     }
 }

@@ -117,6 +117,7 @@ fun UserPostListView(
                         PostList(
                             posts = posts,
                             onPostClick = { post ->
+                                viewModel.markRead(post.id)
                                 viewModel.lastClickedPostId = post.id
                                 navController.navigate(Channel.PostView.name + "?postId=${post.id}")
                             },
@@ -153,7 +154,6 @@ fun UserPostListView(
     }
 }
 
-// Mark: Preview
 @Preview(name = "Loading State", showBackground = true)
 @Composable
 private fun PreviewUserPostListLoading() {

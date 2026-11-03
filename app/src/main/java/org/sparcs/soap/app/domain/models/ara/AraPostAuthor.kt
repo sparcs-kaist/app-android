@@ -6,5 +6,8 @@ data class AraPostAuthor(
     val profile: AraPostAuthorProfile,
     val isBlocked: Boolean?
 ){
+    val blockableUserId: Int?
+        get() = if (isBlocked == null) null else id.toDoubleOrNull()?.takeIf { it == Math.floor(it) }?.toInt()
+
     companion object
 }

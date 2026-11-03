@@ -55,6 +55,8 @@ import org.sparcs.soap.app.features.feedPost.FeedPostViewModel
 import org.sparcs.soap.app.features.feedPost.FeedPostViewModelProtocol
 import org.sparcs.soap.app.features.feedPostCompose.FeedPostComposeView
 import org.sparcs.soap.app.features.feedPostCompose.FeedPostComposeViewModel
+import org.sparcs.soap.app.features.highlightPostList.HighlightPostListView
+import org.sparcs.soap.app.features.highlightPostList.HighlightPostListViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailView
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchPage
@@ -82,6 +84,8 @@ import org.sparcs.soap.app.features.settings.ara.AraMyPostView
 import org.sparcs.soap.app.features.settings.ara.AraMyPostViewModel
 import org.sparcs.soap.app.features.settings.ara.AraSettingsView
 import org.sparcs.soap.app.features.settings.ara.AraSettingsViewModel
+import org.sparcs.soap.app.features.settings.ara.BlockedUsersView
+import org.sparcs.soap.app.features.settings.ara.BoardSectionsSettingsView
 import org.sparcs.soap.app.features.settings.feed.FeedSettingsView
 import org.sparcs.soap.app.features.settings.feed.FeedSettingsViewModel
 import org.sparcs.soap.app.features.settings.notification.NotificationSettingsView
@@ -141,6 +145,7 @@ enum class Channel(@param:StringRes val title: Int) {
     PostView(title = R.string.postview),
     PostCompose(title = R.string.postcompose),
     UserPostListView(title = R.string.user_post_list_view),
+    HighlightPostList(title = R.string.boards),
 
     //Taxi
     Taxi(title = R.string.taxi),
@@ -168,6 +173,8 @@ enum class Channel(@param:StringRes val title: Int) {
     TimetableThemeSettings(title = R.string.timetable_theme),
     AraSettings(title = R.string.ara_settings),
     AraMyPostSettings(title = R.string.ara_my_post_settings),
+    BoardSectionsSettings(title = R.string.board_sections),
+    BlockedUsersSettings(title = R.string.blocked_users),
     TaxiSettings(title = R.string.taxi_settings),
     TaxiReportSettings(title = R.string.taxi_report_settings)
 }
@@ -670,6 +677,19 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     }
 
                     composable(
+                        route = Channel.HighlightPostList.name + "?section={section}",
+                        arguments = listOf(
+                            navArgument("section") {
+                                type = NavType.StringType
+                                nullable = false
+                            }
+                        ),
+                    ) { backStackEntry ->
+                        val viewModel: HighlightPostListViewModel = hiltViewModel(backStackEntry)
+                        HighlightPostListView(navController = navController, viewModel = viewModel)
+                    }
+
+                    composable(
                         route = Channel.PostView.name + "?postId={postId}",
                         arguments = listOf(
                             navArgument("postId") { type = NavType.IntType }
@@ -686,11 +706,16 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     }
 
                     composable(
-                        route = Channel.PostCompose.name + "?board_json={board_json}",
+                        route = Channel.PostCompose.name + "?board_json={board_json}&post_json={post_json}",
                         arguments = listOf(
                             navArgument("board_json") {
                                 type = NavType.StringType
                                 nullable = false
+                            },
+                            navArgument("post_json") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
                             }
                         ),
                     ) { backStackEntry ->
@@ -784,6 +809,14 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ) { backStackEntry ->
                         val viewModel: AraSettingsViewModel = hiltViewModel(backStackEntry)
                         AraSettingsView(viewModel = viewModel, navController = navController)
+                    }
+
+                    composable(route = Channel.BoardSectionsSettings.name) {
+                        BoardSectionsSettingsView(navController = navController)
+                    }
+
+                    composable(route = Channel.BlockedUsersSettings.name) {
+                        BlockedUsersView(navController = navController)
                     }
 
                     composable(

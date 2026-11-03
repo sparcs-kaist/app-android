@@ -20,7 +20,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.enums.ara.PostListType
 import org.sparcs.soap.app.domain.enums.ara.PostOrigin
+import org.sparcs.soap.app.domain.helpers.BoardSeenPostsStoreProtocol
 import org.sparcs.soap.app.domain.models.ara.AraBoard
+import org.sparcs.soap.app.domain.models.ara.AraBoardTopic
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
@@ -35,14 +37,17 @@ interface PostListViewModelProtocol {
     var isLoadingMore: Boolean
     var hasMorePages: Boolean
     val searchKeyword: StateFlow<String>
+    val selectedTopic: AraBoardTopic?
 
     var lastClickedPostId: Int?
 
     fun fetchInitialPosts()
     suspend fun loadNextPage()
     fun refreshItem(postID: Int)
+    fun markRead(postID: Int)
     fun removePost(postID: Int)
     fun onSearchTextChange(text: String)
+    fun selectTopic(topic: AraBoardTopic?)
     fun bind()
 }
 
@@ -51,6 +56,7 @@ class PostListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val araBoardUseCase: AraBoardUseCaseProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
+    private val seenPostsStore: BoardSeenPostsStoreProtocol,
 ) : ViewModel(), PostListViewModelProtocol {
 
     private val initialBoard: AraBoard by lazy {
@@ -74,7 +80,6 @@ class PostListViewModel @Inject constructor(
 
     override var lastClickedPostId: Int? = null
 
-    //Search Properties
     private val _searchKeyword = MutableStateFlow("")
     override val searchKeyword: StateFlow<String> = _searchKeyword
 
@@ -82,15 +87,26 @@ class PostListViewModel @Inject constructor(
         _searchKeyword.value = text
     }
 
-    //Infinite Scroll Properties
-    // Compose state so the list can show its loading-more spinner.
+    override var selectedTopic: AraBoardTopic? by mutableStateOf(null)
+        private set
+    private var generation = 0
+
+    private val listType: PostListType
+        get() = PostListType.Board(boardID = board.id, topicID = selectedTopic?.id)
+
+    override fun selectTopic(topic: AraBoardTopic?) {
+        if (topic == selectedTopic) return
+        selectedTopic = topic
+        analyticsService.logEvent(PostListViewEvent.TopicSelected(topic?.slug))
+        fetchInitialPosts()
+    }
+
     override var isLoadingMore: Boolean by mutableStateOf(false)
     override var hasMorePages: Boolean = false
     private var currentPage: Int = 1
     private var totalPages: Int = 0
     private var pageSize: Int = 30
 
-    //Mark: - Functions
     @OptIn(FlowPreview::class)
     override fun bind() {
         viewModelScope.launch {
@@ -108,15 +124,21 @@ class PostListViewModel @Inject constructor(
     }
 
     override fun fetchInitialPosts() {
+        val request = ++generation
         _state.value = ViewState.Loading
+        isLoadingMore = false
         viewModelScope.launch {
             try {
                 val page = araBoardUseCase.fetchPosts(
-                    type = PostListType.Board(boardID = board.id),
+                    type = listType,
                     page = 1,
                     pageSize = pageSize,
                     searchKeyword = _searchKeyword.value.ifBlank { null }
                 )
+                if (request != generation) return@launch
+                if (selectedTopic == null && _searchKeyword.value.isBlank()) {
+                    page.results.maxOfOrNull { it.id }?.let { seenPostsStore.markSeen(it, board.id) }
+                }
                 totalPages = page.pages
                 currentPage = page.currentPage
                 posts = page.results
@@ -124,31 +146,33 @@ class PostListViewModel @Inject constructor(
                 _state.value = ViewState.Loaded(posts)
                 analyticsService.logEvent(PostListViewEvent.PostsRefreshed)
             } catch (e: Exception) {
-                _state.value = ViewState.Error(e)
+                if (request == generation) _state.value = ViewState.Error(e)
             }
         }
     }
 
     override suspend fun loadNextPage() {
         if (isLoadingMore || !hasMorePages) return
+        val request = generation
         isLoadingMore = true
         try {
             val nextPage = currentPage + 1
             val page = araBoardUseCase.fetchPosts(
-                type = PostListType.Board(boardID = board.id),
+                type = listType,
                 page = nextPage,
                 pageSize = pageSize,
                 searchKeyword = _searchKeyword.value.ifBlank { null }
             )
+            if (request != generation) return
             currentPage = page.currentPage
             posts = (posts + page.results).distinctBy { it.id }
             hasMorePages = currentPage < totalPages
             _state.value = ViewState.Loaded(posts)
-            isLoadingMore = false
             analyticsService.logEvent(PostListViewEvent.NextPageLoaded)
         } catch (e: Exception) {
             Timber.e("Error loading next page: $e")
-            isLoadingMore = false
+        } finally {
+            if (request == generation) isLoadingMore = false
         }
     }
 
@@ -159,20 +183,17 @@ class PostListViewModel @Inject constructor(
             } catch (_: Exception) {
                 null
             } ?: return@launch
-
-            val idx = posts.indexOfFirst { it.id == updated.id }
-            if (idx != -1) {
-                val mutablePosts = posts.toMutableList()
-                val previousPost = mutablePosts[idx]
-                mutablePosts[idx] = previousPost.copy(
-                    upVotes = updated.upVotes,
-                    downVotes = updated.downVotes,
-                    commentCount = updated.commentCount
-                )
-                posts = mutablePosts
-                _state.value = ViewState.Loaded(posts)
-            }
+            updatePost(postID) { it.refreshed(updated) }
         }
+    }
+
+    override fun markRead(postID: Int) {
+        updatePost(postID) { it.markedRead() }
+    }
+
+    private fun updatePost(postID: Int, transform: (AraPost) -> AraPost) {
+        posts = posts.updating(postID, transform) ?: return
+        _state.value = ViewState.Loaded(posts)
     }
 
     override fun removePost(postID: Int) {

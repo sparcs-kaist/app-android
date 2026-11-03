@@ -7,7 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,10 +18,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Description
@@ -31,7 +33,11 @@ import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Policy
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,9 +75,10 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.R
 import org.sparcs.soap.app.ChannelManager
+import org.sparcs.soap.app.domain.helpers.BoardSeenPostsStore
+import org.sparcs.soap.app.domain.helpers.BoardSeenPostsStoreProtocol
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.settings.components.ServiceLogo
 import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
@@ -155,34 +162,51 @@ fun SettingsView(
                     ) { activity?.let { ChannelManager.showMessenger(it) } }
                 }
 
-                item { SettingsSectionHeader(stringResource(R.string.services)) }
-                item {
-                    ServiceItem(stringResource(R.string.feed), R.drawable.sparcs_logo) {
-                        navController.navigate(Channel.FeedSettings.name)
-                    }
-                }
-                item {
-                    ServiceItem(stringResource(R.string.ara), R.drawable.ara_logo) {
-                        navController.navigate(Channel.AraSettings.name)
-                    }
-                }
-                item {
-                    ServiceItem(stringResource(R.string.otl), R.drawable.otl_logo) {
-                        navController.navigate(Channel.TimetableSettings.name)
-                    }
-                }
-                item {
-                    ServiceItem(stringResource(R.string.taxi), R.drawable.taxi_logo) {
-                        navController.navigate(Channel.TaxiSettings.name)
+                serviceSection(R.string.feed) {
+                    item {
+                        NavigationItem(stringResource(R.string.profile), Icons.Outlined.Person) {
+                            navController.navigate(Channel.FeedSettings.name)
+                        }
                     }
                 }
 
-                item { SettingsSectionHeader(stringResource(R.string.screen_style)) }
-                item {
-                    NavigationItem(
-                        text = stringResource(R.string.timetable_theme),
-                        icon = Icons.Outlined.Palette
-                    ) { navController.navigate(Channel.TimetableThemeSettings.name) }
+                serviceSection(R.string.otl) {
+                    item {
+                        NavigationItem(stringResource(R.string.settings), Icons.Outlined.Tune) {
+                            navController.navigate(Channel.TimetableSettings.name)
+                        }
+                    }
+                    item {
+                        NavigationItem(stringResource(R.string.timetable_theme), Icons.Outlined.Palette) {
+                            navController.navigate(Channel.TimetableThemeSettings.name)
+                        }
+                    }
+                }
+
+                serviceSection(R.string.ara) {
+                    item {
+                        NavigationItem(stringResource(R.string.profile), Icons.Outlined.Person) {
+                            navController.navigate(Channel.AraSettings.name)
+                        }
+                    }
+                    item {
+                        NavigationItem(stringResource(R.string.board_sections), Icons.Outlined.ViewAgenda) {
+                            navController.navigate(Channel.BoardSectionsSettings.name)
+                        }
+                    }
+                    item {
+                        NavigationItem(stringResource(R.string.blocked_users), Icons.Outlined.Block) {
+                            navController.navigate(Channel.BlockedUsersSettings.name)
+                        }
+                    }
+                }
+
+                serviceSection(R.string.taxi) {
+                    item {
+                        NavigationItem(stringResource(R.string.profile), Icons.Outlined.Person) {
+                            navController.navigate(Channel.TaxiSettings.name)
+                        }
+                    }
                 }
 
                 item { SettingsSectionHeader(stringResource(R.string.information)) }
@@ -224,6 +248,7 @@ fun SettingsView(
                         }
                     }
                     item { LocalTipStore.current?.let { TipsDebugSection(it) } }
+                    item { BoardsDebugSection() }
                 }
             }
         }
@@ -256,6 +281,41 @@ fun SettingsView(
     ) {
         settingsViewModel.isAlertPresented = false
     }
+}
+
+@Composable
+private fun BoardsDebugSection() {
+    val seenPostsStore = rememberBoardSeenPostsStore()
+    var showsResetAlert by remember { mutableStateOf(false) }
+    Column {
+        SettingsSectionHeader(stringResource(R.string.debug_boards))
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.debug_reset_new_post_dots)) },
+            supportingContent = { Text(stringResource(R.string.debug_reset_new_post_dots_footer)) },
+            leadingContent = { Icon(Icons.Outlined.RestartAlt, contentDescription = null) },
+            modifier = Modifier.clickable {
+                seenPostsStore.reset()
+                showsResetAlert = true
+            }
+        )
+    }
+
+    if (showsResetAlert) {
+        AlertDialog(
+            onDismissRequest = { showsResetAlert = false },
+            title = { Text(stringResource(R.string.debug_dots_reset_title)) },
+            text = { Text(stringResource(R.string.debug_dots_reset_message)) },
+            confirmButton = {
+                TextButton(onClick = { showsResetAlert = false }) { Text(stringResource(R.string.ok)) }
+            }
+        )
+    }
+}
+
+@Composable
+private fun rememberBoardSeenPostsStore(): BoardSeenPostsStoreProtocol {
+    val context = LocalContext.current
+    return remember(context) { BoardSeenPostsStore(context.applicationContext) }
 }
 
 @Composable
@@ -305,13 +365,9 @@ private fun NavigationItem(
     )
 }
 
-@Composable
-private fun ServiceItem(
-    text: String,
-    @DrawableRes logo: Int,
-    onClick: () -> Unit,
-) {
-    SettingsNavigationItem(text = text, onClick = onClick, leadingContent = { ServiceLogo(logo) })
+private fun LazyListScope.serviceSection(@StringRes title: Int, content: LazyListScope.() -> Unit) {
+    item { SettingsSectionHeader(stringResource(title)) }
+    content()
 }
 
 @Composable
@@ -457,6 +513,12 @@ private fun Preview() {
     Theme {
         SettingsView(rememberNavController(), MockSettingsViewModel())
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun BoardsDebugSectionPreview() {
+    Theme { BoardsDebugSection() }
 }
 
 @Composable

@@ -59,7 +59,7 @@ fun HeaderSkeleton() {
 }
 
 @Composable
-private fun ContentSkeleton() {
+fun ContentSkeleton() {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         listOf(1f, 1f, 0.9f, 1f, 0.6f).forEach { fraction ->
             SkeletonLine(MaterialTheme.typography.bodyLarge, Modifier.fillMaxWidth(fraction))

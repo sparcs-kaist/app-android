@@ -11,13 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
-import androidx.compose.material.icons.outlined.Drafts
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.LocalOffer
-import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,23 +20,32 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraBoard
+import org.sparcs.soap.app.domain.models.ara.AraPost
+import org.sparcs.soap.app.domain.models.ara.BoardListSection
+import org.sparcs.soap.app.features.boardList.components.BoardHighlightSection
 import org.sparcs.soap.app.features.boardList.components.BoardListNavigationBar
+import org.sparcs.soap.app.features.boardList.components.NewPostsDot
 import org.sparcs.soap.app.features.boardList.components.boardListSkeleton
+import org.sparcs.soap.app.features.boardList.components.icon
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewBoardListViewModel
@@ -58,6 +60,11 @@ fun BoardListView(
 
     LaunchedEffect(Unit) {
         viewModel.fetchBoards()
+    }
+
+    LifecycleResumeEffect(viewModel) {
+        viewModel.reloadSections()
+        onPauseOrDispose {}
     }
 
     val topBarScrollBehavior = topAppBarScrollBehavior()
@@ -96,6 +103,13 @@ fun BoardListView(
                     val json = Uri.encode(Gson().toJson(board))
                     navController.navigate(Channel.BoardList.name + "?board_json=$json")
                 }
+                val onPostClick: (AraPost) -> Unit = { post ->
+                    navController.navigate(Channel.PostView.name + "?postId=${post.id}")
+                }
+                val onSeeAllHighlight: (BoardListSection) -> Unit = { section ->
+                    navController.navigate(Channel.HighlightPostList.name + "?section=${section.id}")
+                }
+                val loadedBoards = (state as? BoardListViewModel.ViewState.Loaded)?.boards
 
                 LazyColumn(
                     modifier = Modifier
@@ -103,14 +117,32 @@ fun BoardListView(
                         .widthIn(max = 600.dp),
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
+                    viewModel.sections.forEach { section ->
+                        val board = (section as? BoardListSection.Board)?.let { s ->
+                            loadedBoards?.firstOrNull { it.slug == s.slug && it.userReadable != false }
+                        }
+                        val isMissingBoard = section is BoardListSection.Board && loadedBoards != null && board == null
+                        if (!isMissingBoard) item(key = "section-${section.id}") {
+                            BoardHighlightSection(
+                                section = section,
+                                board = board,
+                                posts = viewModel.posts(section),
+                                onPostClick = onPostClick,
+                                onSeeAll = if (board != null) {
+                                    { onBoardClick(board) }
+                                } else {
+                                    { onSeeAllHighlight(section) }
+                                }
+                            )
+                        }
+                    }
                     when (val current = state) {
                         is BoardListViewModel.ViewState.Loading -> boardListSkeleton(listOf(4, 1, 2, 3))
                         is BoardListViewModel.ViewState.Loaded -> current.groups.forEach { group ->
-                            // Each group's header stays pinned while its boards scroll beneath it.
                             stickyHeader(key = "group-${group.id}") {
                                 SettingsSectionHeader(
                                     text = group.name.localized(),
-                                    icon = systemImage(group.slug),
+                                    icon = group.icon,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .background(MaterialTheme.colorScheme.surface)
@@ -120,9 +152,13 @@ fun BoardListView(
                                 current.boards.filter { it.group.id == group.id },
                                 key = { "board-${it.id}" }
                             ) { board ->
+                                val newPostsLabel = stringResource(R.string.new_posts)
                                 SettingsNavigationItem(
                                     text = board.name.localized(),
-                                    onClick = { onBoardClick(board) }
+                                    onClick = { onBoardClick(board) },
+                                    trailingContent = if (board.id in viewModel.boardsWithNewPosts) {
+                                        { NewPostsDot(Modifier.semantics { contentDescription = newPostsLabel }) }
+                                    } else null
                                 )
                             }
                         }
@@ -135,30 +171,34 @@ fun BoardListView(
     }
 }
 
-fun systemImage(slug: String): ImageVector {
-    return when (slug) {
-        "notice" -> Icons.Outlined.NotificationsActive
-        "talk" -> Icons.AutoMirrored.Outlined.Chat
-        "club" -> Icons.Outlined.Group
-        "trade" -> Icons.Outlined.LocalOffer
-        "communication" -> Icons.Outlined.Drafts
-        else -> Icons.AutoMirrored.Outlined.FormatListBulleted
-    }
-}
-
-// MARK: - Previews
 @Preview(name = "Loading State", showBackground = true)
 @Composable
 fun PreviewBoardListLoading() {
-    val viewModel = PreviewBoardListViewModel(initialState = BoardListViewModel.ViewState.Loading)
+    val viewModel = PreviewBoardListViewModel(
+        initialState = BoardListViewModel.ViewState.Loading,
+        sections = BoardListSection.defaults
+    )
     Theme { BoardListView(viewModel, rememberNavController()) }
 }
 
 @Preview(name = "Loaded State", showBackground = true)
 @Composable
 fun PreviewBoardListLoaded() {
-    val viewModel = PreviewBoardListViewModel(initialState = PreviewBoardListViewModel.loadedState())
+    val viewModel = PreviewBoardListViewModel(
+        initialState = PreviewBoardListViewModel.loadedState(),
+        sections = BoardListSection.defaults,
+        sectionPosts = previewSectionPosts()
+    )
     Theme { BoardListView(viewModel, rememberNavController()) }
+}
+
+private fun previewSectionPosts(): Map<BoardListSection, List<AraPost>> {
+    val posts = AraPost.mockList()
+    return mapOf(
+        BoardListSection.Trending to posts.take(3),
+        BoardListSection.Latest to posts.takeLast(3),
+        BoardListSection.Board(AraBoard.MARKET_SLUG) to posts
+    )
 }
 
 @Preview(name = "Loaded State Landscape", showBackground = true, widthDp = 840, heightDp = 480)

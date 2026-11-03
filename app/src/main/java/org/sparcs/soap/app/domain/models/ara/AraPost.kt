@@ -1,5 +1,7 @@
 package org.sparcs.soap.app.domain.models.ara
 
+import org.sparcs.soap.app.domain.enums.ara.AraPostNicknameType
+import java.net.URL
 import java.util.Date
 
 data class AraPost(
@@ -28,8 +30,27 @@ data class AraPost(
     val content: String?,
     var myVote: Boolean?,
     var myScrap: Boolean,
-    val scrapID: Int?
+    val scrapID: Int?,
+    val nicknameType: AraPostNicknameType? = null,
+    val marketListing: AraMarketListing? = null,
+    val readStatus: ReadStatus? = null,
 ) {
+    enum class ReadStatus(val code: String) {
+        UNREAD("N"),
+        READ("-"),
+        UPDATED("U");
+
+        companion object {
+            fun fromCode(code: String?): ReadStatus? = entries.firstOrNull { it.code == code }
+        }
+    }
+
+    val isAnonymous: Boolean
+        get() = nicknameType?.let { it == AraPostNicknameType.ANONYMOUS } ?: (author.username == ANONYMOUS_USERNAME)
+
+    val thumbnailURL: URL?
+        get() = attachments?.firstOrNull { it.mimeType.startsWith("image/") }?.file
+
     enum class AttachmentType(val type: String) {
         NONE("NONE"),
         IMAGE("IMAGE"),
@@ -43,5 +64,7 @@ data class AraPost(
         ANSWERED(2)
     }
 
-    companion object
+    companion object {
+        const val ANONYMOUS_USERNAME = "anonymous"
+    }
 }

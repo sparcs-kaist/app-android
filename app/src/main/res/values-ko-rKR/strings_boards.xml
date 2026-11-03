@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="board_highlight_comments">
+        <item quantity="other">댓글 %d개</item>
+    </plurals>
+    <string name="board_sections_shown">표시 중</string>
+    <string name="board_sections_highlights">하이라이트</string>
+    <string name="board_sections_reset">기본값으로 재설정</string>
+    <string name="board_sections_add">%1$s 추가</string>
+    <string name="board_sections_remove">%1$s 제거</string>
+    <string name="blocked_users_footer">Ara에서 이 사용자들의 글과 댓글이 보이지 않습니다.</string>
+    <string name="blocked_users_empty_description">게시물이나 댓글에서 차단한 사용자가 여기에 표시됩니다.</string>
+    <string name="debug_boards">게시판</string>
+    <string name="debug_reset_new_post_dots">새 게시물 표시 초기화</string>
+    <string name="debug_reset_new_post_dots_footer">각 게시판 목록에서 본 가장 최근 게시물을 잊어, 최신 게시물을 읽지 않은 게시판에 다시 점이 표시됩니다.</string>
+    <string name="debug_dots_reset_title">표시 초기화됨</string>
+    <string name="debug_dots_reset_message">다음에 게시판 목록이 열리면 새 게시물 점이 다시 표시됩니다.</string>
+</resources>

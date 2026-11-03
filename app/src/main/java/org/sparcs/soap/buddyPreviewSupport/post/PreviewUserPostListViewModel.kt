@@ -40,6 +40,7 @@ class PreviewUserPostListViewModel(
     override suspend fun loadNextPage() { }
 
     override fun refreshItem(postID: Int) { }
+    override fun markRead(postID: Int) { }
     override fun removePost(postID: Int) { }
     override fun bind() { }
 }

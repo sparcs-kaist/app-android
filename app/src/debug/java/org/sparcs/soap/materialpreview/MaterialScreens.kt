@@ -140,7 +140,7 @@ import org.sparcs.soap.app.domain.models.feed.FeedPost
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.domain.models.taxi.TaxiLocation
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
-import org.sparcs.soap.app.shared.extensions.araContentToPlainText
+import org.sparcs.soap.app.features.post.contentPlainText
 import org.sparcs.soap.app.shared.extensions.ceilToNextTenMinutes
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.extensions.postfixEuroRo
@@ -869,7 +869,7 @@ private fun ScreenPostDetail() {
             item {
                 // The original renders the body in a WebView; plain text stands in here.
                 Text(
-                    text = post.content?.araContentToPlainText().orEmpty(),
+                    text = post.contentPlainText,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(16.dp)
                 )

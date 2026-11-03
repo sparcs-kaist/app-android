@@ -6,7 +6,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.automirrored.rounded.Reply
@@ -46,19 +43,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.ara.AraContentReportType
 import org.sparcs.soap.app.domain.enums.feed.ReportLabelProvider
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
+import org.sparcs.soap.app.domain.models.ara.isHiddenForBlockedAuthor
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.app.shared.mocks.ara.mock
@@ -78,12 +74,15 @@ fun PostCommentCell(
     onReport: (AraContentReportType) -> Unit,
     onDeleteComment: () -> Unit,
     onTranslate: () -> Unit = {},
+    onSetAuthorBlocked: ((Boolean) -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
-    val isDeleted = comment.content == null
+    val isHiddenForBlock = comment.isHiddenForBlockedAuthor
+    val isDeleted = comment.content == null && !isHiddenForBlock
 
     var alertState by remember { mutableStateOf<AlertState?>(null) }
     var isAlertPresented by remember { mutableStateOf(false) }
+    var showsBlockConfirmation by remember { mutableStateOf(false) }
 
     Row(modifier = Modifier.fillMaxWidth()) {
         if (isThreaded) {
@@ -122,17 +121,18 @@ fun PostCommentCell(
                         }
                     }
                 },
-                onTranslate = onTranslate
+                onTranslate = onTranslate,
+                onReply = if (isThreaded || isHiddenForBlock) null else onComment,
+                onSetAuthorBlocked = onSetAuthorBlocked?.let { setBlocked ->
+                    { blocked -> if (blocked) showsBlockConfirmation = true else setBlocked(false) }
+                }
             )
 
-            PostCommentContent(
-                isDeleted = isDeleted,
-                comment = comment
-            )
+            PostCommentContent(comment = comment)
             PostCommentFooter(
                 comment = comment,
-                isThreaded = isThreaded,
-                isDeleted = isDeleted,
+                showsReply = !isThreaded && !isHiddenForBlock,
+                isDeleted = comment.content == null,
                 onComment = onComment,
                 onUpVote = onUpVote,
                 onDownVote = onDownVote
@@ -145,6 +145,17 @@ fun PostCommentCell(
         state = alertState,
         onDismiss = { isAlertPresented = false }
     )
+
+    if (showsBlockConfirmation) {
+        BlockAuthorDialog(
+            nickname = comment.author.profile.nickname,
+            onConfirm = {
+                showsBlockConfirmation = false
+                onSetAuthorBlocked?.invoke(true)
+            },
+            onDismiss = { showsBlockConfirmation = false }
+        )
+    }
 }
 
 @Composable
@@ -155,9 +166,11 @@ private fun PostCommentHeader(
     onDelete: () -> Unit,
     onReport: (AraContentReportType) -> Unit,
     onTranslate: () -> Unit,
+    onReply: (() -> Unit)?,
+    onSetAuthorBlocked: ((Boolean) -> Unit)?,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        ProfilePicture(url = comment.author.profile.profilePictureURL.toString())
+        AuthorAvatar(comment.author.profile.profilePictureURL, size = 24.dp)
 
         Spacer(modifier = Modifier.padding(4.dp))
 
@@ -185,7 +198,11 @@ private fun PostCommentHeader(
                 onDelete = onDelete,
                 onReport = onReport,
                 onTranslate = onTranslate,
-                isComment = true
+                isComment = true,
+                onReply = onReply,
+                isAuthorBlocked = comment.author.isBlocked == true,
+                onSetAuthorBlocked = onSetAuthorBlocked,
+                showsContentActions = comment.content != null
             )
         }
     }
@@ -194,7 +211,7 @@ private fun PostCommentHeader(
 @Composable
 fun <T> PostCommentActionsMenu(
     modifier: Modifier = Modifier,
-    enumClass: KClass<T>, //ara or feed report type
+    enumClass: KClass<T>,
     isMine: Boolean?,
     onEdit: () -> Unit? = {},
     onDelete: () -> Unit,
@@ -203,12 +220,14 @@ fun <T> PostCommentActionsMenu(
     onSummarize: () -> Unit = {},
     isComment: Boolean,
     onReply: (() -> Unit)? = null,
+    isAuthorBlocked: Boolean = false,
+    onSetAuthorBlocked: ((Boolean) -> Unit)? = null,
+    showsContentActions: Boolean = true,
 ) where T : Enum<T>, T : ReportLabelProvider {
     var expanded by remember { mutableStateOf(false) }
     var reportExpanded by remember { mutableStateOf(false) }
 
     Box {
-        // Standard overflow button; on your own comment it is tinted to mark it as yours.
         IconButton(onClick = { expanded = true }, modifier = modifier) {
             Icon(
                 imageVector = Icons.Filled.MoreVert,
@@ -232,6 +251,11 @@ fun <T> PostCommentActionsMenu(
                 )
             }
             if (isMine == false) {
+                onSetAuthorBlocked?.let { setBlocked ->
+                    BlockItem(isAuthorBlocked) { expanded = false; setBlocked(!isAuthorBlocked) }
+                }
+            }
+            if (isMine == false && showsContentActions) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.report)) },
                     onClick = {
@@ -298,9 +322,8 @@ fun <T> PostCommentActionsMenu(
                     )
                 }
 
-            } else {
-                if (isComment && enumClass == AraContentReportType::class) {
-                    //Only for Ara comments
+            } else if (isMine != false) {
+                if (enumClass == AraContentReportType::class) {
                     DropdownMenuItem(
                     text = { Text(stringResource(R.string.edit)) },
                     onClick = { onEdit(); expanded = false },
@@ -336,36 +359,19 @@ fun <T> PostCommentActionsMenu(
 }
 
 @Composable
-private fun ProfilePicture(url: String?) {
-    if (!url.isNullOrEmpty()) {
-        AsyncImage(
-            model = url,
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                // Shown while the picture loads.
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-        )
-    } else {
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-        )
-    }
-}
-
-@Composable
-private fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
+private fun PostCommentContent(comment: AraPostComment) {
+    val isBlocked = comment.isHiddenForBlockedAuthor
     AnimatedContent(targetState = comment.content) { content ->
         Text(
-            text = content ?: stringResource(R.string.this_comment_has_been_deleted),
+            text = when {
+                content != null -> content
+                isBlocked -> stringResource(R.string.comment_hidden_blocked_author)
+                else -> stringResource(R.string.this_comment_has_been_deleted)
+            },
             style = MaterialTheme.typography.bodyMedium,
-            fontStyle = if (isDeleted) FontStyle.Italic else null,
+            fontStyle = if (content == null) FontStyle.Italic else null,
             modifier = Modifier.padding(vertical = 8.dp),
-            color = if (isDeleted) MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (content == null) MaterialTheme.colorScheme.onSurfaceVariant
             else MaterialTheme.colorScheme.onSurface
         )
     }
@@ -374,7 +380,7 @@ private fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
 @Composable
 private fun PostCommentFooter(
     comment: AraPostComment,
-    isThreaded: Boolean,
+    showsReply: Boolean,
     isDeleted: Boolean,
     onComment: () -> Unit,
     onUpVote: () -> Unit,
@@ -390,7 +396,7 @@ private fun PostCommentFooter(
             .fillMaxWidth()
             .padding(bottom = 4.dp, end = 4.dp)
     ) {
-        if (!isThreaded) {
+        if (showsReply) {
             PostCommentButton(commentCount = comment.comments.size, onClick = onComment, isCompact = true)
         }
 
@@ -408,7 +414,7 @@ private fun PostCommentFooter(
                         onDownVote()
                     }
                 },
-                enabled = true, //Post 자추 불가능
+                enabled = true,
                 isCompact = true
             )
         }

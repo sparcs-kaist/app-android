@@ -52,27 +52,11 @@ class ReviewSummaryUseCase @Inject constructor() : ReviewSummaryUseCaseProtocol 
             }
             if (summary.isBlank()) throw ReviewSummaryException(ReviewSummaryError.FAILED)
         } catch (error: GenAiException) {
-            throw ReviewSummaryException(error.reason)
+            throw ReviewSummaryException(error.summaryError)
         } finally {
             model.close()
         }
     }
-
-    private val GenAiException.reason: ReviewSummaryError
-        get() = when (errorCode) {
-            GenAiException.ErrorCode.REQUEST_PROCESSING_ERROR,
-            GenAiException.ErrorCode.RESPONSE_GENERATION_ERROR,
-            GenAiException.ErrorCode.RESPONSE_PROCESSING_ERROR,
-                -> ReviewSummaryError.UNSAFE_CONTENT
-
-            GenAiException.ErrorCode.NOT_AVAILABLE,
-            GenAiException.ErrorCode.NOT_SUPPORTED,
-            GenAiException.ErrorCode.AICORE_INCOMPATIBLE,
-            GenAiException.ErrorCode.NEEDS_SYSTEM_UPDATE,
-                -> ReviewSummaryError.UNAVAILABLE
-
-            else -> ReviewSummaryError.FAILED
-        }
 
     companion object {
         const val MIN_REVIEW_LENGTH = 200
@@ -94,3 +78,19 @@ class ReviewSummaryUseCase @Inject constructor() : ReviewSummaryUseCaseProtocol 
         """.trimIndent()
     }
 }
+
+internal val GenAiException.summaryError: ReviewSummaryError
+    get() = when (errorCode) {
+        GenAiException.ErrorCode.REQUEST_PROCESSING_ERROR,
+        GenAiException.ErrorCode.RESPONSE_GENERATION_ERROR,
+        GenAiException.ErrorCode.RESPONSE_PROCESSING_ERROR,
+            -> ReviewSummaryError.UNSAFE_CONTENT
+
+        GenAiException.ErrorCode.NOT_AVAILABLE,
+        GenAiException.ErrorCode.NOT_SUPPORTED,
+        GenAiException.ErrorCode.AICORE_INCOMPATIBLE,
+        GenAiException.ErrorCode.NEEDS_SYSTEM_UPDATE,
+            -> ReviewSummaryError.UNAVAILABLE
+
+        else -> ReviewSummaryError.FAILED
+    }

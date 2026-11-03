@@ -106,7 +106,7 @@ fun PostSection(
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     onLoadMore: () -> Unit,
-    navController: NavController,
+    onPostClick: (AraPost) -> Unit,
     isSkeleton: Boolean,
 ) {
     SearchSection(
@@ -123,9 +123,7 @@ fun PostSection(
             if (isSkeleton) {
                 SearchItemSkeleton()
             } else {
-                SearchPostItem(post) {
-                    navController.navigate(Channel.PostView.name + "?postId=${post.id}")
-                }
+                SearchPostItem(post) { onPostClick(post) }
             }
         }
     }
