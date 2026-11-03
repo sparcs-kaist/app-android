@@ -31,13 +31,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,8 +64,11 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.features.settings.components.RowElementView
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
 import org.sparcs.soap.app.features.settings.feed.viewState.FeedProfileImageState
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
@@ -311,39 +314,45 @@ private fun LoadedView(
 
         Spacer(Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = viewModel.nickname,
-            onValueChange = {
-                viewModel.nickname = it
-                viewModel.nicknameError = null
-            },
-            isError = viewModel.nicknameError != null,
-            supportingText = viewModel.nicknameError?.let { errorRes ->
-                { Text(stringResource(errorRes)) }
-            },
-            label = { Text(stringResource(R.string.enter_nickname)) },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    viewModel.updateNickname { success ->
-                        if (success) {
-                            keyboardController?.hide()
-                            onUpdateSuccess()
-                        }
-                    }
+        SettingsGroup {
+            row {
+                SettingsFieldItem {
+                    TextField(
+                        value = viewModel.nickname,
+                        onValueChange = {
+                            viewModel.nickname = it
+                            viewModel.nicknameError = null
+                        },
+                        isError = viewModel.nicknameError != null,
+                        supportingText = viewModel.nicknameError?.let { errorRes ->
+                            { Text(stringResource(errorRes)) }
+                        },
+                        label = { Text(stringResource(R.string.enter_nickname)) },
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                viewModel.updateNickname { success ->
+                                    if (success) {
+                                        keyboardController?.hide()
+                                        onUpdateSuccess()
+                                    }
+                                }
+                            }
+                        ),
+                        singleLine = true,
+                        colors = settingsTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-            ),
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
-
-        RowElementView(
-            title = stringResource(R.string.karma),
-            content = viewModel.karma.toString(),
-            trailing = true
-        )
+            }
+            row {
+                RowElementView(
+                    title = stringResource(R.string.karma),
+                    content = viewModel.karma.toString(),
+                    trailing = true
+                )
+            }
+        }
     }
 }
 

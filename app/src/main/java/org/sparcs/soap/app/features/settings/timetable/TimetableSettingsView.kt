@@ -56,6 +56,7 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.reviewDigest.ReviewDigestViewModel
 import org.sparcs.soap.app.features.reviewDigest.ReviewDigestViewModelProtocol
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
 import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
@@ -140,11 +141,15 @@ private fun LoadedView(
 
         SettingsSectionHeader(stringResource(R.string.interested_departments))
 
-        SettingsNavigationItem(
-            text = stringResource(R.string.interested_departments),
-            onClick = { navController.navigate(Channel.InterestedDepartments.name) },
-            leadingContent = { Icon(Icons.Outlined.School, contentDescription = null) }
-        )
+        SettingsGroup {
+            row {
+                SettingsNavigationItem(
+                    text = stringResource(R.string.interested_departments),
+                    onClick = { navController.navigate(Channel.InterestedDepartments.name) },
+                    leadingContent = { Icon(Icons.Outlined.School, contentDescription = null) }
+                )
+            }
+        }
 
         ReviewSummarySetting()
     }
@@ -170,15 +175,19 @@ private fun ReviewSummarySetting(
     Column {
         SettingsSectionHeader(stringResource(R.string.review_digest_settings_title))
 
-        SettingsSwitchItem(
-            text = stringResource(R.string.review_digest_settings_automatic),
-            checked = isAutomatic,
-            onCheckedChange = {
-                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                store.summarisesAutomatically = it
-            },
-            supportingText = stringResource(R.string.review_digest_settings_footer)
-        )
+        SettingsGroup {
+            row {
+                SettingsSwitchItem(
+                    text = stringResource(R.string.review_digest_settings_automatic),
+                    checked = isAutomatic,
+                    onCheckedChange = {
+                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                        store.summarisesAutomatically = it
+                    },
+                    supportingText = stringResource(R.string.review_digest_settings_footer)
+                )
+            }
+        }
     }
 }
 

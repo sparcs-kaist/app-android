@@ -6,27 +6,30 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,10 +60,13 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.InfoTooltip
 import org.sparcs.soap.app.features.settings.components.RowElementView
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
 import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
 import org.sparcs.soap.app.shared.extensions.PhoneNumberVisualTransformation
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
@@ -70,6 +76,7 @@ import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -284,18 +291,26 @@ fun TaxiSettingsView(
 @Composable
 private fun LoadingView() {
     Column {
-        RowElementView(
-            title = stringResource(R.string.nickname),
-            content = stringResource(R.string.unknown)
-        )
-        RowElementView(
-            title = stringResource(R.string.bank_name),
-            content = stringResource(R.string.unknown)
-        )
-        RowElementView(
-            title = stringResource(R.string.phone_number),
-            content = stringResource(R.string.unknown)
-        )
+        SettingsGroup {
+            row {
+                RowElementView(
+                    title = stringResource(R.string.nickname),
+                    content = stringResource(R.string.unknown)
+                )
+            }
+            row {
+                RowElementView(
+                    title = stringResource(R.string.bank_name),
+                    content = stringResource(R.string.unknown)
+                )
+            }
+            row {
+                RowElementView(
+                    title = stringResource(R.string.phone_number),
+                    content = stringResource(R.string.unknown)
+                )
+            }
+        }
     }
 }
 
@@ -321,94 +336,104 @@ private fun LoadedView(
             } else null
         )
 
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-
-            // Nickname
-            OutlinedTextField(
-                value = viewModel.nickname ?: "",
-                onValueChange = { viewModel.nickname = it },
-                label = { Text(stringResource(R.string.nickname)) },
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            BankPicker(
-                selected = viewModel.bankName,
-                options = Constants.taxiBankNameList,
-                onSelected = { viewModel.bankName = it }
-            )
-
-            //Bank Number
-            OutlinedTextField(
-                value = viewModel.bankNumber,
-                onValueChange = { input ->
-                    val onlyNumbers = input.filter { it.isDigit() }
-                    viewModel.bankNumber = onlyNumbers
-                },
-                label = { Text(stringResource(R.string.enter_bank_number)) },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Phone Number
-            OutlinedTextField(
-                value = viewModel.phoneNumber,
-                onValueChange = { input ->
-                    val filtered = input.filter { it.isDigit() }
-                    viewModel.phoneNumber = filtered
-                },
-                label = { Text(stringResource(R.string.enter_phone_number)) },
-                enabled = !hasNumberRegistered,
-                visualTransformation = PhoneNumberVisualTransformation(),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-        }
-
-        if (hasNumberRegistered) {
-            BadgeToggle(viewModel)
-        }
-
-        Column(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = if (hasNumberRegistered) 0.dp else 16.dp)
-        ) {
-            // Residence
-            OutlinedTextField(
-                value = viewModel.residence,
-                onValueChange = { viewModel.residence = it },
-                label = { Text(stringResource(R.string.enter_residence)) },
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }
-                ),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+        SettingsGroup {
+            row {
+                SettingsFieldItem {
+                    TextField(
+                        value = viewModel.nickname ?: "",
+                        onValueChange = { viewModel.nickname = it },
+                        label = { Text(stringResource(R.string.nickname)) },
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        singleLine = true,
+                        colors = settingsTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            row {
+                SettingsFieldItem {
+                    BankPicker(
+                        selected = viewModel.bankName,
+                        options = Constants.taxiBankNameList,
+                        onSelected = { viewModel.bankName = it }
+                    )
+                }
+            }
+            row {
+                SettingsFieldItem {
+                    TextField(
+                        value = viewModel.bankNumber,
+                        onValueChange = { input ->
+                            val onlyNumbers = input.filter { it.isDigit() }
+                            viewModel.bankNumber = onlyNumbers
+                        },
+                        label = { Text(stringResource(R.string.enter_bank_number)) },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        singleLine = true,
+                        colors = settingsTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            row {
+                SettingsFieldItem {
+                    TextField(
+                        value = viewModel.phoneNumber,
+                        onValueChange = { input ->
+                            val filtered = input.filter { it.isDigit() }
+                            viewModel.phoneNumber = filtered
+                        },
+                        label = { Text(stringResource(R.string.enter_phone_number)) },
+                        enabled = !hasNumberRegistered,
+                        visualTransformation = PhoneNumberVisualTransformation(),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Phone,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        singleLine = true,
+                        colors = settingsTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            if (hasNumberRegistered) {
+                row { BadgeToggle(viewModel) }
+            }
+            row {
+                SettingsFieldItem {
+                    TextField(
+                        value = viewModel.residence,
+                        onValueChange = { viewModel.residence = it },
+                        label = { Text(stringResource(R.string.enter_residence)) },
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
+                        singleLine = true,
+                        colors = settingsTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
         }
 
         SettingsSectionHeader(stringResource(R.string.services))
 
-        SettingsNavigationItem(
-            text = stringResource(R.string.report_details),
-            onClick = { navController.navigate(Channel.TaxiReportSettings.name) },
-            leadingContent = { Icon(Icons.Outlined.SmsFailed, contentDescription = null) }
-        )
+        SettingsGroup {
+            row {
+                SettingsNavigationItem(
+                    text = stringResource(R.string.report_details),
+                    onClick = { navController.navigate(Channel.TaxiReportSettings.name) },
+                    leadingContent = { Icon(Icons.Outlined.SmsFailed, contentDescription = null) }
+                )
+            }
+        }
     }
 }
 
@@ -447,7 +472,7 @@ private fun BankPicker(
         expanded = expanded,
         onExpandedChange = { expanded = it }
     ) {
-        OutlinedTextField(
+        TextField(
             value = selected ?: "",
             onValueChange = {},
             readOnly = true,
@@ -455,6 +480,7 @@ private fun BankPicker(
             label = { Text(stringResource(R.string.bank_name)) },
             placeholder = { Text(stringResource(R.string.select_bank)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = settingsTextFieldColors(),
             modifier = Modifier
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth()
@@ -462,14 +488,22 @@ private fun BankPicker(
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            shape = MenuDefaults.standaloneGroupShape,
+            containerColor = MenuDefaults.groupStandardContainerColor,
         ) {
-            options.forEach { option ->
-                DropdownMenuItem(
+            options.forEachIndexed { index, option ->
+                SelectableDropdownMenuItem(
+                    colors = selectableMenuItemColors(),
+                    selected = selected == option,
                     text = { Text(option) },
                     onClick = {
                         onSelected(option)
                         expanded = false
+                    },
+                    shapes = MenuDefaults.itemShape(index, options.size),
+                    selectedLeadingIcon = {
+                        Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
