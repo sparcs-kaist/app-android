@@ -101,7 +101,7 @@ fun LectureReviewCell(
     val unknown = stringResource(R.string.unknown)
     val label = SectionLabel.of(subtitle.orEmpty(), lectureReview.professors)
 
-    Card(modifier = Modifier.padding(vertical = 6.dp)) {
+    Card(modifier = Modifier.padding(vertical = 6.dp), shape = MaterialTheme.shapes.large) {
         Column(modifier = Modifier.padding(start = 16.dp, end = 4.dp, bottom = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(
@@ -303,7 +303,7 @@ fun summariseTipReviewID(reviews: List<LectureReview>, myReviewID: Int?): Int? =
 @Composable
 fun LectureReviewSkeletonCell() {
     val typography = MaterialTheme.typography
-    Card(modifier = Modifier.padding(vertical = 6.dp)) {
+    Card(modifier = Modifier.padding(vertical = 6.dp), shape = MaterialTheme.shapes.large) {
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
             // 48dp: the height of the overflow IconButton in a loaded review.
             Row(

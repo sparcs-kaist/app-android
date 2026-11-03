@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,15 +69,18 @@ fun DetailSectionHeaderSkeleton(titleWidth: Dp = 96.dp, trailingWidth: Dp? = nul
 /** Mirrors [DetailInfoCard] with [rows] rows. */
 @Composable
 fun DetailInfoCardSkeleton(rows: Int) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-            repeat(rows) { index ->
-                if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+    val color = CardDefaults.cardColors().containerColor
+    Column(
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        repeat(rows) { index ->
+            Surface(shape = ListItemDefaults.segmentedShapes(index, rows).shape, color = color) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp)
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
                 ) {
                     SkeletonLine(MaterialTheme.typography.bodyMedium, Modifier.width(64.dp))
                     SkeletonLine(MaterialTheme.typography.bodyMedium, Modifier.width(120.dp))
@@ -88,7 +93,7 @@ fun DetailInfoCardSkeleton(rows: Int) {
 /** Mirrors [ReviewStatsCard]. */
 @Composable
 fun ReviewStatsCardSkeleton() {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
         Box(modifier = Modifier.padding(vertical = 16.dp)) { LectureSummarySkeleton() }
     }
 }

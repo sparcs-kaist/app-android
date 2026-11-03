@@ -105,6 +105,7 @@ private fun CourseHistoryCard(
         modifier = Modifier
             .width(190.dp)
             .alpha(if (isMatched) 1f else 0.45f),
+        shape = MaterialTheme.shapes.large,
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
