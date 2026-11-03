@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,6 +53,7 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
 import org.sparcs.soap.app.shared.extensions.OnPoppedEffect
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
@@ -107,10 +109,12 @@ fun CourseComposeView(
             )
         }
     ) { innerPadding ->
+        // The search sheet runs behind the gesture bar and its results end clear of it.
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding.withoutBottom())
+                .consumeWindowInsets(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
             Box(
@@ -166,6 +170,7 @@ fun CourseComposeView(
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
                     LectureSearchList(
+                        bottomInset = innerPadding.calculateBottomPadding(),
                         timetableViewModel = timetableViewModel,
                         viewModel = lectureSearchViewModel,
                         onChooseTime = { navController.navigate(Channel.LectureTimeRange.name) },

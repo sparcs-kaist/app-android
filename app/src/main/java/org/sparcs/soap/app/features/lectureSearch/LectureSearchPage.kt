@@ -45,6 +45,8 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.OnPoppedEffect
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
@@ -94,14 +96,15 @@ fun LectureSearchPage(
                 )
             },
         ) { innerPadding ->
-            BoxWithConstraints(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
+            // The results scroll behind the gesture bar and end clear of it.
+            BoxWithConstraints(Modifier.fillMaxSize().padding(innerPadding.withoutBottom()).consumeWindowInsets(innerPadding)) {
                 val availableHeight = maxHeight
                 val showsSearchPane = inspector == null || maxWidth >= 1100.dp
                 Row(Modifier.fillMaxSize().animateContentSize()) {
                     if (isWide && session.showPreview && !pickerVisible) {
                         Box(
                             Modifier.weight(1f).fillMaxHeight()
-                                .verticalScroll(rememberScrollState()).padding(16.dp)
+                                .verticalScroll(rememberScrollState()).padding(innerPadding.onlyBottom()).padding(16.dp)
                         ) {
                             LectureSearchTimetablePreview(
                                 viewModel = timetableViewModel,
@@ -136,6 +139,7 @@ fun LectureSearchPage(
                                 viewModel = viewModel,
                                 timetableViewModel = timetableViewModel,
                                 modifier = Modifier.weight(1f),
+                                bottomInset = innerPadding.calculateBottomPadding(),
                                 listState = session.resultsScroll,
                                 onSelectDepartments = { pickerVisible = it },
                                 onChooseTime = { navController.navigate(Channel.LectureTimeRange.name) },
@@ -160,7 +164,7 @@ fun LectureSearchPage(
                         }
                     }
                     if (inspector != null) {
-                        Box(Modifier.weight(1f).fillMaxHeight()) { inspector() }
+                        Box(Modifier.weight(1f).fillMaxHeight().padding(innerPadding.onlyBottom())) { inspector() }
                     }
                 }
             }
