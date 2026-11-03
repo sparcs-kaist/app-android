@@ -29,6 +29,9 @@ class PreviewTaxiChatViewModel(
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<TaxiChatViewModel.ViewState> = _state.asStateFlow()
 
+    override fun enterChat() {}
+    override fun exitChat() {}
+
     private val _renderItems = MutableStateFlow(mockRenderItems)
     override val renderItems: StateFlow<List<ChatRenderItem>> = _renderItems.asStateFlow()
 

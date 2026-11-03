@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.taxiChat
 
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.animation.Crossfade
@@ -105,6 +106,12 @@ fun TaxiChatView(
     }
     fun dismissFullscreenImage() { tappedImageID = null }
 
+    val unreadCounts by listViewModel.unreadCounts.collectAsState()
+    LifecycleResumeEffect(room.id) {
+        viewModel.enterChat()
+        onPauseOrDispose { viewModel.exitChat() }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.setup()
         viewModel.fetchInitialChats()
@@ -153,7 +160,8 @@ fun TaxiChatView(
                                     popUpTo(Channel.TaxiChatView.name + "?room_json={room_json}") { inclusive = true }
                                     launchSingleTop = true
                                 }
-                            }
+                            },
+                            unreadCounts = unreadCounts
                         )
                     }
                     is TaxiChatListViewModel.ViewState.Error -> {

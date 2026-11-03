@@ -22,7 +22,9 @@ import org.sparcs.soap.app.domain.helpers.CreditSummarySnapshotStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.app.domain.services.AuthenticationServiceProtocol
+import org.sparcs.soap.app.domain.helpers.NotificationCategory
 import org.sparcs.soap.app.domain.usecases.AuthUseCase
+import org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol
 import org.sparcs.soap.app.networking.responseDTO.auth.TokenResponseDTO
 import org.sparcs.soap.testSupport.MainDispatcherRule
 import org.sparcs.soap.wearable.WearableDataManager
@@ -41,6 +43,7 @@ class AuthRefreshTest {
     @get:Rule val dispatcher = MainDispatcherRule()
     private val storage = Storage()
     private val service = Service()
+    private val fcm = Fcm()
 
     private fun useCase(): AuthUseCase {
         val context = RuntimeEnvironment.getApplication()
@@ -52,7 +55,7 @@ class AuthRefreshTest {
             override suspend fun clear() = Unit
         }
         return AuthUseCase(
-            service, storage, unused(), unused(), unused(), unused(),
+            service, storage, unused(), unused(), unused(), fcm,
             WidgetSyncHelper(context, TimetableWidgetSyncManager(context), UpComingWidgetSyncManager(context),
                 CreditSummarySyncManager(context, CreditSummarySnapshotStore(context), storage, WearableDataManager(context))),
             TimetableCache(dao),
@@ -123,6 +126,14 @@ class AuthRefreshTest {
         assertEquals(1, storage.clears)
     }
 
+    @Test fun rejectedRefreshForgetsThisDevicesRegistration() = runTest {
+        val model = useCase()
+        service.failure = HttpException(Response.error<Any>(401, "Unauthorized".toResponseBody()))
+        assertTrue(runCatching { model.refreshAccessToken(force = true) }.isFailure)
+        // So whoever signs in next registers this device rather than skipping it as unchanged.
+        assertEquals(1, fcm.forgotten)
+    }
+
     @Test fun missingRefreshTokenClearsCreditSnapshot() = runTest {
         val store = CreditSummarySnapshotStore(RuntimeEnvironment.getApplication())
         store.save(CreditSummarySnapshot(4.0, 100, 138))
@@ -173,4 +184,13 @@ class AuthRefreshTest {
     private inline fun <reified T> unused(): T = Proxy.newProxyInstance(
         T::class.java.classLoader, arrayOf(T::class.java),
     ) { _, method, _ -> error("Unexpected call: ${method.name}") } as T
+
+    private class Fcm : FCMUseCaseProtocol {
+        var forgotten = 0
+        override suspend fun register(fcmToken: String) = Unit
+        override suspend fun unregister() = Unit
+        override fun forgetRegistration() { forgotten += 1 }
+        override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> = emptyMap()
+        override suspend fun setNotifications(category: NotificationCategory, enabled: Boolean) = Unit
+    }
 }

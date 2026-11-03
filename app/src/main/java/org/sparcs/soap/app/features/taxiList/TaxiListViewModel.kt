@@ -29,11 +29,15 @@ import org.sparcs.soap.app.shared.extensions.toAlertState
 import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
+import org.sparcs.soap.app.domain.services.MockTaxiUnreadStore
+import org.sparcs.soap.app.domain.services.TaxiUnreadStoreProtocol
 
 interface TaxiListViewModelProtocol {
 
     // MARK: - ViewModel Properties
     val state: StateFlow<TaxiListViewModel.ViewState>
+    /** Unread chats across your rides, for the Chats button. */
+    val unreadCount: StateFlow<Int>
     val week: List<Date>
     var roomId: String?
     val rooms: StateFlow<List<TaxiRoom>>
@@ -69,7 +73,10 @@ class TaxiListViewModel @Inject constructor(
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
     private val taxiFavoriteUseCase: TaxiFavoriteUseCaseProtocol = MockTaxiFavoriteUseCase(),
     taxiChatService: TaxiChatServiceProtocol = MockTaxiChatService(),
+    taxiUnreadStore: TaxiUnreadStoreProtocol = MockTaxiUnreadStore(),
 ) : ViewModel(), TaxiListViewModelProtocol {
+
+    override val unreadCount: StateFlow<Int> = taxiUnreadStore.totalCount
 
     sealed class ViewState {
         data object Loading : ViewState()

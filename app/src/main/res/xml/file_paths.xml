@@ -2,4 +2,5 @@
 <paths>
     <cache-path name="shared_themes" path="shared_themes/" />
     <cache-path name="shared_images" path="shared_images/" />
+    <cache-path name="notification_images" path="notification_images/" />
 </paths>

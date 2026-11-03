@@ -8,7 +8,10 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
-import org.sparcs.soap.app.domain.helpers.FeatureType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.sparcs.soap.app.domain.helpers.NotificationCategory
 import org.sparcs.soap.app.domain.repositories.FCMRepositoryProtocol
 import timber.log.Timber
 import java.util.Locale
@@ -17,8 +20,24 @@ import javax.inject.Inject
 
 interface FCMUseCaseProtocol {
     suspend fun register(fcmToken: String)
-    suspend fun manage(service: FeatureType, isActive: Boolean)
+
+    /** Stops notifications to this device for the signed-in account, so call it while still signed in. */
+    suspend fun unregister()
+
+    /**
+     * Forgets that this device was registered, without telling the backend, so the next sign-in
+     * registers it again: such as when the session expired and the backend can no longer be asked.
+     */
+    fun forgetRegistration() {}
+    /** Whether this device gets each kind of notification. Kinds never turned off are on. */
+    suspend fun notificationPreferences(): Map<NotificationCategory, Boolean>
+
+    /** Turns a kind of notification on or off on this device; Buddy's backend then stops or starts sending it here. */
+    suspend fun setNotifications(category: NotificationCategory, enabled: Boolean)
 }
+
+/** This device hasn't registered for notifications yet, so it has no preferences to show or change. */
+class DeviceNotRegisteredException : Exception("This device isn't registered for notifications")
 
 @Suppress("DEPRECATION")
 @SuppressLint("HardwareIds")
@@ -46,58 +65,57 @@ class FCMUseCase @Inject constructor(
         private const val LAST_REGISTERED_LANG = "last_registered_lang"
     }
 
-    private var isRegistering: Boolean = false
+    // Registering and unregistering run one at a time, so a registration still in flight when you
+    // sign out can't land after the unregister and link this device to your account again.
+    private val registrationMutex = Mutex()
 
-    override suspend fun register(fcmToken: String) {
+    // Bumped by every unregister. A registration that started before one doesn't record itself as
+    // done, so the next sign-in registers this device rather than skipping it as unchanged.
+    @Volatile
+    private var unregisterCount = 0
+
+    override suspend fun register(fcmToken: String): Unit = registrationMutex.withLock {
         val currentLang = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ko"
-        
+        val unregistersBefore = unregisterCount
+
         val savedToken = prefs.getString(LAST_REGISTERED_TOKEN, null)
         val savedLang = prefs.getString(LAST_REGISTERED_LANG, null)
 
         if (savedToken == fcmToken && savedLang == currentLang) {
             Timber.d("FCM: Token and language already match. Skipping.")
-            return
+            return@withLock
         }
 
-        if (isRegistering) return
-        isRegistering = true
-
         try {
-            val existingUUID = getPersistentDeviceID()
-
-            if (existingUUID == null) {
-                val newUUID = UUID.randomUUID().toString()
+            // The backend updates a device it already knows, so registering again also keeps the
+            // token and language of a registered device current.
+            val deviceUUID = getPersistentDeviceID() ?: UUID.randomUUID().toString().also { newUUID ->
                 val currentAndroidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-                
                 prefs.edit {
                     putString(FCM_DEVICE_ID_KEY, newUUID)
                     putString(FCM_ANDROID_ID_KEY, currentAndroidId)
                 }
-
-                fcmRepository.register(
-                    deviceUUID = newUUID,
-                    fcmToken = fcmToken,
-                    deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
-                    language = currentLang
-                )
-                Timber.d("FCM: New device registered. UUID: $newUUID")
-            } else {
-                fcmRepository.updateToken(
-                    fcmToken = fcmToken,
-                    deviceToken = existingUUID
-                )
-                Timber.d("FCM: Existing device token updated. UUID: $existingUUID")
             }
 
-            prefs.edit {
-                putString(LAST_REGISTERED_TOKEN, fcmToken)
-                putString(LAST_REGISTERED_LANG, currentLang)
+            fcmRepository.register(
+                deviceUUID = deviceUUID,
+                fcmToken = fcmToken,
+                deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
+                language = currentLang
+            )
+            Timber.d("FCM: Device registered. UUID: $deviceUUID")
+
+            if (unregisterCount == unregistersBefore) {
+                prefs.edit {
+                    putString(LAST_REGISTERED_TOKEN, fcmToken)
+                    putString(LAST_REGISTERED_LANG, currentLang)
+                }
             }
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "FCM: Operation failed.")
-        } finally {
-            isRegistering = false
         }
     }
 
@@ -117,21 +135,46 @@ class FCMUseCase @Inject constructor(
         }
     }
 
-    override suspend fun manage(service: FeatureType, isActive: Boolean) {
-        val deviceUUID = getPersistentDeviceID() ?: run {
-            Timber.e("FCM Manage failed: No Device UUID found.")
-            return
+    override fun forgetRegistration() {
+        // Signing in again then registers this device rather than skipping it as unchanged, even
+        // if a registration in flight finishes afterwards.
+        unregisterCount++
+        prefs.edit {
+            remove(LAST_REGISTERED_TOKEN)
+            remove(LAST_REGISTERED_LANG)
         }
+    }
 
-        fcmRepository.manage(
-            deviceUUID = deviceUUID,
-            service = service,
-            isActive = isActive
-        )
+    override suspend fun unregister() {
+        // Whether or not it gets through.
+        forgetRegistration()
+        registrationMutex.withLock {
+            val deviceUUID = getPersistentDeviceID() ?: return@withLock
+            fcmRepository.unregister(deviceUUID)
+        }
+    }
+
+    // Preferences belong to the device as registered, so a device not registered yet has none.
+    override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> {
+        val deviceUUID = getPersistentDeviceID() ?: throw DeviceNotRegisteredException()
+        return fcmRepository.fetchNotificationPreferences(deviceUUID)
+    }
+
+    override suspend fun setNotifications(category: NotificationCategory, enabled: Boolean) {
+        val deviceUUID = getPersistentDeviceID() ?: throw DeviceNotRegisteredException()
+        fcmRepository.setNotificationPreference(deviceUUID, category, enabled)
     }
 }
 
 class MockFCMUseCase : FCMUseCaseProtocol {
+    val preferences = NotificationCategory.entries.associateWith { true }.toMutableMap()
+    var setNotificationsError: Exception? = null
+
     override suspend fun register(fcmToken: String) {}
-    override suspend fun manage(service: FeatureType, isActive: Boolean) {}
+    override suspend fun unregister() {}
+    override suspend fun notificationPreferences(): Map<NotificationCategory, Boolean> = preferences.toMap()
+    override suspend fun setNotifications(category: NotificationCategory, enabled: Boolean) {
+        setNotificationsError?.let { throw it }
+        preferences[category] = enabled
+    }
 }

@@ -18,6 +18,7 @@ import org.sparcs.soap.app.domain.usecases.taxi.TaxiLocationUseCaseProtocol
 import org.sparcs.soap.app.shared.extensions.isUpdateRequired
 import timber.log.Timber
 import javax.inject.Inject
+import org.sparcs.soap.app.domain.services.TaxiUnreadStoreProtocol
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -25,7 +26,11 @@ class MainViewModel @Inject constructor(
     private val authUseCase: AuthUseCaseProtocol,
     private val userUseCase: UserUseCaseProtocol,
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
+    taxiUnreadStore: TaxiUnreadStoreProtocol,
 ) : ViewModel() {
+
+    /** Unread Taxi chats, for the Taxi tab's badge. */
+    val taxiUnreadCount: StateFlow<Int> = taxiUnreadStore.totalCount
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

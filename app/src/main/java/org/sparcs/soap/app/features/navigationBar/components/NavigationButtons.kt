@@ -1,5 +1,8 @@
 package org.sparcs.soap.app.features.navigationBar.components
 
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Badge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -59,12 +62,23 @@ fun AddButton(
 }
 
 @Composable
-fun ChatButton(onClick: () -> Unit) {
+fun ChatButton(onClick: () -> Unit, unreadCount: Int = 0) {
     IconButton(onClick = onClick) {
-        Icon(
-            imageVector = Icons.Outlined.ChatBubbleOutline,
-            contentDescription = stringResource(R.string.chats)
-        )
+        BadgedBox(badge = { if (unreadCount > 0) UnreadCountBadge(unreadCount) }) {
+            Icon(
+                imageVector = Icons.Outlined.ChatBubbleOutline,
+                contentDescription = stringResource(R.string.chats)
+            )
+        }
+    }
+}
+
+/** The number of unread chats, as on the Taxi tab and the Chats button. */
+@Composable
+fun UnreadCountBadge(count: Int) {
+    val description = pluralStringResource(R.plurals.taxi_unread_count, count, count)
+    Badge(modifier = Modifier.semantics { contentDescription = description }) {
+        Text(if (count > 99) "99+" else count.toString())
     }
 }
 

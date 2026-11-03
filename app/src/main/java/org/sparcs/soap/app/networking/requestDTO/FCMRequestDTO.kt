@@ -16,13 +16,10 @@ data class RegisterDeviceRequestDTO(
     val language: String
 )
 
-data class ManageAlertRequestDTO(
+data class NotificationPreferenceUpdateRequestDTO(
     @SerializedName("device_uuid")
     val deviceUUID: String,
 
-    @SerializedName("service")
-    val service: Int,
-
-    @SerializedName("is_active")
-    val isActive: Boolean
+    @SerializedName("is_enabled")
+    val isEnabled: Boolean
 )

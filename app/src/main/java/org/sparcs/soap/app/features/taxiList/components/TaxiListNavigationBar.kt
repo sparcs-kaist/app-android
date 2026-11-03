@@ -16,6 +16,7 @@ import org.sparcs.soap.app.features.navigationBar.components.ChatButton
 @Composable
 fun TaxiListNavigationBar(
     navController: NavController,
+    unreadCount: Int,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     // New rooms are created from the floating action button on the list.
@@ -23,7 +24,10 @@ fun TaxiListNavigationBar(
         // Bold, as on every tab's root screen.
         title = { Text(text = stringResource(Channel.Taxi.title), fontWeight = FontWeight.Bold) },
         actions = {
-            ChatButton(onClick = { navController.navigate(Channel.TaxiChatListView.name) })
+            ChatButton(
+                onClick = { navController.navigate(Channel.TaxiChatListView.name) },
+                unreadCount = unreadCount
+            )
         },
         scrollBehavior = scrollBehavior
     )
