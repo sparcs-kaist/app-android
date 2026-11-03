@@ -1,33 +1,33 @@
 package org.sparcs.soap.app.features.settings.timetable.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore.State
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
 import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.SettingsSegmentRow
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.tips.BuddyTip
@@ -62,85 +62,87 @@ internal fun ThemeSettingsContent(
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
+        // Sections are segmented cards like the other settings pages; their rows are lazy items,
+        // so each row is a SettingsSegmentRow that knows its place in the card.
         ThemeSettingsList(
             padding = padding,
             modifier = Modifier.selectableGroup(),
+            contentPadding = PaddingValues(bottom = 24.dp),
         ) {
             item(key = "preview") {
-                Column(Modifier.padding(bottom = 24.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            stringResource(R.string.theme_preview),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    ThemePreview(state.selected)
+                Column {
+                    SettingsSectionHeader(stringResource(R.string.theme_preview))
+                    ThemePreview(state.selected, Modifier.padding(horizontal = 16.dp))
                 }
             }
             item(key = "theme_actions_tip") {
-                TipView(BuddyTip.ThemeActions, modifier = Modifier.padding(bottom = 16.dp))
+                TipView(BuddyTip.ThemeActions, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp))
             }
             item(key = "my_themes") {
-                ThemeSettingsSectionTitle(stringResource(R.string.theme_mine))
+                SettingsSectionHeader(stringResource(R.string.theme_mine))
             }
-            items(state.customThemes, key = { it.id }) { theme ->
+            itemsIndexed(state.customThemes, key = { _, theme -> theme.id }) { index, theme ->
                 val copyName = stringResource(R.string.theme_copy, theme.displayName())
-                ThemeRow(
-                    theme, state.selectedID == theme.id,
-                    onSelect = { onSelect(theme.id) },
-                    onEdit = { onEdit(theme) },
-                    onDuplicate = {
-                        onEdit(theme.duplicate(copyName))
-                    },
-                    onDelete = { onDelete(theme.id) },
-                    onShare = { onShare(theme) })
+                SettingsSegmentRow(index, state.customThemes.size, Modifier.animateItem()) {
+                    ThemeRow(
+                        theme, state.selectedID == theme.id,
+                        onSelect = { onSelect(theme.id) },
+                        onEdit = { onEdit(theme) },
+                        onDuplicate = {
+                            onEdit(theme.duplicate(copyName))
+                        },
+                        onDelete = { onDelete(theme.id) },
+                        onShare = { onShare(theme) })
+                }
             }
-            item(key = "new_theme") {
-                SettingsNavigationItem(
-                    text = stringResource(R.string.theme_new),
-                    onClick = { onEdit(state.selected.duplicate(newName)) },
-                    leadingContent = { Icon(Icons.Default.Add, contentDescription = null) }
-                )
-            }
-            item(key = "import_theme") {
-                SettingsNavigationItem(
-                    text = stringResource(R.string.theme_import),
-                    onClick = onImport,
-                    leadingContent = { Icon(Icons.Outlined.Download, contentDescription = null) }
-                )
+            item(key = "theme_actions") {
+                SettingsGroup(
+                    Modifier.padding(top = if (state.customThemes.isEmpty()) 0.dp else 16.dp)
+                ) {
+                    row {
+                        SettingsNavigationItem(
+                            text = stringResource(R.string.theme_new),
+                            onClick = { onEdit(state.selected.duplicate(newName)) },
+                            leadingContent = { Icon(Icons.Default.Add, contentDescription = null) }
+                        )
+                    }
+                    row {
+                        SettingsNavigationItem(
+                            text = stringResource(R.string.theme_import),
+                            onClick = onImport,
+                            leadingContent = { Icon(Icons.Outlined.Download, contentDescription = null) }
+                        )
+                    }
+                }
             }
             item(key = "collections") {
-                HorizontalDivider(Modifier.padding(vertical = 16.dp))
-                ThemeSettingsSectionTitle(stringResource(R.string.theme_collections))
-                Text(
-                    stringResource(R.string.theme_presets_note),
-                    Modifier.padding(start = 8.dp, end = 8.dp, bottom = 12.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column {
+                    SettingsSectionHeader(stringResource(R.string.theme_collections))
+                    Text(
+                        stringResource(R.string.theme_presets_note),
+                        Modifier.padding(start = 32.dp, end = 32.dp, bottom = 12.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            items(TimetableTheme.builtIn, key = { it.id }) { theme ->
+            itemsIndexed(TimetableTheme.builtIn, key = { _, theme -> theme.id }) { index, theme ->
                 val copyName = stringResource(R.string.theme_copy, theme.displayName())
                 val shareName = theme.displayName()
-                ThemeRow(
-                    theme, state.selectedID == theme.id,
-                    onSelect = { onSelect(theme.id) },
-                    onEdit = {},
-                    onDuplicate = {
-                        onEdit(theme.duplicate(copyName))
-                    },
-                    onDelete = {},
-                    onShare = {
-                        onShare(theme.copy(name = shareName))
-                    }
-                )
+                SettingsSegmentRow(index, TimetableTheme.builtIn.size) {
+                    ThemeRow(
+                        theme, state.selectedID == theme.id,
+                        onSelect = { onSelect(theme.id) },
+                        onEdit = {},
+                        onDuplicate = {
+                            onEdit(theme.duplicate(copyName))
+                        },
+                        onDelete = {},
+                        onShare = {
+                            onShare(theme.copy(name = shareName))
+                        }
+                    )
+                }
             }
         }
     }

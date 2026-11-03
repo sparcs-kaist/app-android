@@ -5,11 +5,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -19,7 +16,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,7 +44,11 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetablePhotoDecoder
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.usecases.ThemeModelStatus
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.SettingsSegmentRow
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.timetable.components.AdvancedColorPicker
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeAdvancedColors
@@ -173,27 +173,30 @@ fun TimetableThemeEditor(
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        // Rows are full-width ListItems; free-form content is inset 16dp to line up with them.
+        // Sections are segmented cards like the other settings pages. Palette rows are lazy items
+        // so they can be dragged; each knows its place in the card, with "Add color" as the last row.
         ThemeSettingsList(
             padding = padding,
             modifier = Modifier.imePadding(),
             maxWidth = 680.dp,
             state = listState,
-            contentPadding = PaddingValues(vertical = 8.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp),
         ) {
             item { ThemePreview(draft, Modifier.padding(horizontal = 16.dp)) }
             item {
-                ThemeNameField(
-                    draft.name,
-                    { update(draft.copy(name = it)) },
-                    Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                )
-            }
-            item {
-                ThemeColorRow(
-                    stringResource(R.string.theme_text),
-                    draft.textColorHex
-                ) { target = "text" }
+                SettingsGroup(Modifier.padding(top = 16.dp)) {
+                    row {
+                        SettingsFieldItem {
+                            ThemeNameField(draft.name, { update(draft.copy(name = it)) })
+                        }
+                    }
+                    row {
+                        ThemeColorRow(
+                            stringResource(R.string.theme_text),
+                            draft.textColorHex
+                        ) { target = "text" }
+                    }
+                }
             }
             item {
                 SettingsSectionHeader(stringResource(R.string.theme_palette))
@@ -202,39 +205,45 @@ fun TimetableThemeEditor(
                         R.string.theme_palette_description,
                         TimetableTheme.maximumColors
                     ),
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(start = 32.dp, end = 32.dp, bottom = 12.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            val paletteRowCount = palette.colors.size + 1
             itemsIndexed(palette.colors, key = { _, color -> color.id }) { index, color ->
-                ThemePaletteRow(
-                    color = color,
+                SettingsSegmentRow(
                     index = index,
-                    count = palette.colors.size,
-                    onEdit = { target = color.id },
-                    onMove = { offset -> updatePalette(palette.move(color.id, offset)) },
-                    onDelete = {
-                        updatePalette(palette.remove(color.id))
-                    },
-                    dragState = dragState,
+                    count = paletteRowCount,
                     modifier = (if (dragState.draggedId == color.id) Modifier else Modifier.animateItem())
                         .zIndex(if (dragState.draggedId == color.id) 1f else 0f)
                         .graphicsLayer { translationY = dragState.translation(color.id) }
-                )
-            }
-            item {
-                OutlinedButton(
-                    onClick = { updatePalette(palette.add()) },
-                    shapes = ButtonDefaults.shapes(),
-                    enabled = palette.canAdd,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Icon(Icons.Default.Add, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.theme_add_color))
+                    ThemePaletteRow(
+                        color = color,
+                        index = index,
+                        count = palette.colors.size,
+                        onEdit = { target = color.id },
+                        onMove = { offset -> updatePalette(palette.move(color.id, offset)) },
+                        onDelete = {
+                            updatePalette(palette.remove(color.id))
+                        },
+                        dragState = dragState,
+                    )
+                }
+            }
+            item(key = "add_color") {
+                SettingsSegmentRow(
+                    index = paletteRowCount - 1,
+                    count = paletteRowCount,
+                    modifier = Modifier.animateItem()
+                ) {
+                    SettingsNavigationItem(
+                        text = stringResource(R.string.theme_add_color),
+                        onClick = { updatePalette(palette.add()) },
+                        enabled = palette.canAdd,
+                        leadingContent = { Icon(Icons.Default.Add, null) }
+                    )
                 }
             }
             item {
@@ -243,18 +252,23 @@ fun TimetableThemeEditor(
                     expanded = expanded,
                     onToggle = { expanded = !expanded },
                     update = ::update,
-                    onPick = { target = it }
+                    onPick = { target = it },
+                    modifier = Modifier.padding(top = 24.dp)
                 )
             }
-            item { ThemePhotoSection(onPick = { photoPicker.launch("image/*") }) }
-            if (generatorState.modelStatus != ThemeModelStatus.CHECKING &&
-                generatorState.modelStatus != ThemeModelStatus.UNAVAILABLE
-            ) {
-                item {
-                    ThemeGenerationSection(onOpen = {
-                        generator.refreshAvailability()
-                        onOpenGenerator(draft)
-                    })
+            item {
+                val canGenerate = generatorState.modelStatus != ThemeModelStatus.CHECKING &&
+                    generatorState.modelStatus != ThemeModelStatus.UNAVAILABLE
+                SettingsGroup(Modifier.padding(top = 16.dp)) {
+                    row { ThemePhotoSection(onPick = { photoPicker.launch("image/*") }) }
+                    if (canGenerate) {
+                        row {
+                            ThemeGenerationSection(onOpen = {
+                                generator.refreshAvailability()
+                                onOpenGenerator(draft)
+                            })
+                        }
+                    }
                 }
             }
         }
