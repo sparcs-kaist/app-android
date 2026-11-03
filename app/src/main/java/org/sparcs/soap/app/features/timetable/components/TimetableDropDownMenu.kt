@@ -183,7 +183,7 @@ private fun TimetableManagementItems(
             val semester by viewModel.selectedSemester.collectAsState()
             val timetable by viewModel.selectedTimetable.collectAsState()
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.timetable_share)) },
+                text = { Text(stringResource(R.string.share)) },
                 leadingIcon = { Icon(Icons.Outlined.Share, null) },
                 enabled = semester != null && timetable != null,
                 onClick = { onDismiss(); onShareClick() },
