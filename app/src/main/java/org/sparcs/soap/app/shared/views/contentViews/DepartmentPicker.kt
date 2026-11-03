@@ -51,6 +51,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.timetable.TimetableSettingsViewModel
+import org.sparcs.soap.app.shared.extensions.plus
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -127,6 +128,7 @@ fun DepartmentList(
     @StringRes errorMessage: Int,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     header: LazyListScope.() -> Unit = {},
 ) {
     var searchText by remember { mutableStateOf("") }
@@ -136,7 +138,7 @@ fun DepartmentList(
         loaded?.let { departmentGroups(it.departments, it.savedDepartmentIDs, keyword) }.orEmpty()
     }
 
-    LazyColumn(modifier = modifier, contentPadding = PaddingValues(bottom = 16.dp)) {
+    LazyColumn(modifier = modifier, contentPadding = contentPadding + PaddingValues(bottom = 16.dp)) {
         header()
 
         when (state) {

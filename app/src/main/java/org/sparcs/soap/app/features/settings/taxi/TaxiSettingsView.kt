@@ -70,8 +70,10 @@ import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
 import org.sparcs.soap.app.shared.extensions.PhoneNumberVisualTransformation
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
 import org.sparcs.soap.app.shared.extensions.toPhoneNumberFormat
 import org.sparcs.soap.app.shared.extensions.toggle
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -210,13 +212,14 @@ fun TaxiSettingsView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding.withoutBottom()),
             contentAlignment = Alignment.TopCenter
         ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 600.dp)
+                    .widthIn(max = 600.dp),
+                contentPadding = innerPadding.onlyBottom()
             ) {
                 when (state) {
                     TaxiSettingsViewModel.ViewState.Loading -> item { LoadingView() }

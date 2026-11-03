@@ -3,6 +3,7 @@ package org.sparcs.soap.app.features.settings.taxi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,9 @@ import org.sparcs.soap.app.features.settings.components.TaxiReportDetailRow
 import org.sparcs.soap.app.features.settings.components.TaxiReportDetailSkeletonRow
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiReportListViewModel
@@ -90,8 +94,9 @@ fun TaxiReportListView(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .padding(innerPadding.withoutBottom())
+                .padding(horizontal = 20.dp)
+                .padding(top = 8.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -121,7 +126,11 @@ fun TaxiReportListView(
 
             when (state) {
                 is TaxiReportListViewModel.ViewState.Loading -> LoadingView()
-                is TaxiReportListViewModel.ViewState.Loaded -> LoadedView(viewModel, taxiReportType)
+                is TaxiReportListViewModel.ViewState.Loaded -> LoadedView(
+                    viewModel,
+                    taxiReportType,
+                    contentPadding = innerPadding.onlyBottom() + PaddingValues(bottom = 8.dp)
+                )
                 is TaxiReportListViewModel.ViewState.Error -> {
                     val error =
                         (viewModel.state.collectAsState().value as TaxiReportListViewModel.ViewState.Error).error
@@ -147,6 +156,7 @@ private fun LoadingView() {
 private fun LoadedView(
     viewModel: TaxiReportListViewModelProtocol,
     taxiReportType: TaxiReportType,
+    contentPadding: PaddingValues,
 ) {
     val reports = when (taxiReportType) {
         TaxiReportType.INCOMING -> viewModel.reports.incoming
@@ -155,7 +165,8 @@ private fun LoadedView(
 
     ReportViewList(
         reports = reports,
-        reportType = taxiReportType
+        reportType = taxiReportType,
+        contentPadding = contentPadding
     )
 }
 
@@ -163,13 +174,14 @@ private fun LoadedView(
 private fun ReportViewList(
     reports: List<TaxiReport>,
     reportType: TaxiReportType,
+    contentPadding: PaddingValues,
 ) {
     if (reports.isEmpty()) {
         UnavailableView(
             Icons.Rounded.SearchOff, stringResource(R.string.no_reports), ""
         )
     } else {
-        LazyColumn {
+        LazyColumn(contentPadding = contentPadding) {
             items(reports) { report ->
                 TaxiReportDetailRow(report, reportType)
             }

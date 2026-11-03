@@ -25,6 +25,8 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.views.contentViews.DepartmentList
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -91,7 +93,8 @@ private fun InterestedDepartmentsContent(
             enabled = loaded?.isSaving != true,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding.withoutBottom()),
+            contentPadding = padding.onlyBottom()
         ) {
             item(key = "description") {
                 Text(

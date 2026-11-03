@@ -18,6 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -30,14 +33,15 @@ internal fun ThemeSettingsList(
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     content: LazyListScope.() -> Unit,
 ) {
+    // Scrolls behind the gesture bar; the bottom inset keeps the last row clear of it.
     Box(
-        modifier = Modifier.fillMaxSize().padding(padding),
+        modifier = Modifier.fillMaxSize().padding(padding.withoutBottom()),
         contentAlignment = Alignment.TopCenter
     ) {
         LazyColumn(
             modifier = Modifier.widthIn(max = maxWidth).fillMaxSize().then(modifier),
             state = state,
-            contentPadding = contentPadding,
+            contentPadding = contentPadding + padding.onlyBottom(),
             verticalArrangement = verticalArrangement,
             content = content
         )
