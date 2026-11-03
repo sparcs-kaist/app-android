@@ -7,14 +7,19 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -88,17 +93,29 @@ private fun TimeField(label: String, value: Int?, options: List<Int>, modifier: 
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 320.dp)
+            modifier = Modifier.heightIn(max = 320.dp),
+            shape = MenuDefaults.standaloneGroupShape,
+            containerColor = MenuDefaults.groupStandardContainerColor,
         ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.lecture_time_any)) },
+            val count = options.size + 1
+            val checkIcon: @Composable () -> Unit = {
+                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
+            }
+            SelectableDropdownMenuItem(
+                selected = value == null,
                 onClick = { onChange(null); expanded = false },
+                text = { Text(stringResource(R.string.lecture_time_any)) },
+                shapes = MenuDefaults.itemShape(0, count),
+                selectedLeadingIcon = checkIcon,
                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
             )
-            options.forEach { minutes ->
-                DropdownMenuItem(
-                    text = { Text(formattedTime(minutes)) },
+            options.forEachIndexed { index, minutes ->
+                SelectableDropdownMenuItem(
+                    selected = value == minutes,
                     onClick = { onChange(minutes); expanded = false },
+                    text = { Text(formattedTime(minutes)) },
+                    shapes = MenuDefaults.itemShape(index + 1, count),
+                    selectedLeadingIcon = checkIcon,
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 )
             }

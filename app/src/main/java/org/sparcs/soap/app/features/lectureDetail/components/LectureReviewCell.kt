@@ -31,7 +31,6 @@ import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Summarize
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,9 +69,12 @@ import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonBlock
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
 import org.sparcs.soap.app.shared.views.contentViews.SummarizationView
+import org.sparcs.soap.app.shared.views.contentViews.menuItemShape
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.upvote
 import timber.log.Timber
@@ -146,33 +148,42 @@ fun LectureReviewCell(
                                 contentDescription = stringResource(R.string.more)
                             )
                         }
-                        DropdownMenu(
+                        ExpressiveMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.translate)) },
-                                onClick = { onTranslate(); expanded = false },
-                                leadingIcon = { Icon(Icons.Outlined.Translate, contentDescription = null) }
-                            )
-
-                            if (ReviewSummaryUseCase.canSummarise(lectureReview.content)) {
+                            val canSummarise = ReviewSummaryUseCase.canSummarise(lectureReview.content)
+                            val actionCount = if (canSummarise) 2 else 1
+                            MenuGroup(index = 0, count = 2) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.summarise)) },
-                                    onClick = {
-                                        tipStore?.invalidate(BuddyTip.SummariseReview)
-                                        onSummarize()
-                                        expanded = false
-                                    },
-                                    leadingIcon = { Icon(Icons.Outlined.Summarize, contentDescription = null) }
+                                    text = { Text(stringResource(R.string.translate)) },
+                                    onClick = { onTranslate(); expanded = false },
+                                    shape = menuItemShape(0, actionCount),
+                                    leadingIcon = { Icon(Icons.Outlined.Translate, contentDescription = null) }
                                 )
+
+                                if (canSummarise) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.summarise)) },
+                                        onClick = {
+                                            tipStore?.invalidate(BuddyTip.SummariseReview)
+                                            onSummarize()
+                                            expanded = false
+                                        },
+                                        shape = menuItemShape(1, actionCount),
+                                        leadingIcon = { Icon(Icons.Outlined.Summarize, contentDescription = null) }
+                                    )
+                                }
                             }
 
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.report)) },
-                                onClick = { report(lectureReview, context, unknown); expanded = false },
-                                leadingIcon = { Icon(Icons.Outlined.Flag, contentDescription = null) }
-                            )
+                            MenuGroup(index = 1, count = 2) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.report)) },
+                                    onClick = { report(lectureReview, context, unknown); expanded = false },
+                                    shape = menuItemShape(0, 1),
+                                    leadingIcon = { Icon(Icons.Outlined.Flag, contentDescription = null) }
+                                )
+                            }
                         }
                     }
                 }

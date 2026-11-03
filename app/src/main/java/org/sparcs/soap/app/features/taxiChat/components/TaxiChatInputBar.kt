@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.rounded.Payment
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -53,7 +52,10 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.UploadImageDecoder
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.shared.mocks.taxi.mock
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
 import org.sparcs.soap.app.shared.views.contentViews.SendButton
+import org.sparcs.soap.app.shared.views.contentViews.menuItemShape
 import org.sparcs.soap.app.theme.ui.Theme
 
 
@@ -96,62 +98,67 @@ fun TaxiChatInputBar(
             IconButton(onClick = { expanded = true }, shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Default.Add, contentDescription = "More")
             }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                DropdownMenuItem(
-                    onClick = {
-                        launcher.launch("image/*")
-                        expanded = false
-                    },
-                    text = {
-                        Text(
-                            text = stringResource(R.string.photo_library),
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.PhotoLibrary,
-                            contentDescription = null
-                        )
-                    }
-                )
+            ExpressiveMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                MenuGroup(index = 0, count = 1) {
+                    DropdownMenuItem(
+                        onClick = {
+                            launcher.launch("image/*")
+                            expanded = false
+                        },
+                        shape = menuItemShape(0, 3),
+                        text = {
+                            Text(
+                                text = stringResource(R.string.photo_library),
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.PhotoLibrary,
+                                contentDescription = null
+                            )
+                        }
+                    )
 
-                DropdownMenuItem(
-                    onClick = {
-                        onCommitSettlement()
-                        expanded = false
-                    },
-                    enabled = isCommitSettlementAvailable,
-                    text = {
-                        Text(
-                            text = stringResource(R.string.request_settlement),
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = null
-                        )
-                    }
-                )
+                    DropdownMenuItem(
+                        onClick = {
+                            onCommitSettlement()
+                            expanded = false
+                        },
+                        shape = menuItemShape(1, 3),
+                        enabled = isCommitSettlementAvailable,
+                        text = {
+                            Text(
+                                text = stringResource(R.string.request_settlement),
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = null
+                            )
+                        }
+                    )
 
-                DropdownMenuItem(
-                    onClick = {
-                        onCommitPayment()
-                        expanded = false
-                    },
-                    enabled = isCommitPaymentAvailable,
-                    text = {
-                        Text(
-                            text = stringResource(R.string.send_payment),
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Rounded.Payment,
-                            contentDescription = null
-                        )
-                    }
-                )
+                    DropdownMenuItem(
+                        onClick = {
+                            onCommitPayment()
+                            expanded = false
+                        },
+                        shape = menuItemShape(2, 3),
+                        enabled = isCommitPaymentAvailable,
+                        text = {
+                            Text(
+                                text = stringResource(R.string.send_payment),
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Payment,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                }
             }
         }
 

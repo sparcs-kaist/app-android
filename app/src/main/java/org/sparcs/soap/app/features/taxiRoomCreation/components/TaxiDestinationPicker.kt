@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
@@ -16,8 +17,6 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,6 +24,9 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.MenuItemShapes
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,6 +49,8 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiLocation
 import org.sparcs.soap.app.shared.extensions.LocalizedText
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
 import org.sparcs.soap.app.theme.ui.Theme
 
 /**
@@ -141,43 +145,71 @@ fun LocationMenu(
             modifier = Modifier.clickable { expanded = true }
         )
 
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.taxi_route_none)) },
-                onClick = {
-                    onSelectionChange(null)
-                    expanded = false
-                },
-                trailingIcon = if (selection == null) {
-                    { Icon(Icons.Filled.Check, contentDescription = null) }
-                } else null
-            )
-
+        // Groups: no place, the popular places, then every other place.
+        ExpressiveMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             val (popular, others) = remember(locations) { TaxiLocation.popularFirst(locations) }
             val select: (TaxiLocation) -> Unit = {
                 onSelectionChange(it)
                 expanded = false
             }
-            if (popular.isNotEmpty() || others.isNotEmpty()) HorizontalDivider()
-            popular.forEach { location ->
-                LocationMenuItem(location, isSelected = location.id == selection?.id, isPopular = true) { select(location) }
+            val groupCount = 1 + (if (popular.isNotEmpty()) 1 else 0) + (if (others.isNotEmpty()) 1 else 0)
+            var groupIndex = 0
+
+            MenuGroup(index = groupIndex++, count = groupCount) {
+                SelectableDropdownMenuItem(
+                    selected = selection == null,
+                    text = { Text(stringResource(R.string.taxi_route_none)) },
+                    onClick = {
+                        onSelectionChange(null)
+                        expanded = false
+                    },
+                    shapes = MenuDefaults.itemShape(0, 1),
+                    selectedLeadingIcon = { LocationCheckIcon() }
+                )
             }
-            if (popular.isNotEmpty() && others.isNotEmpty()) HorizontalDivider()
-            others.forEach { location ->
-                LocationMenuItem(location, isSelected = location.id == selection?.id) { select(location) }
+            if (popular.isNotEmpty()) {
+                MenuGroup(index = groupIndex++, count = groupCount) {
+                    popular.forEachIndexed { index, location ->
+                        LocationMenuItem(
+                            location,
+                            isSelected = location.id == selection?.id,
+                            shapes = MenuDefaults.itemShape(index, popular.size),
+                            isPopular = true
+                        ) { select(location) }
+                    }
+                }
+            }
+            if (others.isNotEmpty()) {
+                MenuGroup(index = groupIndex, count = groupCount, maxHeight = 320.dp) {
+                    others.forEachIndexed { index, location ->
+                        LocationMenuItem(
+                            location,
+                            isSelected = location.id == selection?.id,
+                            shapes = MenuDefaults.itemShape(index, others.size)
+                        ) { select(location) }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
+private fun LocationCheckIcon() {
+    Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
+}
+
+@Composable
 private fun LocationMenuItem(
     location: TaxiLocation,
     isSelected: Boolean,
+    shapes: MenuItemShapes,
     isPopular: Boolean = false,
     onClick: () -> Unit,
 ) {
-    DropdownMenuItem(
+    // A selected place shows the check in place of its popular star.
+    SelectableDropdownMenuItem(
+        selected = isSelected,
         text = {
             LocalizedText(text = location.title)
         },
@@ -189,10 +221,9 @@ private fun LocationMenuItem(
                 )
             }
         } else null,
-        trailingIcon = if (isSelected) {
-            { Icon(Icons.Filled.Check, contentDescription = null) }
-        } else null,
-        onClick = onClick
+        selectedLeadingIcon = { LocationCheckIcon() },
+        onClick = onClick,
+        shapes = shapes
     )
 }
 
@@ -200,9 +231,9 @@ private fun LocationMenuItem(
 @Preview(showBackground = true)
 private fun LocationMenuItemPreview() {
     Theme {
-        Column {
-            LocationMenuItem(TaxiLocation.mockList()[1], isSelected = true, isPopular = true) {}
-            LocationMenuItem(TaxiLocation.mockList()[2], isSelected = false) {}
+        MenuGroup(index = 0, count = 1) {
+            LocationMenuItem(TaxiLocation.mockList()[1], isSelected = true, MenuDefaults.itemShape(0, 2), isPopular = true) {}
+            LocationMenuItem(TaxiLocation.mockList()[2], isSelected = false, MenuDefaults.itemShape(1, 2)) {}
         }
     }
 }

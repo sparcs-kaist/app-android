@@ -7,24 +7,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -231,18 +234,29 @@ fun ReasonCard(
                     .fillMaxWidth()
                     .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
             )
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                listOf(
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = MenuDefaults.standaloneGroupShape,
+                containerColor = MenuDefaults.groupStandardContainerColor,
+            ) {
+                val reasons = listOf(
                     TaxiReport.Reason.NO_SETTLEMENT to room.isDeparted,
                     TaxiReport.Reason.NO_SHOW to room.isDeparted,
                     TaxiReport.Reason.ETC_REASON to true,
-                ).forEach { (reason, enabled) ->
-                    DropdownMenuItem(
+                )
+                reasons.forEachIndexed { index, (reason, enabled) ->
+                    SelectableDropdownMenuItem(
+                        selected = selectedReason == reason,
                         text = { Text(stringResource(reason.text)) },
                         enabled = enabled,
                         onClick = {
                             onReasonSelected(reason)
                             expanded = false
+                        },
+                        shapes = MenuDefaults.itemShape(index, reasons.size),
+                        selectedLeadingIcon = {
+                            Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     )

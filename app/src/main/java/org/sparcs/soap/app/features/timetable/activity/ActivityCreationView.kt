@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
@@ -30,9 +31,10 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -40,11 +42,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -66,6 +68,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -87,7 +90,6 @@ import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.shared.views.contentViews.PickerField
 import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
 import org.sparcs.soap.app.theme.ui.Theme
-import java.time.LocalDate
 
 @Composable
 internal fun activityTime(minutes: Int): String {
@@ -372,13 +374,28 @@ private fun ActivityTimeCard(
                             .fillMaxWidth()
                             .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                     )
-                    ExposedDropdownMenu(expanded = expandedDay, onDismissRequest = { expandedDay = false }) {
-                        DayType.entries.sortedBy { it.value }.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(option.fullStringValue)) },
+                    ExposedDropdownMenu(
+                        expanded = expandedDay,
+                        onDismissRequest = { expandedDay = false },
+                        shape = MenuDefaults.standaloneGroupShape,
+                        containerColor = MenuDefaults.groupStandardContainerColor,
+                    ) {
+                        val days = DayType.entries.sortedBy { it.value }
+                        days.forEachIndexed { index, option ->
+                            SelectableDropdownMenuItem(
+                                selected = option.value == time.day,
                                 onClick = {
                                     onChange(time.move(time.begin, option.value))
                                     expandedDay = false
+                                },
+                                text = { Text(stringResource(option.fullStringValue)) },
+                                shapes = MenuDefaults.itemShape(index, days.size),
+                                selectedLeadingIcon = {
+                                    Icon(
+                                        Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MenuDefaults.LeadingIconSize)
+                                    )
                                 },
                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                             )

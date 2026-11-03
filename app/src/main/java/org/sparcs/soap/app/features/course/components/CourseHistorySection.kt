@@ -20,12 +20,12 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +50,8 @@ import org.sparcs.soap.app.domain.models.otl.sectionLabel
 import org.sparcs.soap.app.features.lectureDetail.components.DetailSectionHeader
 import org.sparcs.soap.app.shared.extensions.bleedHorizontally
 import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -239,40 +241,55 @@ fun CourseProfessorPicker(
             modifier = Modifier.widthIn(max = 200.dp)
         )
 
-        DropdownMenu(
+        ExpressiveMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            ProfessorMenuItem(
-                name = stringResource(R.string.course_all_professors),
-                selected = selected == null,
-                onClick = {
-                    onSelectProfessor(null)
-                    expanded = false
-                }
-            )
-            professors.forEach { professor ->
+            val count = professors.size + 1
+            MenuGroup(index = 0, count = 1, maxHeight = 320.dp) {
                 ProfessorMenuItem(
-                    name = professor.name,
-                    selected = professor.id == selectedProfessorID,
+                    name = stringResource(R.string.course_all_professors),
+                    selected = selected == null,
+                    index = 0,
+                    count = count,
                     onClick = {
-                        onSelectProfessor(professor.id)
+                        onSelectProfessor(null)
                         expanded = false
                     }
                 )
+                professors.forEachIndexed { index, professor ->
+                    ProfessorMenuItem(
+                        name = professor.name,
+                        selected = professor.id == selectedProfessorID,
+                        index = index + 1,
+                        count = count,
+                        onClick = {
+                            onSelectProfessor(professor.id)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ProfessorMenuItem(name: String, selected: Boolean, onClick: () -> Unit) {
-    DropdownMenuItem(
-        text = { Text(name) },
+private fun ProfessorMenuItem(
+    name: String,
+    selected: Boolean,
+    index: Int,
+    count: Int,
+    onClick: () -> Unit,
+) {
+    SelectableDropdownMenuItem(
+        selected = selected,
         onClick = onClick,
-        trailingIcon = if (selected) {
-            { Icon(Icons.Filled.Check, contentDescription = null) }
-        } else null
+        text = { Text(name) },
+        shapes = MenuDefaults.itemShape(index, count),
+        selectedLeadingIcon = {
+            Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
+        }
     )
 }
 
