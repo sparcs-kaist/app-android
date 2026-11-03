@@ -281,10 +281,10 @@ fun TimetableThemeEditor(
             title = { Text(stringResource(R.string.theme_discard_title)) },
             text = { Text(stringResource(R.string.theme_unsaved_changes_message)) },
             confirmButton = {
-                TextButton(onClick = onBack) { Text(stringResource(R.string.theme_discard)) }
+                TextButton(onClick = onBack, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.theme_discard)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDiscardDialog = false }) {
+                TextButton(onClick = { showDiscardDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }

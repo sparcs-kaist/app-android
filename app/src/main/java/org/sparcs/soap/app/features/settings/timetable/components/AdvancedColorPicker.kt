@@ -158,13 +158,14 @@ fun AdvancedColorPicker(
         confirmButton = {
             TextButton(
                 onClick = { onApply(hex) },
-                enabled = hex.length == 6
+                enabled = hex.length == 6,
+                shapes = ButtonDefaults.shapes()
             ) {
                 Text(stringResource(R.string.theme_apply), fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.cancel))
             }
         }
@@ -416,7 +417,7 @@ fun AdvancedColorPickerPreview() {
     var show by remember { mutableStateOf(true) }
     Theme {
         Box(Modifier.fillMaxSize().padding(16.dp)) {
-            TextButton(onClick = { show = true }) {
+            TextButton(onClick = { show = true }, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.theme_change_color))
             }
             if (show) {

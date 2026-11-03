@@ -105,10 +105,11 @@ internal fun ThemeColorDialog(
         confirmButton = {
             TextButton(
                 onClick = { onApply(hex.uppercase()) },
-                enabled = valid
+                enabled = valid,
+                shapes = ButtonDefaults.shapes()
             ) { Text(stringResource(R.string.theme_apply)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
+        dismissButton = { TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) } }
     )
 }
 
@@ -118,7 +119,7 @@ private fun ThemeColorDialogPreview() {
     var showDialog by rememberSaveable { mutableStateOf(false) }
     Theme() {
         Box(Modifier.background(Color.White).fillMaxSize()) {
-            TextButton(onClick = { showDialog = true }) {
+            TextButton(onClick = { showDialog = true }, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.theme_change_color))
             }
             if (showDialog) {

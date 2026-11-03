@@ -40,6 +40,7 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -282,11 +283,12 @@ fun SettingsView(
                     onClick = {
                         showSignOutDialog = false
                         settingsViewModel.signOut()
-                    }
+                    },
+                    shapes = ButtonDefaults.shapes()
                 ) { Text(stringResource(R.string.sign_out)) }
             },
             dismissButton = {
-                TextButton(onClick = { showSignOutDialog = false }) {
+                TextButton(onClick = { showSignOutDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -507,7 +509,7 @@ private fun ThemeSwitcherItem(
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { showDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -93,7 +94,8 @@ private fun Preview() {
     Theme {
         Box(Modifier.fillMaxSize()) {
             Button(
-                onClick = {}
+                onClick = {},
+                shapes = ButtonDefaults.shapes()
             ) {
                 FeedViewDropDownMenu {}
             }

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -141,12 +142,12 @@ fun AraSettingsView(
                     TextButton(onClick = {
                         showNicknameDialog = false
                         viewModel.updateNickname()
-                    }) { Text(stringResource(R.string.confirm)) }
+                    }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.confirm)) }
                 },
                 dismissButton = {
                     TextButton(onClick = {
                         showNicknameDialog = false
-                    }) { Text(stringResource(R.string.cancel)) }
+                    }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
                 },
                 title = { Text(stringResource(R.string.warning)) },
                 text = {

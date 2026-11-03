@@ -136,12 +136,12 @@ fun TimetableThemeCodeDialog(onDismiss: () -> Unit, onContinue: (String) -> Unit
             }
         },
         confirmButton = {
-            TextButton(onClick = { normalized?.let(onContinue) }, enabled = normalized != null) {
+            TextButton(onClick = { normalized?.let(onContinue) }, enabled = normalized != null, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.theme_continue))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
         }
     )
 }

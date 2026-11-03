@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
@@ -49,7 +50,7 @@ internal fun ThemePhotoProgressDialog(onCancel: () -> Unit) {
             }
         },
         confirmButton = {
-            TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
+            TextButton(onClick = onCancel, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
         }
     )
 }
@@ -61,7 +62,7 @@ internal fun ThemePhotoErrorDialog(onDismiss: () -> Unit) {
         title = { Text(stringResource(R.string.theme_photo_error_title)) },
         text = { Text(stringResource(R.string.theme_photo_error)) },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.done)) }
         }
     )
 }
@@ -77,7 +78,7 @@ private fun ThemePhotoSectionPreview() {
 private fun ThemePhotoProgressPreview() {
     Theme {
         var showDialog by remember { mutableStateOf(false) }
-        Button(onClick = { showDialog = true }, modifier = Modifier.padding(16.dp)) {
+        Button(onClick = { showDialog = true }, modifier = Modifier.padding(16.dp), shapes = ButtonDefaults.shapes()) {
             Text(stringResource(R.string.theme_photo_generating))
         }
         if (showDialog) {
@@ -91,7 +92,7 @@ private fun ThemePhotoProgressPreview() {
 private fun ThemePhotoErrorPreview() {
     Theme {
         var showDialog by remember { mutableStateOf(false) }
-        Button(onClick = { showDialog = true }, modifier = Modifier.padding(16.dp)) {
+        Button(onClick = { showDialog = true }, modifier = Modifier.padding(16.dp), shapes = ButtonDefaults.shapes()) {
             Text(stringResource(R.string.theme_photo_error_title))
         }
         if (showDialog) {

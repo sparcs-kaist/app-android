@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -253,12 +254,12 @@ fun TaxiSettingsView(
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
             confirmButton = {
-                TextButton(onClick = { showDiscardDialog = false; navController.popBackStack() }) {
+                TextButton(onClick = { showDiscardDialog = false; navController.popBackStack() }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.exit))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDiscardDialog = false }) {
+                TextButton(onClick = { showDiscardDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.keep_editing))
                 }
             },
@@ -278,12 +279,12 @@ fun TaxiSettingsView(
                 TextButton(onClick = {
                     showAlert = false
                     saveChanges()
-                }) {
+                }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showAlert = false }) {
+                TextButton(onClick = { showAlert = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }

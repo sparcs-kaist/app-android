@@ -110,7 +110,7 @@ private fun ActivityDetailsDialogPreview() {
                 .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
-            Button(onClick = { showDialog = true }) {
+            Button(onClick = { showDialog = true }, shapes = ButtonDefaults.shapes()) {
                 Text("Show Dialog")
             }
             

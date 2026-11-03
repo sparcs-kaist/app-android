@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -222,7 +223,8 @@ private fun Preview() {
     Theme {
         Box(Modifier.fillMaxSize()) {
             Button(
-                onClick = {}
+                onClick = {},
+                shapes = ButtonDefaults.shapes()
             ) {
                 TimetableDropDownMenu(
                     expanded = true,
