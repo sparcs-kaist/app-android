@@ -327,7 +327,7 @@ private fun TimetableLandscapeLayout(
             isMyTable = selectedTimetableID == null,
             isEditable = isEditable,
             onNewTable = viewModel::createTable,
-            onDuplicateMyTable = viewModel::duplicateMyTable,
+            onDuplicateMyTable = viewModel::duplicateTable,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
 
@@ -454,7 +454,7 @@ private fun TimetablePortraitLayout(
             isMyTable = selectedTimetableID == null,
             isEditable = isEditable,
             onNewTable = viewModel::createTable,
-            onDuplicateMyTable = viewModel::duplicateMyTable,
+            onDuplicateMyTable = viewModel::duplicateTable,
         )
 
         Card(

@@ -271,27 +271,43 @@ class TimetableViewModelTest {
     }
 
     @Test
-    fun `duplicateMyTable selects the copy and names it without clashing`() = runTest {
+    fun `duplicateTable selects the copy and names it without clashing`() = runTest {
         val copy = context.getString(R.string.timetable_duplicate_title)
         configureDuplication(listOf("$copy 2", copy))
 
         createViewModel()
-        viewModel.duplicateMyTable()
+        viewModel.duplicateTable()
 
         assertEquals(listOf("$copy 3"), mockTimetableUseCase.duplicatedTitles)
+        assertEquals(listOf<Int?>(null), mockTimetableUseCase.duplicatedSources)
         assertEquals(99, viewModel.selectedTimetableID.value)
         assertFalse(viewModel.isDuplicatingTable.value)
         assertFalse(viewModel.isAlertPresented)
     }
 
     @Test
+    fun `duplicateTable copies the selected table under its own name`() = runTest {
+        configureDuplication(listOf("Plan B"))
+
+        createViewModel()
+        viewModel.selectTimetable(99)
+        viewModel.duplicateTable()
+
+        assertEquals(listOf<Int?>(99), mockTimetableUseCase.duplicatedSources)
+        assertEquals(
+            listOf(context.getString(R.string.timetable_duplicate_title_of, "Plan B")),
+            mockTimetableUseCase.duplicatedTitles
+        )
+    }
+
+    @Test
     fun `an incomplete copy is reported but still selected`() = runTest {
         configureDuplication()
-        mockTimetableUseCase.duplicateMyTableResult =
+        mockTimetableUseCase.duplicateTableResult =
             Result.success(TableDuplication(id = 99, skippedLectureCount = 2))
 
         createViewModel()
-        viewModel.duplicateMyTable()
+        viewModel.duplicateTable()
 
         assertTrue(viewModel.isAlertPresented)
         assertEquals(R.string.timetable_duplicate_partial_title, viewModel.alertState?.titleResId)
@@ -301,10 +317,10 @@ class TimetableViewModelTest {
     @Test
     fun `a failed duplication shows an error and frees the menu entry`() = runTest {
         configureDuplication()
-        mockTimetableUseCase.duplicateMyTableResult = Result.failure(Exception("Test failure"))
+        mockTimetableUseCase.duplicateTableResult = Result.failure(Exception("Test failure"))
 
         createViewModel()
-        viewModel.duplicateMyTable()
+        viewModel.duplicateTable()
 
         assertTrue(viewModel.isAlertPresented)
         assertEquals(R.string.error, viewModel.alertState?.titleResId)

@@ -122,8 +122,9 @@
     <string name="timetable_delete">Delete</string>
     <string name="timetable_delete_confirm_title">Delete \"%1$s\"?</string>
     <string name="timetable_delete_confirm_message">This timetable and its courses will be permanently deleted.</string>
-    <string name="timetable_duplicate">Duplicate My Table</string>
+    <string name="timetable_duplicate">Duplicate This Table</string>
     <string name="timetable_duplicate_title">My Table Copy</string>
+    <string name="timetable_duplicate_title_of">%1$s Copy</string>
     <string name="timetable_duplicate_partial_title">Timetable partially duplicated.</string>
     <string name="timetable_duplicate_partial_message">Some lectures or activities could not be copied.</string>
     <string name="taxi_room_creation">New Room</string>

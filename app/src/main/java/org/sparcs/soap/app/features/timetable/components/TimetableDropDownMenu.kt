@@ -163,7 +163,7 @@ private fun TimetableManagementItems(
         DropdownMenuItem(
             text = { Text(stringResource(R.string.timetable_duplicate)) },
             onClick = {
-                viewModel.duplicateMyTable()
+                viewModel.duplicateTable()
                 onDismiss()
             },
             shape = menuItemShape(1, 2),

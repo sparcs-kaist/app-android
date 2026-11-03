@@ -26,13 +26,14 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
     var deleteTableResult: Result<Unit> = Result.success(Unit)
     var renameTableResult: Result<Unit> = Result.success(Unit)
 
-    var duplicateMyTableResult: Result<TableDuplication> = Result.success(TableDuplication(id = 99))
+    var duplicateTableResult: Result<TableDuplication> = Result.success(TableDuplication(id = 99))
 
     var updateItemsResult: Result<Unit> = Result.success(Unit)
     val updatedItems = mutableListOf<List<TimetableItemChange>>()
 
     var deleteLectureCallCount = 0
     var duplicatedTitles = mutableListOf<String>()
+    var duplicatedSources = mutableListOf<Int?>()
 
     override suspend fun getSemesters(): List<Semester> = getSemestersResult.getOrThrow()
     override suspend fun getCurrentSemester(): Semester = getCurrentSemesterResult.getOrThrow()
@@ -56,9 +57,10 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
     override suspend fun createTable(semester: Semester): TimetableCreation =
         error("MockTimetableUseCase.createTable not configured")
 
-    override suspend fun duplicateMyTable(semester: Semester, title: String): TableDuplication {
+    override suspend fun duplicateTable(semester: Semester, sourceID: Int?, title: String): TableDuplication {
+        duplicatedSources.add(sourceID)
         duplicatedTitles.add(title)
-        return duplicateMyTableResult.getOrThrow()
+        return duplicateTableResult.getOrThrow()
     }
 
     override suspend fun addLecture(timetableID: Int, lectureID: Int) {
