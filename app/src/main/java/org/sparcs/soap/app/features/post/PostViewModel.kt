@@ -134,6 +134,7 @@ class PostViewModel @Inject constructor(
     private var isSummarizationAvailable = false
     private var isToggling = false
     private var bodyJob: Job? = null
+    private var editabilityJob: Job? = null
     private var translationJob: Job? = null
     private var summaryJob: Job? = null
 
@@ -168,6 +169,7 @@ class PostViewModel @Inject constructor(
     private fun setPost(newPost: AraPost) {
         val previous = _post.value
         _post.value = newPost
+        updateCanEdit(newPost)
         val contentChanged = previous?.content != newPost.content || previous?.board?.slug != newPost.board?.slug
         if (contentChanged || previous?.title != newPost.title) resetTranslation()
         if (contentChanged) prepareContentBody(newPost)
@@ -182,10 +184,20 @@ class PostViewModel @Inject constructor(
             val body = withContext(backgroundDispatcher) { PostBody.from(content, boardSlug) }
             _contentBody.value = body
             updateCanSummarise()
-            _canEdit.value = post.isMine == true && post.board != null && withContext(backgroundDispatcher) {
-                ComposeDocument.fromContent(content, PostBody.baseUrl(boardSlug)) != null
-            }
             loadTranslationTargets(listOf(title, body.plainText).joinToString(LINE_SEPARATOR))
+        }
+    }
+
+    private fun updateCanEdit(post: AraPost) {
+        editabilityJob?.cancel()
+        _canEdit.value = false
+        val content = post.content ?: return
+        val board = post.board ?: return
+        if (post.isMine != true) return
+        editabilityJob = viewModelScope.launch {
+            _canEdit.value = withContext(backgroundDispatcher) {
+                ComposeDocument.fromContent(content, PostBody.baseUrl(board.slug)) != null
+            }
         }
     }
 

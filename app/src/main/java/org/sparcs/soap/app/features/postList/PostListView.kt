@@ -75,6 +75,7 @@ fun PostListView(
     navController: NavController,
 ) {
     var loadedInitialPost by rememberSaveable { mutableStateOf(false) }
+    var scrollToTopAfterRefresh by rememberSaveable { mutableStateOf(false) }
     val searchKeyword by viewModel.searchKeyword.collectAsState()
     var showSearchBar by rememberSaveable { mutableStateOf(viewModel.searchKeyword.value.isNotEmpty()) }
 
@@ -99,6 +100,9 @@ fun PostListView(
                 navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("listNeedsRefresh")
                     ?: false
             if (needsRefresh) {
+                if (backStackEntry?.savedStateHandle?.remove<Boolean>("scrollToTopAfterPost") == true) {
+                    scrollToTopAfterRefresh = true
+                }
                 viewModel.fetchInitialPosts()
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     "listNeedsRefresh",
@@ -121,6 +125,15 @@ fun PostListView(
     val topBarScrollBehavior = topAppBarScrollBehavior()
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
+
+    LaunchedEffect(state, scrollToTopAfterRefresh) {
+        if (scrollToTopAfterRefresh && viewModel.state.value is PostListViewModel.ViewState.Loaded) {
+            if (board.isMarket) gridState.requestScrollToItem(0) else listState.requestScrollToItem(0)
+            topBarScrollBehavior.state.heightOffset = 0f
+            topBarScrollBehavior.state.contentOffset = 0f
+            scrollToTopAfterRefresh = false
+        }
+    }
 
     val closeSearch = {
         showSearchBar = false

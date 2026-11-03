@@ -99,6 +99,9 @@ fun PostComposeView(
                         isUploading = false
                         if (isSuccess) {
                             navController.previousBackStackEntry?.savedStateHandle?.set("listNeedsRefresh", true)
+                            if (!isEditing) {
+                                navController.previousBackStackEntry?.savedStateHandle?.set("scrollToTopAfterPost", true)
+                            }
                             navController.popBackStack()
                         }
                     }

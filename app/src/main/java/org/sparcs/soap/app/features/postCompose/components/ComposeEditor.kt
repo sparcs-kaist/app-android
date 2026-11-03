@@ -29,8 +29,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -100,19 +105,21 @@ fun ComposeEditor(
             .onFocusChanged { state.isEditing = it.hasFocus }
     ) {
         state.blocks.forEachIndexed { index, block ->
-            when (block) {
-                is ComposeBlock.Text -> TextBlock(
-                    block = block,
-                    marker = markers[block.id],
-                    placeholder = placeholder.takeIf { index == 0 && state.isBlank },
-                    selection = if (state.focusedId == block.id) state.selection else null,
-                    focusRequester = focusRequesters.getOrPut(block.id) { FocusRequester() },
-                    onValueChange = { value -> state.updateText(block.id, value.text, value.selection) },
-                    onSelect = { range -> state.select(block.id, range) },
-                    onKey = { event -> handleKey(event, state, block, imagePaste) },
-                    imagePaste = imagePaste,
-                )
-                is ComposeBlock.Image -> ImageBlock(block, onRemove = { state.remove(block.id) })
+            key(block.id) {
+                when (block) {
+                    is ComposeBlock.Text -> TextBlock(
+                        block = block,
+                        marker = markers[block.id],
+                        placeholder = placeholder.takeIf { index == 0 && state.isBlank },
+                        selection = if (state.focusedId == block.id) state.selection else null,
+                        focusRequester = focusRequesters.getOrPut(block.id) { FocusRequester() },
+                        onValueChange = { value -> state.updateText(block.id, value.text, value.selection) },
+                        onSelect = { range -> state.select(block.id, range) },
+                        onKey = { event -> handleKey(event, state, block, imagePaste) },
+                        imagePaste = imagePaste,
+                    )
+                    is ComposeBlock.Image -> ImageBlock(block, onRemove = { state.remove(block.id) })
+                }
             }
         }
     }
@@ -165,10 +172,18 @@ private fun TextBlock(
     imagePaste: ImagePaste,
 ) {
     val length = block.text.length
-    val value = TextFieldValue(
+    var inputValue by remember(block.id) { mutableStateOf(TextFieldValue(block.text)) }
+    val currentSelection = selection?.let {
+        TextRange(it.start.coerceIn(0, length), it.end.coerceIn(0, length))
+    } ?: TextRange(length)
+    val value = inputValue.copy(
         annotatedString = annotated(block, linkColor = MaterialTheme.colorScheme.primary),
-        selection = selection?.let { TextRange(it.start.coerceIn(0, length), it.end.coerceIn(0, length)) } ?: TextRange(length),
+        selection = currentSelection,
+        composition = inputValue.composition.takeIf {
+            inputValue.text == block.text && inputValue.selection == currentSelection
+        },
     )
+    SideEffect { inputValue = value }
     val textStyle = blockTextStyle(block.style)
     val pasteLabel = stringResource(R.string.compose_paste_image)
 
@@ -190,6 +205,7 @@ private fun TextBlock(
             BasicTextField(
                 value = value,
                 onValueChange = { newValue ->
+                    inputValue = newValue
                     if (newValue.text == block.text) onSelect(newValue.selection) else onValueChange(newValue)
                 },
                 textStyle = textStyle.copy(color = textStyle.color.takeOrElse { MaterialTheme.colorScheme.onSurface }),

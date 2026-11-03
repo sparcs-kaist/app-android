@@ -105,6 +105,42 @@ class PostViewModelTest : PostTestBase() {
     }
 
     @Test
+    fun `canEdit updates when full post supplies ownership without changing content`() = runTest {
+        val fullPost = AraPost.mock().copy(isMine = true, content = "<p>My post</p>")
+        mockAraBoardUseCase.cachedPostResult = fullPost.copy(isMine = null)
+        mockAraBoardUseCase.fetchPostResult = Result.success(fullPost)
+
+        createViewModel(fullPost)
+        viewModel.fetchPost()
+
+        assertTrue(viewModel.canEdit.value)
+    }
+
+    @Test
+    fun `canEdit updates when full post supplies board without changing content`() = runTest {
+        val fullPost = AraPost.mock().copy(isMine = true, content = "<p>My post</p>")
+        mockAraBoardUseCase.cachedPostResult = fullPost.copy(board = null)
+        mockAraBoardUseCase.fetchPostResult = Result.success(fullPost)
+
+        createViewModel(fullPost)
+        viewModel.fetchPost()
+
+        assertTrue(viewModel.canEdit.value)
+    }
+
+    @Test
+    fun `canEdit resets when ownership changes without changing content`() = runTest {
+        val post = AraPost.mock().copy(isMine = true, content = "<p>My post</p>")
+        seedPost(post)
+        assertTrue(viewModel.canEdit.value)
+
+        mockAraBoardUseCase.fetchPostResult = Result.success(post.copy(isMine = false))
+        viewModel.fetchPost()
+
+        assertFalse(viewModel.canEdit.value)
+    }
+
+    @Test
     fun `fetchPost failure sets error state`() = runTest {
         mockAraBoardUseCase.fetchPostResult = Result.failure(Exception("Test failure"))
 
