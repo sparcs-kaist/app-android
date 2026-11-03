@@ -18,6 +18,7 @@
     <string name="write">글쓰기</string>
     <string name="submit">올리기</string>
     <string name="terms_of_use">이용약관</string>
+    <string name="terms_of_use_title">이용약관</string>
     <string name="anonymous">익명</string>
     <string name="post_option_anonymous">익명</string>
     <string name="post_options">게시글 옵션</string>

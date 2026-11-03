@@ -229,7 +229,7 @@ fun SettingsView(
                         }
                         row {
                             NavigationItem(
-                                text = stringResource(R.string.terms_of_use),
+                                text = stringResource(R.string.terms_of_use_title),
                                 icon = Icons.Outlined.Description
                             ) { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.TERMS_OF_USE_URL.toUri())) }
                         }

@@ -20,6 +20,7 @@
     <string name="write">Write</string>
     <string name="submit">Done</string>
     <string name="terms_of_use">terms of use</string>
+    <string name="terms_of_use_title">Terms of Use</string>
     <string name="anonymous">anonymous</string>
     <string name="post_option_anonymous">Anonymous</string>
     <string name="post_options">Post options</string>
