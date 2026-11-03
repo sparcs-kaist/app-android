@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
@@ -273,11 +274,14 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         else -> NavigationSuiteType.ShortNavigationBarCompact
     }
 
+    // The navigationItems overload: the older navigationSuiteItems one predates the short bar and
+    // wide rail, and does not consume their insets, so each tab's Scaffold would pad its content
+    // by the system bar again and leave a blank strip above the bar.
     NavigationSuiteScaffold(
-        navigationSuiteItems = {
+        navigationItems = {
             navigationItems.forEach { tab ->
                 val selected = isTabActive(currentRoute, tab.channel)
-                item(
+                NavigationSuiteItem(
                     selected = selected,
                     onClick = { onTabClick(tab.channel) },
                     icon = {
@@ -292,11 +296,12 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                    }
+                    },
+                    navigationSuiteType = navigationLayoutType
                 )
             }
         },
-        layoutType = navigationLayoutType
+        navigationSuiteType = navigationLayoutType
     ) {
         Box(
             modifier = Modifier.fillMaxSize()
