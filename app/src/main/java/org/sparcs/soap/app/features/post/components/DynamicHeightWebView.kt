@@ -148,12 +148,17 @@ private fun heightScript(nonce: String) = """
     </script>
 """.trimIndent()
 
+/**
+ * The post wrapped in a page that themes it. Inline styles stay allowed (`style-src`): without it
+ * `default-src` blocks the page's own `<style>`, and old posts show in black on the dark theme.
+ * Only the height script may run.
+ */
 private fun wrapHtml(html: String, colors: HtmlColors, nonce: String): String = """
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
-      <meta http-equiv="Content-Security-Policy" content="default-src * data: blob:; script-src 'nonce-$nonce'; object-src 'none'; frame-src https:; child-src https:; form-action 'none'; base-uri 'none'">
+      <meta http-equiv="Content-Security-Policy" content="default-src * data: blob:; style-src * 'unsafe-inline'; script-src 'nonce-$nonce'; object-src 'none'; frame-src https:; child-src https:; form-action 'none'; base-uri 'none'">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <style>
         html, body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
