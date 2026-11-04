@@ -1,8 +1,7 @@
 package org.sparcs.soap.app.features.postList.components.postListRow
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -15,7 +14,7 @@ import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.features.navigationBar.components.SearchButton
 import org.sparcs.soap.app.theme.ui.Theme
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BoardNavigationBar(
     title: String,
@@ -29,22 +28,9 @@ fun BoardNavigationBar(
         navigationIcon = {
             BackButton { navController.popBackStack() }
         },
-        title = {
-            Column {
-                Text(
-                    text = title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = subTitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        },
+        // The board's name with its group below, as the Expressive app bar's own subtitle.
+        title = { Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        subtitle = { Text(text = subTitle, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         actions = {
             SearchButton(
                 onClick = { onClickSearch() },
