@@ -18,10 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.window.PopupProperties
 
 /**
  * Material 3 Expressive menu: a popup holding one or more [MenuGroup]s, each a rounded segment of
  * the menu. Items inside a group take [menuItemShape] so the first and last follow its corners.
+ * Pass [properties] with `focusable = false` for a menu that must leave the keyboard up.
  */
 @Composable
 fun ExpressiveMenu(
@@ -30,6 +32,7 @@ fun ExpressiveMenu(
     modifier: Modifier = Modifier,
     anchorPosition: MenuAnchorPosition = MenuAnchorPosition.Below,
     offset: DpOffset = DpOffset.Zero,
+    properties: PopupProperties = MenuDefaults.DefaultMenuProperties,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     DropdownMenuPopup(
@@ -37,6 +40,7 @@ fun ExpressiveMenu(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         popupPositionProvider = MenuDefaults.rememberDropdownMenuPopupPositionProvider(anchorPosition, offset),
+        properties = properties,
         content = content,
     )
 }
