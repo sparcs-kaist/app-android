@@ -25,11 +25,12 @@ fun BlockAuthorDialog(nickname: String, onConfirm: () -> Unit, onDismiss: () -> 
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
+                shapes = ButtonDefaults.shapes(),
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) { Text(stringResource(R.string.block_author)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
         }
     )
 }
