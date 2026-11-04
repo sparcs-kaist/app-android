@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.features.postCompose.components
 
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,12 +18,12 @@ fun DiscardPostDialog(isEditing: Boolean, onDiscard: () -> Unit, onDismiss: () -
         title = { Text(stringResource(if (isEditing) R.string.compose_discard_changes else R.string.compose_discard_post)) },
         text = { Text(stringResource(if (isEditing) R.string.compose_discard_changes_message else R.string.discard_this_post)) },
         confirmButton = {
-            TextButton(onClick = onDiscard) {
+            TextButton(onClick = onDiscard, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.exit), color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.keep_editing))
             }
         }
