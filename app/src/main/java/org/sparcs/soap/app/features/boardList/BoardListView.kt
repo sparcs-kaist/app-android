@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,6 +42,7 @@ import org.sparcs.soap.app.features.boardList.components.icon
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.SettingsSegmentRow
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.onlyBottom
@@ -118,7 +119,7 @@ fun BoardListView(
                     modifier = Modifier
                         .fillMaxSize()
                         .widthIn(max = 600.dp),
-                    contentPadding = PaddingValues(bottom = 8.dp) + innerPadding.onlyBottom()
+                    contentPadding = PaddingValues(bottom = 16.dp) + innerPadding.onlyBottom()
                 ) {
                     viewModel.sections.forEach { section ->
                         val board = (section as? BoardListSection.Board)?.let { s ->
@@ -151,18 +152,19 @@ fun BoardListView(
                                         .background(MaterialTheme.colorScheme.surface)
                                 )
                             }
-                            items(
-                                current.boards.filter { it.group.id == group.id },
-                                key = { "board-${it.id}" }
-                            ) { board ->
+                            // A group's boards as one card of segmented rows, as on the settings pages.
+                            val groupBoards = current.boards.filter { it.group.id == group.id }
+                            itemsIndexed(groupBoards, key = { _, board -> "board-${board.id}" }) { index, board ->
                                 val newPostsLabel = stringResource(R.string.new_posts)
-                                SettingsNavigationItem(
-                                    text = board.name.localized(),
-                                    onClick = { onBoardClick(board) },
-                                    trailingContent = if (board.id in viewModel.boardsWithNewPosts) {
-                                        { NewPostsDot(Modifier.semantics { contentDescription = newPostsLabel }) }
-                                    } else null
-                                )
+                                SettingsSegmentRow(index, groupBoards.size) {
+                                    SettingsNavigationItem(
+                                        text = board.name.localized(),
+                                        onClick = { onBoardClick(board) },
+                                        trailingContent = if (board.id in viewModel.boardsWithNewPosts) {
+                                            { NewPostsDot(Modifier.semantics { contentDescription = newPostsLabel }) }
+                                        } else null
+                                    )
+                                }
                             }
                         }
 
