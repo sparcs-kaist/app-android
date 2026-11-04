@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +33,7 @@ import org.sparcs.soap.app.features.post.PostTranslationState
 import org.sparcs.soap.app.shared.views.tiptap.TiptapLayout
 import org.sparcs.soap.app.theme.ui.Theme
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PostTranslationBanner(
     state: PostTranslationState,
@@ -48,7 +51,7 @@ fun PostTranslationBanner(
         when (current) {
             PostTranslationState.Original -> Unit
             is PostTranslationState.Translating -> BannerRow {
-                CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                LoadingIndicator(Modifier.size(20.dp))
                 BannerText(stringResource(R.string.post_translating_to, languageName(current.targetLanguage)), Modifier.weight(1f))
             }
 
@@ -66,15 +69,15 @@ fun PostTranslationBanner(
                     )
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onShowOriginal) { Text(stringResource(R.string.cancel)) }
-                    TextButton(onClick = onDownload) { Text(stringResource(R.string.translation_download)) }
+                    TextButton(onClick = onShowOriginal, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
+                    TextButton(onClick = onDownload, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.translation_download)) }
                 }
             }
 
             is PostTranslationState.Translated -> BannerRow {
                 TranslateIcon()
                 BannerText(description(current.translation), Modifier.weight(1f))
-                TextButton(onClick = onShowOriginal) { Text(stringResource(R.string.show_original)) }
+                TextButton(onClick = onShowOriginal, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.show_original)) }
             }
         }
     }
