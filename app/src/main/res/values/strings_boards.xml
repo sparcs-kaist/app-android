@@ -9,6 +9,7 @@
     <string name="board_sections_reset">Reset to Default</string>
     <string name="board_sections_add">Add %1$s</string>
     <string name="board_sections_remove">Remove %1$s</string>
+    <string name="board_sections_reorder">Reorder %1$s</string>
     <string name="blocked_users_footer">You don’t see their posts or comments on Ara.</string>
     <string name="blocked_users_empty_description">People you block from a post or comment appear here.</string>
     <string name="debug_boards">Boards</string>
