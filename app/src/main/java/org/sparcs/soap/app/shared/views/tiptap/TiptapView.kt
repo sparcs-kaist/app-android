@@ -21,10 +21,11 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.BrokenImage
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -227,6 +228,7 @@ fun TiptapImageView(image: TiptapImage, modifier: Modifier = Modifier) {
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TiptapImagePlaceholder(failed: Boolean) {
     Box(
@@ -238,7 +240,7 @@ private fun TiptapImagePlaceholder(failed: Boolean) {
         if (failed) {
             Icon(Icons.Outlined.BrokenImage, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
-            CircularProgressIndicator()
+            LoadingIndicator()
         }
     }
 }
