@@ -13,7 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ import timber.log.Timber
 import java.util.UUID
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DynamicHeightWebView(
     html: String,
@@ -85,7 +87,7 @@ fun DynamicHeightWebView(
             modifier = Modifier.fillMaxWidth()
         )
         if (height == 0) {
-            CircularProgressIndicator(Modifier.align(Alignment.Center).padding(16.dp))
+            LoadingIndicator(Modifier.align(Alignment.Center).padding(16.dp))
         }
     }
 }
