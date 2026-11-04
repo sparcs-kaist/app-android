@@ -25,14 +25,15 @@ import androidx.compose.material.icons.filled.FormatItalic
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.FormatStrikethrough
 import androidx.compose.material.icons.filled.FormatUnderlined
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -58,6 +59,9 @@ import org.sparcs.soap.app.features.postCompose.ComposeColors
 import org.sparcs.soap.app.features.postCompose.ComposeEditorState
 import org.sparcs.soap.app.features.postCompose.ComposeList
 import org.sparcs.soap.app.features.postCompose.ComposeStyle
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -108,12 +112,13 @@ fun ComposeFormatPanel(editor: ComposeEditorState, modifier: Modifier = Modifier
                 isEnabled
             ) { editor.toggleList(ComposeList.NUMBERED) }
             PanelDivider()
-            IconButton(onClick = editor::outdent, enabled = !block?.lists.isNullOrEmpty()) {
+            IconButton(onClick = editor::outdent, enabled = !block?.lists.isNullOrEmpty(), shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.AutoMirrored.Filled.FormatIndentDecrease, contentDescription = stringResource(R.string.compose_format_outdent))
             }
             IconButton(
                 onClick = editor::indent,
-                enabled = block != null && block.lists.isNotEmpty() && block.lists.size < ComposeList.MAX_DEPTH
+                enabled = block != null && block.lists.isNotEmpty() && block.lists.size < ComposeList.MAX_DEPTH,
+                shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, contentDescription = stringResource(R.string.compose_format_indent))
             }
@@ -155,7 +160,12 @@ private fun PanelDivider() {
 
 @Composable
 private fun FormatToggle(icon: ImageVector, label: String, checked: Boolean, enabled: Boolean, onClick: () -> Unit) {
-    IconToggleButton(checked = checked, onCheckedChange = { onClick() }, enabled = enabled) {
+    IconToggleButton(
+        checked = checked,
+        onCheckedChange = { onClick() },
+        enabled = enabled,
+        shapes = IconButtonDefaults.toggleableShapes()
+    ) {
         Icon(icon, contentDescription = label)
     }
 }
@@ -165,39 +175,60 @@ private fun ColorMenu(current: String?, enabled: Boolean, onSelect: (String?) ->
     var expanded by remember { mutableStateOf(false) }
 
     Box {
-        IconButton(onClick = { expanded = true }, enabled = enabled) {
+        IconButton(onClick = { expanded = true }, enabled = enabled, shapes = IconButtonDefaults.shapes()) {
             Icon(
                 imageVector = Icons.Filled.FormatColorText,
                 contentDescription = stringResource(R.string.compose_format_text_color),
                 tint = ComposeColors.color(current)?.takeIf { enabled } ?: LocalContentColor.current
             )
         }
-        DropdownMenu(
+        // Not focusable, so the keyboard stays up while picking a colour.
+        ExpressiveMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             properties = PopupProperties(focusable = false)
         ) {
-            ColorItem(stringResource(R.string.compose_color_default), current == null, { Icon(Icons.Filled.FormatColorReset, contentDescription = null) }) {
-                onSelect(null)
-                expanded = false
-            }
-            ComposeColors.PALETTE.zip(COLOR_NAMES).forEach { (hex, nameRes) ->
-                ColorItem(stringResource(nameRes), current == hex, { ColorSwatch(ComposeColors.color(hex) ?: Color.Unspecified) }) {
-                    onSelect(hex)
+            MenuGroup(index = 0, count = 1) {
+                val count = ComposeColors.PALETTE.size + 1
+                ColorItem(
+                    stringResource(R.string.compose_color_default),
+                    current == null,
+                    0,
+                    count,
+                    { Icon(Icons.Filled.FormatColorReset, contentDescription = null) }
+                ) {
+                    onSelect(null)
                     expanded = false
+                }
+                ComposeColors.PALETTE.zip(COLOR_NAMES).forEachIndexed { i, (hex, nameRes) ->
+                    ColorItem(stringResource(nameRes), current == hex, i + 1, count, { ColorSwatch(ComposeColors.color(hex) ?: Color.Unspecified) }) {
+                        onSelect(hex)
+                        expanded = false
+                    }
                 }
             }
         }
     }
 }
 
+/** A colour as a picker item: its swatch leads, and the current colour is highlighted with a check. */
 @Composable
-private fun ColorItem(name: String, selected: Boolean, leadingIcon: @Composable () -> Unit, onClick: () -> Unit) {
-    DropdownMenuItem(
+private fun ColorItem(
+    name: String,
+    selected: Boolean,
+    index: Int,
+    count: Int,
+    leadingIcon: @Composable () -> Unit,
+    onClick: () -> Unit,
+) {
+    SelectableDropdownMenuItem(
+        selected = selected,
+        onClick = onClick,
         text = { Text(name) },
+        shapes = MenuDefaults.itemShape(index, count),
+        colors = selectableMenuItemColors(),
         leadingIcon = leadingIcon,
-        trailingIcon = if (selected) { { Icon(Icons.Filled.Check, contentDescription = null) } } else null,
-        onClick = onClick
+        trailingContent = if (selected) { { Icon(Icons.Filled.Check, contentDescription = null) } } else null,
     )
 }
 
