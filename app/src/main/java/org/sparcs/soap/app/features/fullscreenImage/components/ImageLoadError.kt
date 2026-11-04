@@ -45,6 +45,7 @@ internal fun ImageLoadError(onRetry: () -> Unit, modifier: Modifier = Modifier) 
         )
         OutlinedButton(
             onClick = onRetry,
+            shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
         ) {
