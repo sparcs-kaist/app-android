@@ -96,14 +96,19 @@ fun SettingsGroup(
 @Composable
 internal fun settingsSegmentedColors(destructive: Boolean = false): ListItemColors {
     val colors = MaterialTheme.colorScheme
+    // A disabled row keeps the card; only its content dims, so the group's outline stays whole.
     return if (destructive) {
         ListItemDefaults.segmentedColors(
             containerColor = colors.surfaceContainer,
             contentColor = colors.error,
-            leadingContentColor = colors.error
+            leadingContentColor = colors.error,
+            disabledContainerColor = colors.surfaceContainer
         )
     } else {
-        ListItemDefaults.segmentedColors(containerColor = colors.surfaceContainer)
+        ListItemDefaults.segmentedColors(
+            containerColor = colors.surfaceContainer,
+            disabledContainerColor = colors.surfaceContainer
+        )
     }
 }
 
