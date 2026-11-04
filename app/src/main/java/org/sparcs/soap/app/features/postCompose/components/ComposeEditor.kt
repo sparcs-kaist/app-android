@@ -22,9 +22,11 @@ import androidx.compose.foundation.text.contextmenu.modifier.appendTextContextMe
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.BrokenImage
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -274,6 +276,7 @@ private fun ImageBlock(block: ComposeBlock.Image, onRemove: () -> Unit) {
         )
         FilledTonalIconButton(
             onClick = onRemove,
+            shapes = IconButtonDefaults.shapes(),
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(8.dp)
@@ -283,6 +286,7 @@ private fun ImageBlock(block: ComposeBlock.Image, onRemove: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ImagePlaceholder(failed: Boolean) {
     Box(
@@ -295,7 +299,7 @@ private fun ImagePlaceholder(failed: Boolean) {
         if (failed) {
             Icon(Icons.Outlined.BrokenImage, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
-            CircularProgressIndicator()
+            LoadingIndicator()
         }
     }
 }
