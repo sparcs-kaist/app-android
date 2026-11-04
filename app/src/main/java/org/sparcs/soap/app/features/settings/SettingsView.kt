@@ -330,7 +330,7 @@ private fun BoardsDebugSection() {
             title = { Text(stringResource(R.string.debug_dots_reset_title)) },
             text = { Text(stringResource(R.string.debug_dots_reset_message)) },
             confirmButton = {
-                TextButton(onClick = { showsResetAlert = false }) { Text(stringResource(R.string.ok)) }
+                TextButton(onClick = { showsResetAlert = false }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ok)) }
             }
         )
     }
