@@ -33,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -586,7 +587,7 @@ private fun CommentsPanelHeader(onClose: () -> Unit) {
     TopAppBar(
         title = { Text(stringResource(R.string.feed_comments)) },
         actions = {
-            IconButton(onClick = onClose) {
+            IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.close))
             }
         },
