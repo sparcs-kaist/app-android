@@ -5,14 +5,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import org.sparcs.soap.app.shared.extensions.fileTypeIcon
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.OutlinedCard
@@ -29,6 +33,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,10 +82,15 @@ fun MarketPriceSection(
         if (showsSaleState) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SALE_STATES.forEach { (state, label) ->
+                    val selected = saleState == state
                     FilterChip(
-                        selected = saleState == state,
+                        selected = selected,
                         onClick = { onSaleStateChange(state) },
-                        label = { Text(stringResource(label)) }
+                        label = { Text(stringResource(label)) },
+                        leadingIcon = if (selected) {
+                            { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                        } else null,
+                        modifier = Modifier.semantics { role = Role.RadioButton }
                     )
                 }
             }
@@ -98,7 +110,7 @@ fun ComposeFileList(files: List<ComposeFile>, onRemove: (ComposeFile) -> Unit, m
                     headlineContent = { Text(file.name, maxLines = 1, overflow = TextOverflow.MiddleEllipsis) },
                     supportingContent = if (file.size > 0) { { Text(Formatter.formatShortFileSize(context, file.size)) } } else null,
                     trailingContent = {
-                        IconButton(onClick = { onRemove(file) }) {
+                        IconButton(onClick = { onRemove(file) }, shapes = IconButtonDefaults.shapes()) {
                             Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.delete))
                         }
                     },
