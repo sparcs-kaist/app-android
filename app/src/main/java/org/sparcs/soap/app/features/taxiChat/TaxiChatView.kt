@@ -59,6 +59,10 @@ import org.sparcs.soap.app.features.taxiChat.components.CallTaxiDialog
 import org.sparcs.soap.app.features.taxiChat.components.SendPaymentDialog
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatInputBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatViewNavigationBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.saveable.rememberSaveable
+import org.sparcs.soap.app.features.taxiChat.rideInfo.TaxiRideInfoSheet
 import org.sparcs.soap.app.features.taxiChat.components.TaxiSettlementAmountSheet
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModel
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModelProtocol
@@ -73,6 +77,7 @@ import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiChatListViewModel
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiChatViewModel
 import java.util.Date
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiChatView(
     viewModel: TaxiChatViewModelProtocol = hiltViewModel<TaxiChatViewModel>(),
@@ -89,6 +94,8 @@ fun TaxiChatView(
     var showPayMoneyAlert by remember { mutableStateOf(false) }
     var showSettlementAmountDialog by remember { mutableStateOf(false) }
     var tappedImageID by remember { mutableStateOf<String?>(null) }
+    var showRideInfo by rememberSaveable { mutableStateOf(false) }
+    val rideInfoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -170,22 +177,8 @@ fun TaxiChatView(
             topBar = {
                 TaxiChatViewNavigationBar(
                     room = room,
-                    myUserId = taxiUser?.oid,
                     onDismiss = { navController.popBackStack() },
-                    onClickCallTaxi = { showCallTaxiAlert = true },
-                    onReport = {
-                        val json = Uri.encode(Gson().toJson(room))
-                        navController.navigate("${Channel.TaxiReportView.name}?room_json=$json")
-                    },
-                    onClickLeave = {
-                        coroutineScope.launch {
-                            val success = viewModel.leaveRoom()
-                            if (success) { navController.popBackStack() }
-                        }
-                    },
-                    onCarrierToggle = { viewModel.toggleCarrier(it) },
-                    onArrivalToggle = { viewModel.updateArrival(it) },
-                    isLeaveAvailable = viewModel.isLeaveRoomAvailable
+                    onOpenRideInfo = { showRideInfo = true },
                 )
             },
             bottomBar = {
@@ -255,6 +248,39 @@ fun TaxiChatView(
         }
     } else {
         mainScaffold()
+    }
+
+    if (showRideInfo) {
+        val closeRideInfo: (then: () -> Unit) -> Unit = { then ->
+            coroutineScope.launch { rideInfoSheetState.hide() }.invokeOnCompletion {
+                showRideInfo = false
+                then()
+            }
+        }
+        TaxiRideInfoSheet(
+            room = room,
+            myUserId = taxiUser?.oid,
+            isLeaveAvailable = viewModel.isLeaveRoomAvailable,
+            sheetState = rideInfoSheetState,
+            onDismiss = { showRideInfo = false },
+            onArrivalChange = { viewModel.updateArrival(it) },
+            onCarrierChange = { viewModel.toggleCarrier(it) },
+            onCallTaxi = { showCallTaxiAlert = true },
+            onReport = {
+                closeRideInfo {
+                    val json = Uri.encode(Gson().toJson(room))
+                    navController.navigate("${Channel.TaxiReportView.name}?room_json=$json")
+                }
+            },
+            onLeave = {
+                coroutineScope.launch {
+                    if (viewModel.leaveRoom()) {
+                        showRideInfo = false
+                        navController.popBackStack()
+                    }
+                }
+            },
+        )
     }
 
     if (showCallTaxiAlert) {

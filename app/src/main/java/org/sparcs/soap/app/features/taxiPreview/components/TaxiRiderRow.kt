@@ -137,9 +137,9 @@ private fun Fact(icon: ImageVector, text: String) {
     }
 }
 
-/** A rider's photo, badged with a suitcase when they bring luggage. */
+/** A rider's photo, badged with a suitcase when they bring luggage unless [showsLuggage] is off. */
 @Composable
-fun RiderPhoto(participant: TaxiParticipant, size: Dp) {
+fun RiderPhoto(participant: TaxiParticipant, size: Dp, showsLuggage: Boolean = true) {
     Box(Modifier.size(size)) {
         val photo = Modifier
             .size(size)
@@ -155,7 +155,7 @@ fun RiderPhoto(participant: TaxiParticipant, size: Dp) {
         } else {
             Box(photo)
         }
-        if (participant.hasCarrier) {
+        if (showsLuggage && participant.hasCarrier) {
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primary,

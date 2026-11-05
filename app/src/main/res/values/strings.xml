@@ -872,4 +872,13 @@
     <string name="taxi_save_route">Save Route</string>
     <string name="taxi_remove_favorite_route">Remove from Favorites</string>
     <string name="taxi_settlement_requested">Settlement Requested</string>
+    <string name="taxi_ride_info">Ride Info</string>
+    <string name="taxi_ride_info_hint">Shows the ride\'s details</string>
+    <string name="taxi_my_status">My Status</string>
+    <string name="taxi_im_here">I\'m Here</string>
+    <string name="taxi_arrived_section">Arrived %1$d</string>
+    <string name="taxi_on_the_way_section">On the Way %1$d</string>
+    <string name="taxi_me">Me</string>
+    <string name="taxi_arrival_before_departure">You can mark your arrival only before the ride departs.</string>
+    <string name="taxi_route">%1$s → %2$s</string>
 </resources>

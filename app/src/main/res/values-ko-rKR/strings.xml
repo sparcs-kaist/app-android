@@ -817,4 +817,13 @@
     <string name="taxi_save_route">이 경로 저장</string>
     <string name="taxi_remove_favorite_route">즐겨찾기에서 삭제</string>
     <string name="taxi_settlement_requested">정산 요청됨</string>
+    <string name="taxi_ride_info">탑승 정보</string>
+    <string name="taxi_ride_info_hint">탑승 정보를 보여줍니다</string>
+    <string name="taxi_my_status">내 상태</string>
+    <string name="taxi_im_here">도착했어요</string>
+    <string name="taxi_arrived_section">도착함 %1$d</string>
+    <string name="taxi_on_the_way_section">오는 중 %1$d</string>
+    <string name="taxi_me">나</string>
+    <string name="taxi_arrival_before_departure">출발 시간 전까지만 도착을 표시할 수 있어요.</string>
+    <string name="taxi_route">%1$s → %2$s</string>
 </resources>
