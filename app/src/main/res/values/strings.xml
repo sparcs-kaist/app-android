@@ -871,4 +871,5 @@
     <string name="taxi_route_clear">Clear %1$s</string>
     <string name="taxi_save_route">Save Route</string>
     <string name="taxi_remove_favorite_route">Remove from Favorites</string>
+    <string name="taxi_settlement_requested">Settlement Requested</string>
 </resources>

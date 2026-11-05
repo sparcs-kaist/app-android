@@ -816,4 +816,5 @@
     <string name="taxi_route_clear">%1$s 지우기</string>
     <string name="taxi_save_route">이 경로 저장</string>
     <string name="taxi_remove_favorite_route">즐겨찾기에서 삭제</string>
+    <string name="taxi_settlement_requested">정산 요청됨</string>
 </resources>
