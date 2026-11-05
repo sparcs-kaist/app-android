@@ -118,10 +118,10 @@ fun TaxiPreviewView(
         shareUrl
     )
     LaunchedEffect(room) {
-        pathPoints = viewModel.calculateRoutePoints(
+        pathPoints = viewModel.calculateRoute(
             LatLng.from(room.source.latitude, room.source.longitude),
             LatLng.from(room.destination.latitude, room.destination.longitude)
-        )
+        ).points
     }
 
     LaunchedEffect(kakaoMap, pathPoints) {
