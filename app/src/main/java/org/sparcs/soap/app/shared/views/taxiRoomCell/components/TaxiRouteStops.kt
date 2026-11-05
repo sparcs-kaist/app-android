@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
-package org.sparcs.soap.app.features.taxiPreview.components
+package org.sparcs.soap.app.shared.views.taxiRoomCell.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

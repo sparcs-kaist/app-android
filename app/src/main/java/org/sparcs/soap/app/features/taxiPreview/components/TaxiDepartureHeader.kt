@@ -15,7 +15,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,12 +25,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import org.sparcs.soap.R
 import org.sparcs.soap.app.shared.extensions.formattedDate
 import org.sparcs.soap.app.shared.extensions.isDateInToday
 import org.sparcs.soap.app.shared.extensions.isDateInTomorrow
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiTonalLabel
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.isDepartingSoon
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.rememberCurrentMinute
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.taxiCountdown
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.lastSeatContainer
 import org.sparcs.soap.app.theme.ui.onLastSeatContainer
@@ -45,13 +46,7 @@ import java.util.Date
 @Composable
 fun TaxiDepartureHeader(departAt: Date, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    // Ticks on each minute so the countdown and the day line stay current while the preview is open.
-    val now by produceState(System.currentTimeMillis()) {
-        while (true) {
-            delay(DateUtils.MINUTE_IN_MILLIS - value % DateUtils.MINUTE_IN_MILLIS)
-            value = System.currentTimeMillis()
-        }
-    }
+    val now by rememberCurrentMinute()
     val time = remember(departAt) { DateFormat.getTimeFormat(context).format(departAt) }
     val day = remember(departAt, now) {
         // "Today" and "Tomorrow" come localized from the platform.
@@ -60,15 +55,7 @@ fun TaxiDepartureHeader(departAt: Date, modifier: Modifier = Modifier) {
         } else null
         listOfNotNull(relativeDay, departAt.formattedDate()).joinToString(" · ")
     }
-    val untilDeparture = departAt.time - now
-    val countdown = remember(departAt, now) {
-        if (untilDeparture <= 0 || untilDeparture >= 12 * DateUtils.HOUR_IN_MILLIS) null
-        else DateUtils.getRelativeTimeSpanString(
-            departAt.time, now,
-            if (untilDeparture < DateUtils.HOUR_IN_MILLIS) DateUtils.MINUTE_IN_MILLIS else DateUtils.HOUR_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_RELATIVE,
-        ).toString()
-    }
+    val countdown = remember(departAt, now) { taxiCountdown(departAt, now) }
     val label = stringResource(R.string.depart_at)
 
     Column(
@@ -94,7 +81,7 @@ fun TaxiDepartureHeader(departAt: Date, modifier: Modifier = Modifier) {
             )
             if (countdown != null) {
                 val scheme = MaterialTheme.colorScheme
-                val soon = untilDeparture < DateUtils.HOUR_IN_MILLIS
+                val soon = isDepartingSoon(departAt, now)
                 TaxiTonalLabel(
                     text = countdown,
                     container = if (soon) scheme.lastSeatContainer else scheme.tertiaryContainer,

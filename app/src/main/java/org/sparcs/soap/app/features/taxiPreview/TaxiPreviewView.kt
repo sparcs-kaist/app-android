@@ -19,7 +19,7 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoute
 import org.sparcs.soap.app.features.taxiPreview.components.TaxiDepartureHeader
 import org.sparcs.soap.app.features.taxiPreview.components.TaxiRideStats
 import org.sparcs.soap.app.features.taxiPreview.components.TaxiRiderRow
-import org.sparcs.soap.app.features.taxiPreview.components.TaxiRouteStops
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiRouteStops
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
