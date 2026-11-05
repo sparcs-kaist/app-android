@@ -374,7 +374,7 @@ private fun TaxiWeekSelectorCard(
     selectedDate: Date?,
     haptic: HapticFeedback,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.fillMaxWidth()) {
         Box(modifier = Modifier.padding(4.dp)) {
             WeekDaySelector(
                 week = viewModel.week,
