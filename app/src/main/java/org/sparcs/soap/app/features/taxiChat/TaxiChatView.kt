@@ -41,6 +41,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -49,10 +51,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.Constants
+import org.sparcs.soap.app.domain.models.taxi.ChatRenderItem
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
-import org.sparcs.soap.app.features.fullscreenImage.FullscreenImageView
+import org.sparcs.soap.app.features.fullscreenImage.FullscreenImagesViewer
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.taxiChat.components.CallTaxiDialog
 import org.sparcs.soap.app.features.taxiChat.components.SendPaymentDialog
@@ -92,7 +96,7 @@ fun TaxiChatView(
     var showCallTaxiAlert by remember { mutableStateOf(false) }
     var showPayMoneyAlert by remember { mutableStateOf(false) }
     var showSettlementAmountDialog by remember { mutableStateOf(false) }
-    var tappedImageID by remember { mutableStateOf<String?>(null) }
+    var gallery by remember { mutableStateOf<ChatGallery?>(null) }
     var showRideInfo by rememberSaveable { mutableStateOf(false) }
     val rideInfoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -109,7 +113,7 @@ fun TaxiChatView(
     fun resetSettlementDialog() {
         showSettlementAmountDialog = false
     }
-    fun dismissFullscreenImage() { tappedImageID = null }
+    fun dismissFullscreenImage() { gallery = null }
 
     LaunchedEffect(Unit) {
         viewModel.setup()
@@ -226,7 +230,7 @@ fun TaxiChatView(
                         taxiUser = taxiUser,
                         listState = listState,
                         viewModel = viewModel,
-                        onImageClick = { tappedImageID = it },
+                        onImageClick = { gallery = ChatGallery.of(viewModel.renderItems.value, selectedId = it) },
                         onPayMoneyClick = { showPayMoneyAlert = true },
                         coroutineScope = coroutineScope
                     )
@@ -308,8 +312,32 @@ fun TaxiChatView(
         onDismiss = { viewModel.isAlertPresented = false }
     )
 
-    if (tappedImageID != null) {
-        FullscreenImageView(id = tappedImageID!!, onDismiss = { dismissFullscreenImage() })
+    gallery?.let { gallery ->
+        Dialog(
+            onDismissRequest = ::dismissFullscreenImage,
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+        ) {
+            FullscreenImagesViewer(
+                imageUrls = gallery.urls,
+                startIndex = gallery.startIndex,
+                onDismiss = ::dismissFullscreenImage,
+            )
+        }
+    }
+}
+
+/** Every photo sent in the chat, oldest first, opened at the one that was tapped, as on iOS. */
+internal data class ChatGallery(val urls: List<String>, val startIndex: Int) {
+    companion object {
+        fun of(items: List<ChatRenderItem>, selectedId: String): ChatGallery {
+            val ids = items.mapNotNull { item ->
+                (item as? ChatRenderItem.Message)?.chat?.takeIf { it.type == TaxiChat.ChatType.S3IMG }?.content
+            }
+            // The tapped photo is always in the chat, but open it alone if the list has moved on.
+            val index = ids.indexOf(selectedId)
+            val shown = if (index >= 0) ids else listOf(selectedId)
+            return ChatGallery(shown.map { Constants.taxiChatImageURL + it }, maxOf(index, 0))
+        }
     }
 }
 
