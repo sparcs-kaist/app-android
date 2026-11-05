@@ -1,9 +1,11 @@
 package org.sparcs.soap.app.features.taxiRoomCreation.components
 
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -91,7 +93,7 @@ private fun SendButton(
     title: String,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    TextButton(
+    Button(
         onClick = {
             coroutineScope.launch {
                 val newRoomId = viewModel.createRoom(title)
@@ -105,7 +107,9 @@ private fun SendButton(
         },
         shapes = ButtonDefaults.shapes(),
         enabled = isEnabled,
-        modifier = Modifier.semantics { contentDescription = "Create Room Button" }
+        modifier = Modifier
+            .padding(end = 8.dp)
+            .semantics { contentDescription = "Create Room Button" }
     ) {
         Text(text = stringResource(R.string.submit))
     }
