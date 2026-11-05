@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import org.sparcs.soap.R
+import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import org.sparcs.soap.app.theme.ui.Theme
 
 /** Whether the creator is bringing a luggage carrier, as a switch row. */
@@ -25,18 +26,13 @@ fun TaxiCarrierToggleButton(
     hasCarrier: Boolean,
     onToggle: (Boolean) -> Unit,
 ) {
-    Card(Modifier.fillMaxWidth()) {
-        ListItem(
-            leadingContent = { Icon(Icons.Outlined.Luggage, contentDescription = null) },
-            headlineContent = { Text(stringResource(R.string.carrier_status_title)) },
-            supportingContent = {
-                Text(stringResource(if (hasCarrier) R.string.carrier_status_yes else R.string.carrier_status_no))
-            },
-            trailingContent = { Switch(checked = hasCarrier, onCheckedChange = null) },
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            modifier = Modifier.toggleable(value = hasCarrier, role = Role.Switch, onValueChange = onToggle)
-        )
-    }
+    SettingsSwitchItem(
+        text = stringResource(R.string.carrier_status_title),
+        checked = hasCarrier,
+        onCheckedChange = onToggle,
+        supportingText = stringResource(if (hasCarrier) R.string.carrier_status_yes else R.string.carrier_status_no),
+        leadingContent = { Icon(Icons.Outlined.Luggage, contentDescription = null) },
+    )
 }
 
 @Composable

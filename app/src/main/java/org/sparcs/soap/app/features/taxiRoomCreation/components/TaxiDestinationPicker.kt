@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -79,7 +80,8 @@ fun TaxiDestinationPicker(
     favoriteRoutes: List<TaxiFavoriteRoute> = emptyList(),
     onFavoriteSelect: (TaxiFavoriteRoute) -> Unit = {},
     onFavoriteDelete: (String) -> Unit = {},
-    onFavoriteAdd: () -> Unit = {}
+    onFavoriteAdd: () -> Unit = {},
+    containerColor: Color = CardDefaults.cardColors().containerColor,
 ) {
     val haptic = LocalHapticFeedback.current
     val canAddFavorite = source != null && destination != null && source.id != destination.id &&
@@ -91,7 +93,11 @@ fun TaxiDestinationPicker(
     val lineColor = MaterialTheme.colorScheme.outlineVariant
 
     Column {
-        Card(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.fillMaxWidth()) {
+        Card(
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = CardDefaults.cardColors(containerColor = containerColor),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(
                     modifier = Modifier

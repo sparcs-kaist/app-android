@@ -30,14 +30,10 @@ import org.sparcs.soap.app.theme.ui.Theme
 fun TaxiCapacityPicker(
     capacity: Int,
     onCapacityChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val options = (2..4).toList()
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            stringResource(R.string.capacity),
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.semantics { heading() }
-        )
+    Column(modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,5 +63,5 @@ fun TaxiCapacityPicker(
 @Composable
 @Preview
 private fun Preview() {
-    Theme { TaxiCapacityPicker(4) {} }
+    Theme { TaxiCapacityPicker(capacity = 4, onCapacityChange = {}) }
 }

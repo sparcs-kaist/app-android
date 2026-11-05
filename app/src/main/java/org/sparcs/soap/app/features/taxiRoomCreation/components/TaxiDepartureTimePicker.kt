@@ -1,7 +1,15 @@
 package org.sparcs.soap.app.features.taxiRoomCreation.components
 
 import android.text.format.DateFormat
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,13 +36,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.filterNotNull
 import org.sparcs.soap.R
-import org.sparcs.soap.app.shared.views.contentViews.PickerField
 import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
 import org.sparcs.soap.app.theme.ui.Theme
 import java.text.SimpleDateFormat
@@ -56,8 +61,8 @@ private const val MINUTE_STEP = 10
 private enum class OpenPicker { Date, Time }
 
 /**
- * The departure date and time as read-only fields; tapping one opens the Material date picker or
- * time wheels right below it. Dates run from today for two weeks, and times snap to ten minutes.
+ * When the ride leaves, in the style of Settings: a header over a card with a row each for the
+ * date and the time. Tapping a row opens its picker below it, in the card.
  */
 @Composable
 fun TaxiDepartureTimePicker(
@@ -65,42 +70,54 @@ fun TaxiDepartureTimePicker(
     onDepartureTimeChange: (Date) -> Unit,
 ) {
     var openPicker by rememberSaveable { mutableStateOf<OpenPicker?>(null) }
-    val dateText = remember(departureTime) { SimpleDateFormat("MM/dd", Locale.getDefault()).format(departureTime) }
+    val focus = LocalFocusManager.current
+    val dateText = remember(departureTime) {
+        val pattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), "MMMdEEE")
+        SimpleDateFormat(pattern, Locale.getDefault()).format(departureTime)
+    }
     val context = LocalContext.current
     // Follows the system's 12- or 24-hour setting, like "3:20 PM" or "15:20".
     val timeText = remember(departureTime) { DateFormat.getTimeFormat(context).format(departureTime) }
-    val toggle = { picker: OpenPicker -> openPicker = if (openPicker == picker) null else picker }
+    val toggle = { picker: OpenPicker ->
+        focus.clearFocus()
+        openPicker = if (openPicker == picker) null else picker
+    }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            stringResource(R.string.departure_time),
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.semantics { heading() }
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PickerField(
-                label = stringResource(R.string.date),
-                value = dateText,
-                icon = Icons.Outlined.CalendarToday,
-                isOpen = openPicker == OpenPicker.Date,
-                modifier = Modifier.weight(1f)
-            ) { toggle(OpenPicker.Date) }
-            PickerField(
-                label = stringResource(R.string.time),
-                value = timeText,
-                icon = Icons.Outlined.Schedule,
-                isOpen = openPicker == OpenPicker.Time,
-                modifier = Modifier.weight(1f)
-            ) { toggle(OpenPicker.Time) }
+    SettingsSectionHeader(stringResource(R.string.departure_time))
+    SettingsGroup(Modifier.animateContentSize()) {
+        row {
+            SettingsNavigationItem(
+                text = stringResource(R.string.date),
+                onClick = { toggle(OpenPicker.Date) },
+                leadingContent = { Icon(Icons.Outlined.CalendarToday, contentDescription = null) },
+                trailingContent = { PickerValue(dateText, open = openPicker == OpenPicker.Date) },
+            )
         }
-
-        AnimatedVisibility(openPicker == OpenPicker.Date) {
-            DepartureDatePicker(departureTime, onDepartureTimeChange)
+        if (openPicker == OpenPicker.Date) row {
+            SettingsFieldItem { DepartureDatePicker(departureTime, onDepartureTimeChange) }
         }
-        AnimatedVisibility(openPicker == OpenPicker.Time) {
-            DepartureTimeWheel(departureTime, onDepartureTimeChange)
+        row {
+            SettingsNavigationItem(
+                text = stringResource(R.string.time),
+                onClick = { toggle(OpenPicker.Time) },
+                leadingContent = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
+                trailingContent = { PickerValue(timeText, open = openPicker == OpenPicker.Time) },
+            )
+        }
+        if (openPicker == OpenPicker.Time) row {
+            SettingsFieldItem { DepartureTimeWheel(departureTime, onDepartureTimeChange) }
         }
     }
+}
+
+/** A row's current value, in the primary colour while its picker is open. */
+@Composable
+private fun PickerValue(text: String, open: Boolean) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyLarge,
+        color = if (open) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,7 +155,15 @@ private fun DepartureDatePicker(
             if (calendar.time != currentTime) onChange(calendar.time)
         }
     }
-    DatePicker(state = state, showModeToggle = false)
+    // On the card's colour rather than the picker's own, and without the picker's header: the row
+    // above it already shows the date.
+    DatePicker(
+        state = state,
+        showModeToggle = false,
+        title = null,
+        headline = null,
+        colors = DatePickerDefaults.colors(containerColor = Color.Transparent),
+    )
 }
 
 /** The departure time on [TimeWheel], in ten-minute steps. */
@@ -169,7 +194,7 @@ private fun DepartureTimeWheel(
 private fun Preview() {
     Theme {
         Box(Modifier.padding(16.dp)) {
-            TaxiDepartureTimePicker(departureTime = Date(), onDepartureTimeChange = {})
+            Column { TaxiDepartureTimePicker(departureTime = Date(), onDepartureTimeChange = {}) }
         }
     }
 }
