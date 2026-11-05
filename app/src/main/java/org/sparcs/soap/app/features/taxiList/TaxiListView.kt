@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -164,9 +163,11 @@ fun TaxiListView(
                 text = { Text(newRoom) }
             )
         },
+        // No padding for the navigation bar here: the list's own bottom padding lets it scroll on
+        // behind the gesture bar, which the bottom navigation covers in portrait but not beside the
+        // navigation rail in landscape.
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
-            .navigationBarsPadding()
             .analyticsScreen("Taxi List")
     ) { innerPadding ->
         PullToRefreshBox(
