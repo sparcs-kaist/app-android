@@ -17,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -169,7 +170,9 @@ fun SearchView(
                             selectedRoom = null
                         }
                     },
-                    navController = navController
+                    navController = navController,
+                    // Once the sheet has opened, so making the map doesn't stall its animation.
+                    isOpen = sheetState.currentValue == SheetValue.Expanded,
                 )
             }
         }

@@ -102,9 +102,16 @@ fun TaxiPreviewView(
     viewModel: TaxiPreviewViewModelProtocol = hiltViewModel<TaxiPreviewViewModel>(),
     onDismiss: () -> Unit,
     navController: NavController,
+    isOpen: Boolean = true,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // Kakao's map view is slow to create and blocks the main thread while it starts, which would
+    // drop every frame of the sheet's opening animation; so it is made once the sheet holding the
+    // preview has opened ([isOpen]), and kept from then on.
+    var showsMap by remember { mutableStateOf(isOpen) }
+    LaunchedEffect(isOpen) { if (isOpen) showsMap = true }
 
     val isPreview = LocalInspectionMode.current
     var isMapLoading by remember { mutableStateOf(true) }
@@ -198,7 +205,16 @@ fun TaxiPreviewView(
                 }
         ) {
             //MAP
-            if (!isPreview && !isMapError) {
+            if (!isPreview && !isMapError && !showsMap) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ContainedLoadingIndicator()
+                }
+            } else if (!isPreview && !isMapError) {
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { ctx ->
