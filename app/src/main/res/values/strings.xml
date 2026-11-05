@@ -869,4 +869,6 @@
     <string name="taxi_with_luggage">With Luggage</string>
     <string name="taxi_no_luggage">No Luggage</string>
     <string name="taxi_route_clear">Clear %1$s</string>
+    <string name="taxi_save_route">Save Route</string>
+    <string name="taxi_remove_favorite_route">Remove from Favorites</string>
 </resources>

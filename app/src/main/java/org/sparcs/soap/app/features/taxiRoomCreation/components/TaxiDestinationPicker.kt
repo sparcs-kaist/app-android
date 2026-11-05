@@ -65,7 +65,8 @@ import org.sparcs.soap.app.theme.ui.Theme
 /**
  * The route as a card, marked like the route on a room card: the location arrow for the meeting
  * point, a dot for the destination and a line between them. Each row opens its places whether or
- * not one is chosen, a chosen place can be cleared beside it, and the favourite routes sit below.
+ * not one is chosen, a chosen place can be cleared beside it, and the favourite routes sit below
+ * as chips.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -89,68 +90,72 @@ fun TaxiDestinationPicker(
     var destinationMarker by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val lineColor = MaterialTheme.colorScheme.outlineVariant
 
-    Card(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .onGloballyPositioned { column = it }
-                    // The line joining the two markers, from below the first to above the second.
-                    .drawBehind {
-                        val space = column?.takeIf { it.isAttached } ?: return@drawBehind
-                        val from = sourceMarker?.takeIf { it.isAttached }?.let { space.localBoundingBoxOf(it) } ?: return@drawBehind
-                        val to = destinationMarker?.takeIf { it.isAttached }?.let { space.localBoundingBoxOf(it) } ?: return@drawBehind
-                        val inset = 4.dp.toPx()
-                        if (to.top - inset > from.bottom + inset) {
-                            drawLine(
-                                lineColor,
-                                Offset(from.center.x, from.bottom + inset),
-                                Offset(from.center.x, to.top - inset),
-                                strokeWidth = 2.dp.toPx(),
-                            )
+    Column {
+        Card(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .onGloballyPositioned { column = it }
+                        // The line joining the two markers, from below the first to above the second.
+                        .drawBehind {
+                            val space = column?.takeIf { it.isAttached } ?: return@drawBehind
+                            val from = sourceMarker?.takeIf { it.isAttached }?.let { space.localBoundingBoxOf(it) } ?: return@drawBehind
+                            val to = destinationMarker?.takeIf { it.isAttached }?.let { space.localBoundingBoxOf(it) } ?: return@drawBehind
+                            val inset = 4.dp.toPx()
+                            if (to.top - inset > from.bottom + inset) {
+                                drawLine(
+                                    lineColor,
+                                    Offset(from.center.x, from.bottom + inset),
+                                    Offset(from.center.x, to.top - inset),
+                                    strokeWidth = 2.dp.toPx(),
+                                )
+                            }
                         }
-                    }
-            ) {
-                LocationMenu(
-                    label = stringResource(R.string.taxi_route_from),
-                    isOrigin = true,
-                    selection = source,
-                    onSelectionChange = onSourceChange,
-                    // The other end of the route can't be this end too.
-                    locations = locations.filter { it.id != destination?.id },
-                    onMarkerPlaced = { sourceMarker = it },
-                )
-                HorizontalDivider(Modifier.padding(start = 56.dp))
-                LocationMenu(
-                    label = stringResource(R.string.taxi_route_to),
-                    isOrigin = false,
-                    selection = destination,
-                    onSelectionChange = onDestinationChange,
-                    locations = locations.filter { it.id != source?.id },
-                    onMarkerPlaced = { destinationMarker = it },
-                )
-            }
-            FilledTonalIconButton(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                    onSourceChange(destination)
-                    onDestinationChange(source)
-                },
-                enabled = source != null || destination != null,
-                shapes = IconButtonDefaults.shapes(),
-                modifier = Modifier.padding(end = 12.dp)
-            ) {
-                Icon(Icons.Rounded.SwapVert, contentDescription = stringResource(R.string.swap_route))
+                ) {
+                    LocationMenu(
+                        label = stringResource(R.string.taxi_route_from),
+                        isOrigin = true,
+                        selection = source,
+                        onSelectionChange = onSourceChange,
+                        // The other end of the route can't be this end too.
+                        locations = locations.filter { it.id != destination?.id },
+                        onMarkerPlaced = { sourceMarker = it },
+                    )
+                    HorizontalDivider(Modifier.padding(start = 56.dp))
+                    LocationMenu(
+                        label = stringResource(R.string.taxi_route_to),
+                        isOrigin = false,
+                        selection = destination,
+                        onSelectionChange = onDestinationChange,
+                        locations = locations.filter { it.id != source?.id },
+                        onMarkerPlaced = { destinationMarker = it },
+                    )
+                }
+                FilledTonalIconButton(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                        onSourceChange(destination)
+                        onDestinationChange(source)
+                    },
+                    enabled = source != null || destination != null,
+                    shapes = IconButtonDefaults.shapes(),
+                    modifier = Modifier.padding(end = 12.dp)
+                ) {
+                    Icon(Icons.Rounded.SwapVert, contentDescription = stringResource(R.string.swap_route))
+                }
             }
         }
 
-        HorizontalDivider()
-        FavoriteRouteDropdown(
+        TaxiFavoriteRoutes(
             favorites = favoriteRoutes,
+            source = source,
+            destination = destination,
+            canSaveCurrent = canAddFavorite,
             onSelect = onFavoriteSelect,
             onDelete = onFavoriteDelete,
-            onAddCurrent = onFavoriteAdd,
-            canAddCurrent = canAddFavorite
+            onSaveCurrent = onFavoriteAdd,
+            modifier = Modifier.padding(top = 12.dp),
         )
     }
 }
