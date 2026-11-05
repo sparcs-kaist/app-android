@@ -806,4 +806,13 @@
     <string name="activity_time_number">시간 %1$d</string>
     <string name="activity_remove_time">시간 삭제</string>
     <string name="feed_comments">댓글</string>
+    <string name="taxi_arrives_around">%1$s쯤 도착</string>
+    <plurals name="taxi_seats_left">
+        <item quantity="other">%1$d자리 남음</item>
+    </plurals>
+    <string name="taxi_seats_full">만석</string>
+    <string name="taxi_phone_verified">전화번호 인증됨</string>
+    <string name="taxi_phone_not_verified">전화번호 미인증</string>
+    <string name="taxi_with_luggage">캐리어 있음</string>
+    <string name="taxi_no_luggage">캐리어 없음</string>
 </resources>

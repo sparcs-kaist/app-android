@@ -860,4 +860,14 @@
     <string name="activity_time_number">Time %1$d</string>
     <string name="activity_remove_time">Remove time</string>
     <string name="feed_comments">Comments</string>
+    <string name="taxi_arrives_around">Arrives around %1$s</string>
+    <plurals name="taxi_seats_left">
+        <item quantity="one">%1$d seat left</item>
+        <item quantity="other">%1$d seats left</item>
+    </plurals>
+    <string name="taxi_seats_full">Full</string>
+    <string name="taxi_phone_verified">Phone Verified</string>
+    <string name="taxi_phone_not_verified">Not Verified</string>
+    <string name="taxi_with_luggage">With Luggage</string>
+    <string name="taxi_no_luggage">No Luggage</string>
 </resources>
