@@ -1,6 +1,11 @@
 package org.sparcs.soap.app.shared.views.taxiRoomCell
 
 import android.text.format.DateFormat
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -66,13 +71,17 @@ private val TimeColumnWidth = 88.dp
 /**
  * A room as a card, led by when it leaves: the time, with a countdown when it is close and the
  * date otherwise, beside the route — or above it in a narrow column — then the title and one dot
- * per seat, or, once the ride has left, where your settlement stands.
+ * per seat. For rooms you are in ([showsRiders]), such as in Chats, the riders' photos and the seats
+ * taken replace the dots, since who you share the chat with matters more than whether seats are
+ * left. Once the ride has left, where your settlement stands goes at the foot of the time column, as
+ * its icon, or beside the time in a narrow card.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TaxiRoomCell(
     room: TaxiRoom,
     taxiUser: TaxiUser? = null,
+    showsRiders: Boolean = false,
     onClick: () -> Unit = {},
 ) {
     val now by rememberCurrentMinute()
@@ -110,22 +119,42 @@ fun TaxiRoomCell(
                 )
             }
 
+            val status: (@Composable (compact: Boolean) -> Unit)? = if (room.isDeparted) {
+                { compact ->
+                    TaxiRoomStatusIndicator(
+                        settlementType = room.participants.firstOrNull { it.id == taxiUser?.oid }?.isSettlement
+                            ?: TaxiParticipant.SettlementType.NotDeparted,
+                        settlementCount = room.settlementTotal ?: 0,
+                        participantsCount = room.participants.size,
+                        // As tall as the riders' photos beside it, at the foot of the column.
+                        height = RiderStackHeight,
+                        compact = compact,
+                    )
+                }
+            } else null
+
             if (maxWidth >= SideBySideMinWidth) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.height(IntrinsicSize.Min),
                 ) {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+                        verticalArrangement = if (status == null) Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
+                        else Arrangement.spacedBy(2.dp),
                         modifier = Modifier
                             .width(TimeColumnWidth)
                             .fillMaxHeight(),
                     ) {
                         departure()
                         departureDetail()
+                        if (status != null) {
+                            Spacer(Modifier.weight(1f).heightIn(min = 8.dp))
+                            // Only its icon: the full label is far wider than the column.
+                            status(true)
+                        }
                     }
                     VerticalDivider(Modifier.padding(vertical = 2.dp))
-                    RoomDetails(room, taxiUser, Modifier.weight(1f))
+                    RoomDetails(room, showsRiders, Modifier.weight(1f))
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -135,17 +164,21 @@ fun TaxiRoomCell(
                     ) {
                         departure()
                         Box(Modifier.padding(bottom = 3.dp)) { departureDetail() }
+                        if (status != null) {
+                            Spacer(Modifier.weight(1f))
+                            Box(Modifier.padding(bottom = 2.dp)) { status(false) }
+                        }
                     }
-                    RoomDetails(room, taxiUser)
+                    RoomDetails(room, showsRiders)
                 }
             }
         }
     }
 }
 
-/** The route, then the title with the seats, or your settlement once the ride has left. */
+/** The route, then the title with the seats: one dot each, or the riders' photos when [showsRiders]. */
 @Composable
-private fun RoomDetails(room: TaxiRoom, taxiUser: TaxiUser?, modifier: Modifier = Modifier) {
+private fun RoomDetails(room: TaxiRoom, showsRiders: Boolean, modifier: Modifier = Modifier) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = modifier) {
         TaxiRouteStops(
             source = room.source.title.localized(),
@@ -164,16 +197,58 @@ private fun RoomDetails(room: TaxiRoom, taxiUser: TaxiUser?, modifier: Modifier 
                 modifier = Modifier.weight(1f),
             )
             Spacer(Modifier.width(8.dp))
-            if (room.isDeparted) {
-                TaxiRoomStatusIndicator(
-                    settlementType = room.participants.firstOrNull { it.id == taxiUser?.oid }?.isSettlement
-                        ?: TaxiParticipant.SettlementType.NotDeparted,
-                    settlementCount = room.settlementTotal ?: 0,
-                    participantsCount = room.participants.size
-                )
-            } else {
-                TaxiSeatDots(taken = room.participants.size, capacity = room.capacity)
+            when {
+                // Once the ride has left, how many seats were taken no longer matters.
+                showsRiders -> TaxiRiderStack(room.participants, room.capacity, showsCount = !room.isDeparted)
+                !room.isDeparted -> TaxiSeatDots(taken = room.participants.size, capacity = room.capacity)
             }
+        }
+    }
+}
+
+private val RiderPhotoSize = 22.dp
+private val RiderRingWidth = 1.5.dp
+
+/** The riders' photos with their rings, which the settlement status matches in height. */
+private val RiderStackHeight = RiderPhotoSize + RiderRingWidth * 2
+
+/** Who is riding: up to four photos, overlapping, with how many seats are taken of how many. */
+@Composable
+private fun TaxiRiderStack(participants: List<TaxiParticipant>, capacity: Int, showsCount: Boolean) {
+    // A ring of the card's own colour keeps each photo apart from the one it overlaps.
+    val ring = CardDefaults.cardColors().containerColor
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clearAndSetSemantics { contentDescription = "${participants.size}/$capacity" },
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(-RiderPhotoSize * 0.3f)) {
+            participants.take(4).forEach { participant ->
+                Box(
+                    Modifier
+                        .size(RiderStackHeight)
+                        .background(ring, CircleShape)
+                        .padding(RiderRingWidth)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                ) {
+                    participant.profileImageURL?.let { url ->
+                        AsyncImage(
+                            model = url.toString(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.matchParentSize(),
+                        )
+                    }
+                }
+            }
+        }
+        if (showsCount) {
+            Text(
+                "${participants.size}/$capacity",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -272,6 +347,7 @@ private fun Preview() {
     Theme {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), onClick = {})
+            TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), showsRiders = true, onClick = {})
             TaxiRoomSkeletonCell()
         }
     }
