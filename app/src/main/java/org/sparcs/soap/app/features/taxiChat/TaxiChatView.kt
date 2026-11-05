@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -210,9 +209,9 @@ fun TaxiChatView(
                     }
                 }
             },
-            modifier = Modifier
-                .navigationBarsPadding()
-                .analyticsScreen("Taxi Chat")
+            // The input bar pads itself for the gesture bar, so the chat's colour runs on behind it
+            // rather than leaving a strip of the window's.
+            modifier = Modifier.analyticsScreen("Taxi Chat")
         ) { innerPadding ->
             Box(
                 modifier = Modifier
