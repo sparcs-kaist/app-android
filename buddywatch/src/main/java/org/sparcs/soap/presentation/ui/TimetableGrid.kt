@@ -30,6 +30,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -119,17 +120,22 @@ private fun TimetableGrid(
     }
     val scrollState = rememberScrollState(initialOffset)
     val focusRequester = remember { FocusRequester() }
+    val configuration = LocalConfiguration.current
+    val isRoundWeek = isWeek && configuration.isScreenRound
     val horizontalPadding = edgeHorizontalPadding()
+    // Balance the time gutter so the weekday columns are centered on round screens.
+    val endPadding = horizontalPadding + if (isRoundWeek) gutterWidth + GridSpacing else 0.dp
+    val topPadding = if (isRoundWeek) maxOf(28.dp, configuration.screenHeightDp.dp * 0.18f) else 28.dp
     val bottomFade = edgeBottomFade()
     Scaffold(
         modifier = Modifier.background(MaterialTheme.colors.background),
         timeText = { TimeText() },
         positionIndicator = { PositionIndicator(scrollState = scrollState) }
     ) {
-        Column(Modifier.fillMaxSize().padding(top = 28.dp)) {
+        Column(Modifier.fillMaxSize().padding(top = topPadding)) {
             if (isWeek) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
+                    modifier = Modifier.fillMaxWidth().padding(start = horizontalPadding, end = endPadding),
                     horizontalArrangement = Arrangement.spacedBy(GridSpacing)
                 ) {
                     Spacer(Modifier.width(gutterWidth))
@@ -165,7 +171,7 @@ private fun TimetableGrid(
                     .rotaryScrollable(RotaryScrollableDefaults.behavior(scrollState), focusRequester)
                     .focusRequester(focusRequester).focusable()
                     .verticalScroll(scrollState)
-                    .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = GridBottomPadding + bottomFade / 2),
+                    .padding(start = horizontalPadding, end = endPadding, top = 8.dp, bottom = GridBottomPadding + bottomFade / 2),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 TimetableColumns(
