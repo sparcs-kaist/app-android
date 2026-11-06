@@ -86,6 +86,60 @@ class TimetableLayoutTest {
         compose.onNodeWithContentDescription("Check-in", substring = true).performScrollTo().assertIsDisplayed()
     }
 
+    @Test
+    fun fridayHeaderFitsRoundScreenAtCurrentSize() {
+        val friday = LocalDateTime.of(2026, 9, 25, 11, 0)
+        val timetable = Timetable.mock(activities = listOf(
+            TimetableActivity(101, "Friday morning", "FRI", 540, 660, "E3", "#20C997"),
+            TimetableActivity(102, "Friday afternoon", "FRI", 780, 900, "E3", "#845EF7"),
+            TimetableActivity(103, "Friday evening", "FRI", 1020, 1080, "E3", "#FF922B")
+        ))
+        compose.setContent {
+            SoapTheme { WeekTimetableView(timetable, friday.dayOfWeek, friday, {}) {} }
+        }
+        val label = DayOfWeek.FRIDAY.getDisplayName(TextStyle.NARROW_STANDALONE, Locale.getDefault())
+        val header = compose.onNodeWithText(label)
+        header.assertIsDisplayed()
+        val bounds = header.fetchSemanticsNode().boundsInRoot
+        val root = compose.onRoot().fetchSemanticsNode().boundsInRoot
+        val radius = minOf(root.width, root.height) / 2f
+        for (x in listOf(bounds.left, bounds.right)) {
+            for (y in listOf(bounds.top, bounds.bottom)) {
+                val dx = x - root.center.x
+                val dy = y - root.center.y
+                assertTrue("Friday header corner outside circle: $bounds, screen=$root", dx * dx + dy * dy <= radius * radius)
+            }
+        }
+        screenshot("friday-week")
+        compose.onRoot().performTouchInput { swipeUp() }
+        header.assertIsDisplayed()
+        assertEquals(bounds, header.fetchSemanticsNode().boundsInRoot)
+        screenshot("friday-week-scrolled")
+    }
+    @Test
+    fun viewOptionsFitsRoundScreenAtScrollEnd() {
+        compose.setContent {
+            SoapTheme { WeekTimetableView(Timetable.mock(), now.dayOfWeek, now, {}) {} }
+        }
+        repeat(4) {
+            compose.onRoot().performTouchInput { swipeUp() }
+            compose.waitForIdle()
+        }
+        val title = InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.view_options)
+        val button = compose.onNodeWithText(title)
+        button.assertIsDisplayed()
+        val bounds = button.fetchSemanticsNode().boundsInRoot
+        val root = compose.onRoot().fetchSemanticsNode().boundsInRoot
+        val radius = minOf(root.width, root.height) / 2f
+        screenshot("view-options-end")
+        for (x in listOf(bounds.left, bounds.right)) {
+            for (y in listOf(bounds.top, bounds.bottom)) {
+                val dx = x - root.center.x
+                val dy = y - root.center.y
+                assertTrue("View options outside circle: $bounds, screen=$root", dx * dx + dy * dy <= radius * radius)
+            }
+        }
+    }
     private fun screenshot(name: String) {
         compose.waitForIdle()
         val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
