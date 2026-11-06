@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.domain.services
 
+import android.os.SystemClock
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -13,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,6 +78,12 @@ class TaxiChatService @Inject constructor(
 
     private var hasAttemptedTokenRefresh: Boolean = false
     private var reconnectJob: Job? = null
+
+    // The Taxi server accepts every connection and only then checks its token, dropping it
+    // with a server-side disconnect when the token has expired. Socket.IO never retries after
+    // that, so these track the drops in order to reconnect ourselves without looping.
+    private var connectedAt: Long = 0L
+    private var serverDisconnects: Int = 0
 
     private var socket: Socket? = null
     private var currentRoomId: String? = null
@@ -172,10 +180,14 @@ class TaxiChatService @Inject constructor(
         socket?.on(Socket.EVENT_CONNECT) {
             isConnected = true
             hasAttemptedTokenRefresh = false
+            connectedAt = SystemClock.elapsedRealtime()
         }
 
-        socket?.on(Socket.EVENT_DISCONNECT) {
+        socket?.on(Socket.EVENT_DISCONNECT) { args ->
             isConnected = false
+            if (args.firstOrNull() == SERVER_DISCONNECT_REASON) {
+                onServerDisconnect()
+            }
         }
 
 
@@ -239,6 +251,21 @@ class TaxiChatService @Inject constructor(
         }
     }
 
+    private fun onServerDisconnect() {
+        val lifetime = SystemClock.elapsedRealtime() - connectedAt
+        // Dropped right after connecting: the server refused our token, so fetch a new one.
+        val tokenRefused = lifetime < STABLE_CONNECTION_MILLIS
+        if (!tokenRefused) serverDisconnects = 0
+        serverDisconnects++
+
+        val backoff = if (serverDisconnects <= 1) 0L else {
+            (RETRY_BASE_MILLIS shl (serverDisconnects - 2).coerceAtMost(4))
+                .coerceAtMost(RETRY_MAX_MILLIS)
+        }
+        Timber.w("[TaxiChatService] Server closed the socket after ${lifetime}ms; reconnecting in ${backoff}ms")
+        reconnect(forceRefresh = tokenRefused, delayMillis = backoff)
+    }
+
     private fun parseChats(array: JSONArray): List<TaxiChat> =
         (0 until array.length()).mapNotNull { i ->
             val json = array.optJSONObject(i) ?: return@mapNotNull null
@@ -263,15 +290,17 @@ class TaxiChatService @Inject constructor(
         reconnectJob?.cancel()
         closeSocket()
         hasAttemptedTokenRefresh = false
+        serverDisconnects = 0
         _isConnectedFlow.value = false
     }
 
     override fun reconnect() = reconnect(forceRefresh = false)
 
-    private fun reconnect(forceRefresh: Boolean) {
+    private fun reconnect(forceRefresh: Boolean, delayMillis: Long = 0L) {
         Timber.d("[TaxiChatService] Reconnecting socket...")
         reconnectJob?.cancel()
         reconnectJob = serviceScope.launch {
+            if (delayMillis > 0) delay(delayMillis)
             try {
                 if (forceRefresh) authUseCase.refreshAccessToken(force = true) else authUseCase.getValidAccessToken()
             } catch (e: CancellationException) {
@@ -282,5 +311,12 @@ class TaxiChatService @Inject constructor(
             }
             connectSocket()
         }
+    }
+
+    private companion object {
+        const val SERVER_DISCONNECT_REASON = "io server disconnect"
+        const val STABLE_CONNECTION_MILLIS = 10_000L
+        const val RETRY_BASE_MILLIS = 2_000L
+        const val RETRY_MAX_MILLIS = 30_000L
     }
 }
