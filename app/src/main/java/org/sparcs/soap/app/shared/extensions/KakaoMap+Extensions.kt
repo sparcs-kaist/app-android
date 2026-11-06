@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.LatLng
+import com.kakao.vectormap.MapGravity
 import com.kakao.vectormap.camera.CameraAnimation
 import com.kakao.vectormap.camera.CameraUpdateFactory
 import com.kakao.vectormap.label.LabelOptions
@@ -17,6 +18,16 @@ import com.kakao.vectormap.route.RouteLineSegment
 import com.kakao.vectormap.route.RouteLineStyle
 import org.sparcs.soap.R
 
+/**
+ * Keeps the camera's fits, and Kakao's logo, inside the part of the map that is left clear by
+ * whatever is drawn over its edges (rounded corners, a fade into the sheet), in pixels.
+ */
+fun KakaoMap.setSafeArea(left: Int, top: Int, right: Int, bottom: Int) {
+    // The padding moves the logo in with it, so it sits in the safe area's corner.
+    setPadding(left, top, right, bottom)
+    logo?.setPosition(MapGravity.BOTTOM or MapGravity.RIGHT, 0f, 0f)
+}
+
 fun KakaoMap.drawTaxiRoute(
     context: Context,
     startPos: LatLng,
@@ -26,7 +37,9 @@ fun KakaoMap.drawTaxiRoute(
     startLabel: String,
     endLabel: String,
     startIconColor: Int,
-    endIconColor: Int
+    endIconColor: Int,
+    // Kept around the route inside the map's safe area, in pixels.
+    fitPadding: Int = 100,
 ) {
     val labelManager = this.labelManager ?: return
     val layer = labelManager.layer ?: return
@@ -67,12 +80,12 @@ fun KakaoMap.drawTaxiRoute(
         routeLayer.addRouteLine(RouteLineOptions.from(segment))
 
         this.moveCamera(
-            CameraUpdateFactory.fitMapPoints(pathPoints.toTypedArray(), 100),
+            CameraUpdateFactory.fitMapPoints(pathPoints.toTypedArray(), fitPadding),
             CameraAnimation.from(1000)
         )
     } else {
         this.moveCamera(
-            CameraUpdateFactory.fitMapPoints(arrayOf(startPos, endPos), 100),
+            CameraUpdateFactory.fitMapPoints(arrayOf(startPos, endPos), fitPadding),
             CameraAnimation.from(800)
         )
     }

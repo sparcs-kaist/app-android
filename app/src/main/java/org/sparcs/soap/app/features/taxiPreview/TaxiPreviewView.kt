@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -88,6 +89,7 @@ import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.createKakaoMap
 import org.sparcs.soap.app.shared.extensions.drawTaxiRoute
 import org.sparcs.soap.app.shared.extensions.formattedString
+import org.sparcs.soap.app.shared.extensions.setSafeArea
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
@@ -142,6 +144,28 @@ fun TaxiPreviewView(
         room.destination.title,
         shareUrl
     )
+    // A phone in landscape is too short to stack the map above the details, so they go side by
+    // side; a tablet is tall enough in either orientation to stack them.
+    val isShort = LocalConfiguration.current.screenHeightDp < 480
+
+    // The map's edges that are covered or crowded: the fade into the details (below it, or beside
+    // it on a short screen) and the rounded corners; and, above the stops, the pins standing on them.
+    val density = LocalDensity.current
+    val fitPadding = with(density) { 16.dp.roundToPx() }
+    val applySafeArea: (KakaoMap) -> Unit = { map ->
+        with(density) {
+            val fade = 64.dp.roundToPx()
+            val edge = 16.dp.roundToPx()
+            val pin = 40.dp.roundToPx()
+            map.setSafeArea(
+                left = edge,
+                top = pin,
+                right = if (isShort) fade else edge,
+                bottom = if (isShort) edge else fade,
+            )
+        }
+    }
+
     LaunchedEffect(room) {
         route = viewModel.calculateRoute(
             LatLng.from(room.source.latitude, room.source.longitude),
@@ -151,6 +175,7 @@ fun TaxiPreviewView(
 
     LaunchedEffect(kakaoMap, route) {
         val map = kakaoMap ?: return@LaunchedEffect
+        applySafeArea(map)
         val pathPoints = route?.points ?: return@LaunchedEffect
 
         map.drawTaxiRoute(
@@ -162,14 +187,11 @@ fun TaxiPreviewView(
             startLabel = sourceString,
             endLabel = destinationString,
             startIconColor = downvote.toArgb(),
-            endIconColor = upvote.toArgb()
+            endIconColor = upvote.toArgb(),
+            fitPadding = fitPadding,
         )
         isMapLoading = false
     }
-
-    // A phone in landscape is too short to stack the map above the details, so they go side by
-    // side; a tablet is tall enough in either orientation to stack them.
-    val isShort = LocalConfiguration.current.screenHeightDp < 480
 
     val routeMap: @Composable (Modifier) -> Unit = { modifier ->
         Box(
@@ -220,7 +242,11 @@ fun TaxiPreviewView(
                     factory = { ctx ->
                         ctx.createKakaoMap(
                             room,
-                            onMapReady = { kakaoMap = it },
+                            onMapReady = {
+                                applySafeArea(it)
+                                kakaoMap = it
+                            },
+                            fitPadding = fitPadding,
                             onError = {
                                 isMapError = true
                                 isMapLoading = false

@@ -65,6 +65,8 @@ fun Context.createKakaoMap(
     room: TaxiRoom,
     onMapReady: (KakaoMap) -> Unit,
     onError: () -> Unit,
+    // Kept around the stops inside the map's safe area, in pixels.
+    fitPadding: Int = 100,
 ): View {
     return try {
         MapView(this).apply {
@@ -78,7 +80,7 @@ fun Context.createKakaoMap(
                         LatLng.from(room.source.latitude, room.source.longitude),
                         LatLng.from(room.destination.latitude, room.destination.longitude)
                     )
-                    map.moveCamera(CameraUpdateFactory.fitMapPoints(points, 100))
+                    map.moveCamera(CameraUpdateFactory.fitMapPoints(points, fitPadding))
                 }
             })
         }
