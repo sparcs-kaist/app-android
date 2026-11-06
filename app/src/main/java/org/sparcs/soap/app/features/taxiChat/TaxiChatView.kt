@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -42,6 +41,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -50,15 +51,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.Constants
+import org.sparcs.soap.app.domain.models.taxi.ChatRenderItem
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
-import org.sparcs.soap.app.features.fullscreenImage.FullscreenImageView
+import org.sparcs.soap.app.features.fullscreenImage.FullscreenImagesViewer
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.taxiChat.components.CallTaxiDialog
 import org.sparcs.soap.app.features.taxiChat.components.SendPaymentDialog
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatInputBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatViewNavigationBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.saveable.rememberSaveable
+import org.sparcs.soap.app.features.taxiChat.rideInfo.TaxiRideInfoSheet
 import org.sparcs.soap.app.features.taxiChat.components.TaxiSettlementAmountSheet
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModel
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModelProtocol
@@ -73,6 +80,7 @@ import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiChatListViewModel
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiChatViewModel
 import java.util.Date
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiChatView(
     viewModel: TaxiChatViewModelProtocol = hiltViewModel<TaxiChatViewModel>(),
@@ -88,7 +96,9 @@ fun TaxiChatView(
     var showCallTaxiAlert by remember { mutableStateOf(false) }
     var showPayMoneyAlert by remember { mutableStateOf(false) }
     var showSettlementAmountDialog by remember { mutableStateOf(false) }
-    var tappedImageID by remember { mutableStateOf<String?>(null) }
+    var gallery by remember { mutableStateOf<ChatGallery?>(null) }
+    var showRideInfo by rememberSaveable { mutableStateOf(false) }
+    val rideInfoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -103,7 +113,7 @@ fun TaxiChatView(
     fun resetSettlementDialog() {
         showSettlementAmountDialog = false
     }
-    fun dismissFullscreenImage() { tappedImageID = null }
+    fun dismissFullscreenImage() { gallery = null }
 
     LaunchedEffect(Unit) {
         viewModel.setup()
@@ -170,22 +180,8 @@ fun TaxiChatView(
             topBar = {
                 TaxiChatViewNavigationBar(
                     room = room,
-                    myUserId = taxiUser?.oid,
                     onDismiss = { navController.popBackStack() },
-                    onClickCallTaxi = { showCallTaxiAlert = true },
-                    onReport = {
-                        val json = Uri.encode(Gson().toJson(room))
-                        navController.navigate("${Channel.TaxiReportView.name}?room_json=$json")
-                    },
-                    onClickLeave = {
-                        coroutineScope.launch {
-                            val success = viewModel.leaveRoom()
-                            if (success) { navController.popBackStack() }
-                        }
-                    },
-                    onCarrierToggle = { viewModel.toggleCarrier(it) },
-                    onArrivalToggle = { viewModel.updateArrival(it) },
-                    isLeaveAvailable = viewModel.isLeaveRoomAvailable
+                    onOpenRideInfo = { showRideInfo = true },
                 )
             },
             bottomBar = {
@@ -217,9 +213,9 @@ fun TaxiChatView(
                     }
                 }
             },
-            modifier = Modifier
-                .navigationBarsPadding()
-                .analyticsScreen("Taxi Chat")
+            // The input bar pads itself for the gesture bar, so the chat's colour runs on behind it
+            // rather than leaving a strip of the window's.
+            modifier = Modifier.analyticsScreen("Taxi Chat")
         ) { innerPadding ->
             Box(
                 modifier = Modifier
@@ -234,7 +230,7 @@ fun TaxiChatView(
                         taxiUser = taxiUser,
                         listState = listState,
                         viewModel = viewModel,
-                        onImageClick = { tappedImageID = it },
+                        onImageClick = { gallery = ChatGallery.of(viewModel.renderItems.value, selectedId = it) },
                         onPayMoneyClick = { showPayMoneyAlert = true },
                         coroutineScope = coroutineScope
                     )
@@ -255,6 +251,39 @@ fun TaxiChatView(
         }
     } else {
         mainScaffold()
+    }
+
+    if (showRideInfo) {
+        val closeRideInfo: (then: () -> Unit) -> Unit = { then ->
+            coroutineScope.launch { rideInfoSheetState.hide() }.invokeOnCompletion {
+                showRideInfo = false
+                then()
+            }
+        }
+        TaxiRideInfoSheet(
+            room = room,
+            myUserId = taxiUser?.oid,
+            isLeaveAvailable = viewModel.isLeaveRoomAvailable,
+            sheetState = rideInfoSheetState,
+            onDismiss = { showRideInfo = false },
+            onArrivalChange = { viewModel.updateArrival(it) },
+            onCarrierChange = { viewModel.toggleCarrier(it) },
+            onCallTaxi = { showCallTaxiAlert = true },
+            onReport = {
+                closeRideInfo {
+                    val json = Uri.encode(Gson().toJson(room))
+                    navController.navigate("${Channel.TaxiReportView.name}?room_json=$json")
+                }
+            },
+            onLeave = {
+                coroutineScope.launch {
+                    if (viewModel.leaveRoom()) {
+                        showRideInfo = false
+                        navController.popBackStack()
+                    }
+                }
+            },
+        )
     }
 
     if (showCallTaxiAlert) {
@@ -283,8 +312,32 @@ fun TaxiChatView(
         onDismiss = { viewModel.isAlertPresented = false }
     )
 
-    if (tappedImageID != null) {
-        FullscreenImageView(id = tappedImageID!!, onDismiss = { dismissFullscreenImage() })
+    gallery?.let { gallery ->
+        Dialog(
+            onDismissRequest = ::dismissFullscreenImage,
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+        ) {
+            FullscreenImagesViewer(
+                imageUrls = gallery.urls,
+                startIndex = gallery.startIndex,
+                onDismiss = ::dismissFullscreenImage,
+            )
+        }
+    }
+}
+
+/** Every photo sent in the chat, oldest first, opened at the one that was tapped, as on iOS. */
+internal data class ChatGallery(val urls: List<String>, val startIndex: Int) {
+    companion object {
+        fun of(items: List<ChatRenderItem>, selectedId: String): ChatGallery {
+            val ids = items.mapNotNull { item ->
+                (item as? ChatRenderItem.Message)?.chat?.takeIf { it.type == TaxiChat.ChatType.S3IMG }?.content
+            }
+            // The tapped photo is always in the chat, but open it alone if the list has moved on.
+            val index = ids.indexOf(selectedId)
+            val shown = if (index >= 0) ids else listOf(selectedId)
+            return ChatGallery(shown.map { Constants.taxiChatImageURL + it }, maxOf(index, 0))
+        }
     }
 }
 

@@ -32,6 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -65,6 +66,7 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.formatters.formatTimeRange
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.LocalTipStore
@@ -91,8 +93,10 @@ fun LectureSearchView(
         },
         modifier = Modifier.analyticsScreen("Lecture Search")
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        // The list scrolls behind the gesture bar and ends clear of it.
+        Box(modifier = Modifier.padding(innerPadding.withoutBottom())) {
             LectureSearchList(
+                bottomInset = innerPadding.calculateBottomPadding(),
                 timetableViewModel = timetableViewModel,
                 viewModel = lectureSearchViewModel,
                 onOpenLecture = { lecture ->
@@ -175,7 +179,7 @@ private fun LectureRowMainContent(
         }
 
         if (onToggleWishlist != null) {
-            IconButton(onClick = onToggleWishlist) {
+            IconButton(onClick = onToggleWishlist, shapes = IconButtonDefaults.shapes()) {
                 Icon(
                     imageVector = if (isWishlisted) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = stringResource(
@@ -345,6 +349,7 @@ private fun LectureRowActions(
     ) {
         OutlinedButton(
             onClick = onInfoClick,
+            shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Icon(
@@ -359,6 +364,7 @@ private fun LectureRowActions(
         Button(
             onClick = onAddClick,
             enabled = !isAdded,
+            shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Icon(

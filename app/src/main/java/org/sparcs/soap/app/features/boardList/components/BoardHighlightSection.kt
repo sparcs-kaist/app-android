@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.features.boardList.components
 
 import android.content.res.Configuration
@@ -21,9 +23,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,6 +53,7 @@ import org.sparcs.soap.app.features.postList.components.postListRow.metaColor
 import org.sparcs.soap.app.features.postList.components.postListRow.title
 import org.sparcs.soap.app.features.postList.components.postListRow.titleColor
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.settingsSegmentedColors
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
@@ -102,7 +108,7 @@ private fun SectionHeader(title: String, icon: ImageVector, onSeeAll: (() -> Uni
     Row(verticalAlignment = Alignment.Bottom) {
         SettingsSectionHeader(text = title, icon = icon, modifier = Modifier.weight(1f))
         if (onSeeAll != null) {
-            TextButton(onClick = onSeeAll, modifier = Modifier.padding(end = 4.dp)) {
+            TextButton(onClick = onSeeAll, shapes = ButtonDefaults.shapes(), modifier = Modifier.padding(end = 16.dp)) {
                 Text(stringResource(R.string.see_all))
             }
         }
@@ -113,7 +119,7 @@ private fun SectionHeader(title: String, icon: ImageVector, onSeeAll: (() -> Uni
 private fun SkeletonSectionHeader() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp)
+        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 8.dp)
     ) {
         SkeletonBlock(Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
@@ -125,6 +131,7 @@ private fun SkeletonSectionHeader() {
     }
 }
 
+/** A section's posts as one card of segmented rows, as on the settings pages and the board list below. */
 @Composable
 private fun HighlightCard(
     posts: List<AraPost>?,
@@ -133,9 +140,8 @@ private fun HighlightCard(
     onPostClick: (AraPost) -> Unit,
 ) {
     val rowCount = posts?.size ?: PLACEHOLDER_ROWS
-    val dividerInset = if (isRanked) 16.dp + rankWidth + rowSpacing else 16.dp
-
-    Card(
+    Column(
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
@@ -143,20 +149,16 @@ private fun HighlightCard(
         repeat(rowCount) { index ->
             val rank = if (isRanked) index + 1 else null
             val post = posts?.get(index)
+            val shapes = ListItemDefaults.segmentedShapes(index, rowCount)
             if (post == null) {
-                HighlightSkeletonRow(rank = rank)
+                HighlightSkeletonRow(rank = rank, shapes = shapes)
             } else {
                 HighlightRow(
                     post = post,
                     rank = rank,
                     showsBoard = showsBoard,
-                    modifier = Modifier.clickable(enabled = !post.isHidden) { onPostClick(post) }
-                )
-            }
-            if (index < rowCount - 1) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = dividerInset),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    shapes = shapes,
+                    onClick = { onPostClick(post) }
                 )
             }
         }
@@ -168,7 +170,8 @@ fun HighlightRow(
     post: AraPost,
     rank: Int?,
     showsBoard: Boolean,
-    modifier: Modifier = Modifier,
+    shapes: ListItemShapes,
+    onClick: () -> Unit,
 ) {
     val details = listOfNotNull(
         post.board?.name?.localized()?.takeIf { showsBoard },
@@ -176,63 +179,55 @@ fun HighlightRow(
         post.commentCount.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.board_highlight_comments, it, it) }
     ).joinToString(" · ")
 
-    HighlightRowLayout(rank = rank, modifier = modifier) {
+    SegmentedListItem(
+        onClick = onClick,
+        enabled = !post.isHidden,
+        shapes = shapes,
+        colors = settingsSegmentedColors(),
+        leadingContent = rank?.let { { RankText(it) } },
+        supportingContent = {
+            Text(
+                text = details,
+                color = post.metaColor(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+    ) {
         Text(
             text = title(post) { stringResource(it) },
-            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
             color = post.titleColor(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Text(
-            text = details,
-            style = MaterialTheme.typography.bodySmall,
-            color = post.metaColor(),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }
 
 @Composable
-private fun HighlightSkeletonRow(rank: Int?) {
-    HighlightRowLayout(rank = rank) {
-        SkeletonLine(MaterialTheme.typography.titleSmall, Modifier.fillMaxWidth(0.7f))
-        SkeletonLine(MaterialTheme.typography.bodySmall, Modifier.fillMaxWidth(0.4f))
-    }
-}
-
-@Composable
-private fun HighlightRowLayout(
-    rank: Int?,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(rowSpacing),
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+private fun HighlightSkeletonRow(rank: Int?, shapes: ListItemShapes) {
+    SegmentedListItem(
+        onClick = {},
+        enabled = false,
+        shapes = shapes,
+        colors = settingsSegmentedColors(),
+        leadingContent = rank?.let { { RankText(it) } },
+        supportingContent = { SkeletonLine(MaterialTheme.typography.bodyMedium, Modifier.fillMaxWidth(0.4f)) },
     ) {
-        if (rank != null) {
-            Text(
-                text = rank.toString(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.width(rankWidth)
-            )
-        }
-        Column(
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = Modifier.weight(1f)
-        ) {
-            content()
-        }
+        SkeletonLine(MaterialTheme.typography.bodyLarge, Modifier.fillMaxWidth(0.7f))
     }
+}
+
+@Composable
+private fun RankText(rank: Int) {
+    Text(
+        text = rank.toString(),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.width(rankWidth)
+    )
 }
 
 @Composable
@@ -319,9 +314,18 @@ private fun MarketPreview() {
 @Composable
 private fun ReadStatePreviewContent() {
     val post = AraPost.mock()
-    Card(Modifier.padding(16.dp)) {
-        HighlightRow(post.copy(readStatus = AraPost.ReadStatus.UNREAD), rank = 1, showsBoard = true)
-        HighlightRow(post.copy(readStatus = AraPost.ReadStatus.READ), rank = 2, showsBoard = true)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+        modifier = Modifier.padding(16.dp)
+    ) {
+        HighlightRow(
+            post.copy(readStatus = AraPost.ReadStatus.UNREAD), rank = 1, showsBoard = true,
+            shapes = ListItemDefaults.segmentedShapes(0, 2), onClick = {}
+        )
+        HighlightRow(
+            post.copy(readStatus = AraPost.ReadStatus.READ), rank = 2, showsBoard = true,
+            shapes = ListItemDefaults.segmentedShapes(1, 2), onClick = {}
+        )
     }
 }
 

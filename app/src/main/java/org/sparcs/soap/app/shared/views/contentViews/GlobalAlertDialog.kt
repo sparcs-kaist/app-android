@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,7 +43,7 @@ fun GlobalAlertDialog(
             onDismissRequest = onDismiss,
             containerColor = MaterialTheme.colorScheme.background,
             confirmButton = {
-                TextButton(onClick = onDismiss) {
+                TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.ok))
                 }
             },
@@ -66,7 +67,7 @@ private fun GlobalAlertDialogPreview() {
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Button(onClick = { isPresented = true }) {
+            Button(onClick = { isPresented = true }, shapes = ButtonDefaults.shapes()) {
                 Text("Show Alert Dialog")
             }
 

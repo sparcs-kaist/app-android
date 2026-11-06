@@ -1,5 +1,32 @@
 package org.sparcs.soap.app.shared.views.taxiRoomCell
 
+import android.text.format.DateFormat
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.unit.sp
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiRouteStops
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.isDepartingSoon
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.rememberCurrentMinute
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.taxiCountdown
+import org.sparcs.soap.app.theme.ui.creditCompleteColor
+import org.sparcs.soap.app.theme.ui.creditIncompleteColor
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,8 +40,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.NearMe
-import androidx.compose.material.icons.filled.WhereToVote
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,74 +56,230 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
-import org.sparcs.soap.app.shared.extensions.relativeTimeString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
-import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiParticipantsIndicator
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiRoomStatusIndicator
 import org.sparcs.soap.app.theme.ui.Theme
 
+/** Narrower than this inside the card's padding — a column beside a chat on a wide display — the time goes above the route rather than beside it. */
+private val SideBySideMinWidth = 280.dp
+
+/** Wide enough for the time in any locale's format, so the dividers line up down the list. */
+private val TimeColumnWidth = 88.dp
+
 /**
- * A room as a card: where it leaves from and goes to, the riders (or, once departed, the
- * settlement status) at the top right, and the departure time and title underneath.
+ * A room as a card, led by when it leaves: the time, with a countdown when it is close and the
+ * date otherwise, beside the route — or above it in a narrow column — then the title and one dot
+ * per seat. For rooms you are in ([showsRiders]), such as in Chats, the riders' photos and the seats
+ * taken replace the dots, since who you share the chat with matters more than whether seats are
+ * left. Once the ride has left, where your settlement stands goes at the foot of the time column, as
+ * its icon, or beside the time in a narrow card.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TaxiRoomCell(
     room: TaxiRoom,
     taxiUser: TaxiUser? = null,
+    showsRiders: Boolean = false,
     onClick: () -> Unit = {},
 ) {
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    RouteLine(Icons.Filled.NearMe, room.source.title.localized())
-                    RouteLine(Icons.Filled.WhereToVote, room.destination.title.localized())
-                }
-                if (room.isDeparted) {
+    val now by rememberCurrentMinute()
+    val context = LocalContext.current
+    val time = remember(room.departAt) { DateFormat.getTimeFormat(context).format(room.departAt) }
+    val date = remember(room.departAt) { room.departAt.shortDayString() }
+    val countdown = if (room.isDeparted) null else taxiCountdown(room.departAt, now)
+    val detail = countdown ?: date
+    val detailColor = when {
+        countdown != null && isDepartingSoon(room.departAt, now) -> creditIncompleteColor
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Card(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.extraLarge,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        BoxWithConstraints(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+            val departure: @Composable () -> Unit = {
+                Text(
+                    time,
+                    style = MaterialTheme.typography.titleLargeEmphasized,
+                    maxLines = 1,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 14.sp, maxFontSize = MaterialTheme.typography.titleLargeEmphasized.fontSize),
+                )
+            }
+            val departureDetail: @Composable () -> Unit = {
+                Text(
+                    detail,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = detailColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            val status: (@Composable (compact: Boolean) -> Unit)? = if (room.isDeparted) {
+                { compact ->
                     TaxiRoomStatusIndicator(
                         settlementType = room.participants.firstOrNull { it.id == taxiUser?.oid }?.isSettlement
                             ?: TaxiParticipant.SettlementType.NotDeparted,
                         settlementCount = room.settlementTotal ?: 0,
-                        participantsCount = room.participants.size
-                    )
-                } else {
-                    TaxiParticipantsIndicator(
-                        participants = room.participants.size,
-                        capacity = room.capacity
+                        participantsCount = room.participants.size,
+                        // As tall as the riders' photos beside it, at the foot of the column.
+                        height = RiderStackHeight,
+                        compact = compact,
                     )
                 }
+            } else null
+
+            if (maxWidth >= SideBySideMinWidth) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.height(IntrinsicSize.Min),
+                ) {
+                    Column(
+                        verticalArrangement = if (status == null) Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
+                        else Arrangement.spacedBy(2.dp),
+                        modifier = Modifier
+                            .width(TimeColumnWidth)
+                            .fillMaxHeight(),
+                    ) {
+                        departure()
+                        departureDetail()
+                        if (status != null) {
+                            Spacer(Modifier.weight(1f).heightIn(min = 8.dp))
+                            // Only its icon: the full label is far wider than the column.
+                            status(true)
+                        }
+                    }
+                    VerticalDivider(Modifier.padding(vertical = 2.dp))
+                    RoomDetails(room, showsRiders, Modifier.weight(1f))
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        departure()
+                        Box(Modifier.padding(bottom = 3.dp)) { departureDetail() }
+                        if (status != null) {
+                            Spacer(Modifier.weight(1f))
+                            Box(Modifier.padding(bottom = 2.dp)) { status(false) }
+                        }
+                    }
+                    RoomDetails(room, showsRiders)
+                }
             }
+        }
+    }
+}
+
+/** The route, then the title with the seats: one dot each, or the riders' photos when [showsRiders]. */
+@Composable
+private fun RoomDetails(room: TaxiRoom, showsRiders: Boolean, modifier: Modifier = Modifier) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = modifier) {
+        TaxiRouteStops(
+            source = room.source.title.localized(),
+            destination = room.destination.title.localized(),
+            style = MaterialTheme.typography.titleMedium,
+            markerSize = 16.dp,
+            rowSpacing = 4.dp,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "${room.departAt.relativeTimeString()} • ${room.title}",
-                style = MaterialTheme.typography.bodyMedium,
+                room.title,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(8.dp))
+            when {
+                // Once the ride has left, how many seats were taken no longer matters.
+                showsRiders -> TaxiRiderStack(room.participants, room.capacity, showsCount = !room.isDeparted)
+                !room.isDeparted -> TaxiSeatDots(taken = room.participants.size, capacity = room.capacity)
+            }
+        }
+    }
+}
+
+private val RiderPhotoSize = 22.dp
+private val RiderRingWidth = 1.5.dp
+
+/** The riders' photos with their rings, which the settlement status matches in height. */
+private val RiderStackHeight = RiderPhotoSize + RiderRingWidth * 2
+
+/** Who is riding: up to four photos, overlapping, with how many seats are taken of how many. */
+@Composable
+private fun TaxiRiderStack(participants: List<TaxiParticipant>, capacity: Int, showsCount: Boolean) {
+    // A ring of the card's own colour keeps each photo apart from the one it overlaps.
+    val ring = CardDefaults.cardColors().containerColor
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clearAndSetSemantics { contentDescription = "${participants.size}/$capacity" },
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(-RiderPhotoSize * 0.3f)) {
+            participants.take(4).forEach { participant ->
+                Box(
+                    Modifier
+                        .size(RiderStackHeight)
+                        .background(ring, CircleShape)
+                        .padding(RiderRingWidth)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                ) {
+                    participant.profileImageURL?.let { url ->
+                        AsyncImage(
+                            model = url.toString(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.matchParentSize(),
+                        )
+                    }
+                }
+            }
+        }
+        if (showsCount) {
+            Text(
+                "${participants.size}/$capacity",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
 }
 
+/** One dot per seat, filled for each rider and coloured by how many seats are left. */
 @Composable
-private fun RouteLine(icon: ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+private fun TaxiSeatDots(taken: Int, capacity: Int) {
+    val filled = when (capacity - taken) {
+        in Int.MIN_VALUE..0 -> MaterialTheme.colorScheme.error
+        1 -> creditIncompleteColor
+        else -> creditCompleteColor
     }
+    val empty = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.clearAndSetSemantics { contentDescription = "$taken/$capacity" },
+    ) {
+        repeat(capacity) { index ->
+            Box(
+                Modifier
+                    .size(8.dp)
+                    .background(if (index < taken) filled else empty, CircleShape)
+            )
+        }
+    }
+}
+
+/** "Mon, Oct 26": the date in the user's locale, short enough for the time column. */
+private fun Date.shortDayString(): String {
+    val pattern = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault(), "MMMdEEE")
+    return SimpleDateFormat(pattern, Locale.getDefault()).format(this)
 }
 
 /** Placeholder with the same layout and text styles as [TaxiRoomCell]. */
@@ -106,27 +287,35 @@ private fun RouteLine(icon: ImageVector, text: String) {
 fun TaxiRoomSkeletonCell() {
     val typography = MaterialTheme.typography
     val tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-    Card(Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    Card(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .height(IntrinsicSize.Min),
         ) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+                modifier = Modifier
+                    .width(TimeColumnWidth)
+                    .fillMaxHeight(),
+            ) {
+                SkeletonLine(typography.titleLarge, Modifier.fillMaxWidth(0.8f))
+                SkeletonLine(typography.labelMedium, Modifier.fillMaxWidth(0.6f))
+            }
+            VerticalDivider(Modifier.padding(vertical = 2.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.weight(1f)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     repeat(2) { line ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(24.dp).background(tint, CircleShape))
-                            Spacer(Modifier.width(8.dp))
+                            Box(Modifier.size(16.dp).background(tint, CircleShape))
+                            Spacer(Modifier.width(12.dp))
                             SkeletonLine(typography.titleMedium, Modifier.fillMaxWidth(if (line == 0) 0.55f else 0.7f))
                         }
                     }
                 }
-                Box(Modifier.size(width = 56.dp, height = 28.dp).background(tint, MaterialTheme.shapes.small))
+                SkeletonLine(typography.bodySmall, Modifier.fillMaxWidth(0.5f))
             }
-            SkeletonLine(typography.bodyMedium, Modifier.fillMaxWidth(0.5f))
         }
     }
 }
@@ -158,6 +347,7 @@ private fun Preview() {
     Theme {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), onClick = {})
+            TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), showsRiders = true, onClick = {})
             TaxiRoomSkeletonCell()
         }
     }

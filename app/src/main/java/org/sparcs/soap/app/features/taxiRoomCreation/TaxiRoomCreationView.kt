@@ -1,6 +1,15 @@
 package org.sparcs.soap.app.features.taxiRoomCreation
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.TextField
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +47,8 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDepartureTim
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationPicker
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiRoomCreationNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiRoomCreationViewModel
 import org.sparcs.soap.app.theme.ui.Theme
@@ -66,6 +76,8 @@ fun TaxiRoomCreationView(
         isValid(taxiListViewModel, taxiRoomCreationViewModel, title)
     }
 
+    val focus = LocalFocusManager.current
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -87,57 +99,81 @@ fun TaxiRoomCreationView(
         modifier = Modifier.analyticsScreen("Taxi Room Creation")
     ) { innerPadding ->
 
+        // The form in the style of Settings, like the activity form: the route, then a header per
+        // section over one card of rows.
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding.withoutBottom())
                 .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(innerPadding.onlyBottom())
+                .padding(top = 8.dp, bottom = 32.dp)
         ) {
-            TaxiDestinationPicker(
-                source = taxiListViewModel.source,
-                destination = taxiListViewModel.destination,
-                locations = locations,
-                onSourceChange = { taxiListViewModel.source = it },
-                onDestinationChange = { taxiListViewModel.destination = it },
-                favoriteRoutes = favoriteRoutes,
-                onFavoriteSelect = { taxiListViewModel.selectFavoriteRoute(it) },
-                onFavoriteDelete = { taxiListViewModel.deleteFavoriteRoute(it) },
-                onFavoriteAdd = { taxiListViewModel.addFavoriteRoute() }
-            )
+            Box(Modifier.padding(horizontal = 16.dp)) {
+                TaxiDestinationPicker(
+                    source = taxiListViewModel.source,
+                    destination = taxiListViewModel.destination,
+                    locations = locations,
+                    onSourceChange = { taxiListViewModel.source = it },
+                    onDestinationChange = { taxiListViewModel.destination = it },
+                    favoriteRoutes = favoriteRoutes,
+                    onFavoriteSelect = { taxiListViewModel.selectFavoriteRoute(it) },
+                    onFavoriteDelete = { taxiListViewModel.deleteFavoriteRoute(it) },
+                    onFavoriteAdd = { taxiListViewModel.addFavoriteRoute() },
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                )
+            }
 
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text(stringResource(R.string.title)) },
-                placeholder = { Text(randomRoomName) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            SettingsSectionHeader(stringResource(R.string.title))
+            SettingsGroup {
+                row {
+                    SettingsFieldItem {
+                        TextField(
+                            value = title,
+                            onValueChange = { title = it },
+                            placeholder = { Text(randomRoomName) },
+                            singleLine = true,
+                            isError = validationMessage == R.string.error_invalid_title,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
+                            colors = settingsTextFieldColors(),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
 
             TaxiDepartureTimePicker(
                 departureTime = taxiListViewModel.roomDepartureTime,
                 onDepartureTimeChange = { taxiListViewModel.roomDepartureTime = it }
             )
 
-            TaxiCapacityPicker(
-                capacity = taxiListViewModel.roomCapacity,
-                onCapacityChange = { taxiListViewModel.roomCapacity = it }
-            )
-
-            TaxiCarrierToggleButton(
-                hasCarrier = taxiListViewModel.roomHasCarrier,
-                onToggle = { taxiListViewModel.roomHasCarrier = it }
-            )
+            SettingsSectionHeader(stringResource(R.string.capacity))
+            SettingsGroup {
+                row {
+                    SettingsFieldItem {
+                        TaxiCapacityPicker(
+                            capacity = taxiListViewModel.roomCapacity,
+                            onCapacityChange = { taxiListViewModel.roomCapacity = it },
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                }
+                row {
+                    TaxiCarrierToggleButton(
+                        hasCarrier = taxiListViewModel.roomHasCarrier,
+                        onToggle = { taxiListViewModel.roomHasCarrier = it }
+                    )
+                }
+            }
 
             if (!isEnabled && validationMessage != null) {
                 Text(
                     text = stringResource(validationMessage),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 16.dp)
                 )
             }
         }

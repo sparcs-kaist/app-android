@@ -35,7 +35,10 @@ import org.sparcs.soap.app.features.postList.components.postListRow.PostListSkel
 import org.sparcs.soap.app.features.userPostList.components.UserPostNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
@@ -92,7 +95,7 @@ fun UserPostListView(
             .analyticsScreen(name = "Ara User Post List")
     ) { innerPadding ->
         Box(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding.withoutBottom())
         ) {
             Column {
                 if (showSearchBar) {
@@ -133,7 +136,7 @@ fun UserPostListView(
                                 coroutineScope.launch { viewModel.loadNextPage() }
                             },
                             isRefreshing = isRefreshing,
-                            contentPadding = PaddingValues(vertical = 8.dp),
+                            contentPadding = PaddingValues(vertical = 8.dp) + innerPadding.onlyBottom(),
                             rowPadding = PaddingValues(horizontal = 16.dp),
                             isLoadingMore = isLoadingMore
                         )

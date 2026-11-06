@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -207,13 +208,18 @@ private fun Header(
         AlertDialog(
             onDismissRequest = { setShowDelete(false) },
             confirmButton = {
-                TextButton(onClick = {
-                    onPostDeleted?.invoke(post.id)
-                    setShowDelete(false)
-                }) { Text(stringResource(R.string.delete)) }
+                TextButton(
+                    onClick = {
+                        onPostDeleted?.invoke(post.id)
+                        setShowDelete(false)
+                    },
+                    shapes = ButtonDefaults.shapes()
+                ) { Text(stringResource(R.string.delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { setShowDelete(false) }) { Text(stringResource(R.string.cancel)) }
+                TextButton(onClick = { setShowDelete(false) }, shapes = ButtonDefaults.shapes()) {
+                    Text(stringResource(R.string.cancel))
+                }
             },
             title = { Text(stringResource(R.string.delete_post)) },
             text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }

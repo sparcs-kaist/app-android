@@ -20,6 +20,7 @@
     <string name="write">Write</string>
     <string name="submit">Done</string>
     <string name="terms_of_use">terms of use</string>
+    <string name="terms_of_use_title">Terms of Use</string>
     <string name="anonymous">anonymous</string>
     <string name="post_option_anonymous">Anonymous</string>
     <string name="post_options">Post options</string>
@@ -121,8 +122,9 @@
     <string name="timetable_delete">Delete</string>
     <string name="timetable_delete_confirm_title">Delete \"%1$s\"?</string>
     <string name="timetable_delete_confirm_message">This timetable and its courses will be permanently deleted.</string>
-    <string name="timetable_duplicate">Duplicate My Table</string>
+    <string name="timetable_duplicate">Duplicate This Table</string>
     <string name="timetable_duplicate_title">My Table Copy</string>
+    <string name="timetable_duplicate_title_of">%1$s Copy</string>
     <string name="timetable_duplicate_partial_title">Timetable partially duplicated.</string>
     <string name="timetable_duplicate_partial_message">Some lectures or activities could not be copied.</string>
     <string name="taxi_room_creation">New Room</string>
@@ -372,8 +374,6 @@
     <string name="swap_route">Swap meeting point and destination</string>
     <string name="taxi_route_from">Meeting point</string>
     <string name="taxi_route_to">Destination</string>
-    <string name="taxi_route_choose">Choose a place</string>
-    <string name="taxi_route_none">None</string>
     <string name="select_location">Select location</string>
     <string name="new_room">New Room</string>
     <string name="not_paid_message">
@@ -767,6 +767,7 @@
     <string name="activity_end_handle">Adjust end time</string>
     <string name="activity_list_empty">No activities in this timetable</string>
     <string name="activity_options">Options for %1$s</string>
+    <string name="timetable_options">Options for %1$s</string>
     <plurals name="activities_count">
         <item quantity="one">%d Activity</item>
         <item quantity="other">%d Activities</item>
@@ -857,4 +858,27 @@
     <string name="activity_time_number">Time %1$d</string>
     <string name="activity_remove_time">Remove time</string>
     <string name="feed_comments">Comments</string>
+    <string name="taxi_arrives_around">Arrives around %1$s</string>
+    <plurals name="taxi_seats_left">
+        <item quantity="one">%1$d seat left</item>
+        <item quantity="other">%1$d seats left</item>
+    </plurals>
+    <string name="taxi_seats_full">Full</string>
+    <string name="taxi_phone_verified">Phone Verified</string>
+    <string name="taxi_phone_not_verified">Not Verified</string>
+    <string name="taxi_with_luggage">With Luggage</string>
+    <string name="taxi_no_luggage">No Luggage</string>
+    <string name="taxi_route_clear">Clear %1$s</string>
+    <string name="taxi_save_route">Save Route</string>
+    <string name="taxi_remove_favorite_route">Remove from Favorites</string>
+    <string name="taxi_settlement_requested">Settlement Requested</string>
+    <string name="taxi_ride_info">Ride Info</string>
+    <string name="taxi_ride_info_hint">Shows the ride\'s details</string>
+    <string name="taxi_my_status">My Status</string>
+    <string name="taxi_im_here">I\'m Here</string>
+    <string name="taxi_arrived_section">Arrived %1$d</string>
+    <string name="taxi_on_the_way_section">On the Way %1$d</string>
+    <string name="taxi_me">Me</string>
+    <string name="taxi_arrival_before_departure">You can mark your arrival only before the ride departs.</string>
+    <string name="taxi_route">%1$s → %2$s</string>
 </resources>

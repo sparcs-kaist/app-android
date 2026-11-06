@@ -8,16 +8,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Schedule
@@ -25,8 +21,10 @@ import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -37,12 +35,9 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.ProgressBarRangeInfo
-import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -100,7 +95,7 @@ private fun ReviewDigestPhase.kind(isAutomatic: Boolean): DigestKind = when (thi
 
 @Composable
 private fun SummariseButton(onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    OutlinedButton(onClick = onClick, shapes = ButtonDefaults.shapes(), modifier = Modifier.fillMaxWidth()) {
         Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
         Text(stringResource(R.string.review_digest_summarise), modifier = Modifier.padding(start = 8.dp))
     }
@@ -152,22 +147,10 @@ private fun DigestProgressBar(completed: Int, total: Int) {
         animationSpec = tween(if (total > 0) 15_000 else 4_000, easing = LinearOutSlowInEasing),
         label = "ReviewDigestProgress",
     )
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .height(6.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            .semantics { progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f) }
-    ) {
-        Box(
-            Modifier
-                .fillMaxWidth(fraction)
-                .height(6.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-        )
-    }
+    LinearWavyProgressIndicator(
+        progress = { fraction },
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable
@@ -240,7 +223,7 @@ private fun FailureContent(reason: LectureReviewDigestError, onRetry: () -> Unit
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    TextButton(onClick = onRetry) {
+    TextButton(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
         Icon(Icons.Rounded.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
         Text(stringResource(R.string.review_digest_try_again), modifier = Modifier.padding(start = 6.dp))
     }

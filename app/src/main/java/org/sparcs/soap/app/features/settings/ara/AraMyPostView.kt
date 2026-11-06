@@ -2,6 +2,7 @@ package org.sparcs.soap.app.features.settings.ara
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -10,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,7 +36,8 @@ import org.sparcs.soap.app.features.postList.components.postListRow.PostListSkel
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
@@ -80,7 +83,7 @@ fun AraMyPostView(
         navController.navigate(Channel.PostView.name + "?postId=${postID}")
     }
 
-    val topBarScrollBehavior = topAppBarScrollBehavior()
+    val topBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -92,7 +95,8 @@ fun AraMyPostView(
                 isSearchEnabled = type != AraMyPostViewModel.PostType.BOOKMARK,
                 onClickSearch = { showSearchBar = !showSearchBar },
                 isSelected = showSearchBar,
-                scrollBehavior = topBarScrollBehavior
+                scrollBehavior = topBarScrollBehavior,
+                flexible = true,
             )
         },
         modifier = Modifier
@@ -103,7 +107,7 @@ fun AraMyPostView(
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
-                .padding(innerPadding)
+                .padding(innerPadding.withoutBottom())
                 .padding(horizontal = 20.dp)
         ) {
             if (showSearchBar && type != AraMyPostViewModel.PostType.BOOKMARK) {
@@ -122,6 +126,7 @@ fun AraMyPostView(
                         state = state,
                         posts = posts,
                         searchKeyword = searchKeyword,
+                        contentPadding = innerPadding.onlyBottom(),
                         onRefresh = { coroutineScope.launch { viewModel.fetchInitialPosts() } },
                         onLoadMore = { coroutineScope.launch { viewModel.loadNextPage() } },
                         onPostClick = openPost
@@ -132,6 +137,7 @@ fun AraMyPostView(
                     BookmarkPostView(
                         state = state,
                         posts = posts,
+                        contentPadding = innerPadding.onlyBottom(),
                         onRefresh = { coroutineScope.launch { viewModel.fetchInitialPosts() } },
                         onLoadMore = { coroutineScope.launch { viewModel.loadNextPage() } },
                         onPostClick = openPost
@@ -147,6 +153,7 @@ private fun MyPostView(
     state: AraMyPostViewModel.ViewState,
     posts: List<AraPost>,
     searchKeyword: String,
+    contentPadding: PaddingValues,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
     onPostClick: (Int) -> Unit,
@@ -165,6 +172,7 @@ private fun MyPostView(
             is AraMyPostViewModel.ViewState.Loading -> LoadingView()
             is AraMyPostViewModel.ViewState.Loaded -> LoadedView(
                 posts = posts,
+                contentPadding = contentPadding,
                 onRefresh = onRefresh,
                 onLoadMore = onLoadMore,
                 onPostClick = { onPostClick(it) }
@@ -182,6 +190,7 @@ private fun MyPostView(
 private fun BookmarkPostView(
     state: AraMyPostViewModel.ViewState,
     posts: List<AraPost>,
+    contentPadding: PaddingValues,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
     onPostClick: (Int) -> Unit,
@@ -190,6 +199,7 @@ private fun BookmarkPostView(
         is AraMyPostViewModel.ViewState.Loading -> LoadingView()
         is AraMyPostViewModel.ViewState.Loaded -> LoadedView(
             posts = posts,
+            contentPadding = contentPadding,
             onRefresh = onRefresh,
             onLoadMore = onLoadMore,
             onPostClick = { onPostClick(it) }
@@ -216,6 +226,7 @@ private fun LoadingView() {
 @Composable
 private fun LoadedView(
     posts: List<AraPost>,
+    contentPadding: PaddingValues,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
     onPostClick: (Int) -> Unit,
@@ -234,7 +245,8 @@ private fun LoadedView(
             onPostClick = { post ->
                 onPostClick(post.id)
             },
-            isRefreshing = false
+            isRefreshing = false,
+            contentPadding = contentPadding
         )
     }
 }

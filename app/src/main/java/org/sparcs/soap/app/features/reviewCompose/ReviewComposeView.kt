@@ -18,13 +18,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,7 +58,10 @@ import org.sparcs.soap.app.features.reviewCompose.components.ReviewComposeNaviga
 import org.sparcs.soap.app.networking.responseDTO.otl.ratingToString
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.noRippleClickable
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureDetailViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewReviewComposeViewModel
@@ -238,18 +241,28 @@ private fun RatingPicker(
                 }
             )
 
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                listOf(5, 4, 3, 2, 1).forEach { itValue ->
-                    DropdownMenuItem(
-                        text = { Text(ratingToString(itValue)) },
-                        trailingIcon = if (itValue == value) {
-                            { Icon(Icons.Filled.Check, contentDescription = null) }
-                        } else null,
-                        onClick = {
-                            onValueChange(itValue)
-                            expanded = false
-                        }
-                    )
+            ExpressiveMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                val ratings = listOf(5, 4, 3, 2, 1)
+                MenuGroup(index = 0, count = 1) {
+                    ratings.forEachIndexed { index, itValue ->
+                        SelectableDropdownMenuItem(
+                            colors = selectableMenuItemColors(),
+                            selected = itValue == value,
+                            onClick = {
+                                onValueChange(itValue)
+                                expanded = false
+                            },
+                            text = { Text(ratingToString(itValue)) },
+                            shapes = MenuDefaults.itemShape(index, ratings.size),
+                            selectedLeadingIcon = {
+                                Icon(
+                                    Icons.Filled.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(MenuDefaults.LeadingIconSize)
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }

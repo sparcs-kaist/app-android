@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.features.navigationBar.components
 
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -69,7 +70,7 @@ fun MainDeepLinkHandler(
             title = { Text(stringResource(viewModel.alertState?.titleResId ?: R.string.error)) },
             text = { Text(stringResource(viewModel.alertState?.messageResId ?: R.string.post_not_found_message)) },
             confirmButton = {
-                TextButton(onClick = { viewModel.isAlertPresented = false }) { Text(stringResource(R.string.ok)) }
+                TextButton(onClick = { viewModel.isAlertPresented = false }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ok)) }
             },
             containerColor = MaterialTheme.colorScheme.background
         )

@@ -2,15 +2,23 @@ package org.sparcs.soap.app.features.postList.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
@@ -40,12 +48,29 @@ fun TopicFilterBar(
         modifier = modifier
     ) {
         item(key = "all") {
-            FilterChip(selected = selection == null, onClick = { select(null) }, label = { Text(stringResource(R.string.all)) })
+            TopicChip(selected = selection == null, label = stringResource(R.string.all)) { select(null) }
         }
         items(topics, key = { it.id }) { topic ->
-            FilterChip(selected = selection == topic, onClick = { select(topic) }, label = { Text(topic.name.localized()) })
+            TopicChip(selected = selection == topic, label = topic.name.localized()) { select(topic) }
         }
     }
+}
+
+/**
+ * A topic as a filter chip: one of the row is selected at a time, marked with a check as on the
+ * other filter chips.
+ */
+@Composable
+private fun TopicChip(selected: Boolean, label: String, onClick: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+        leadingIcon = if (selected) {
+            { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+        } else null,
+        modifier = Modifier.semantics { role = Role.RadioButton },
+    )
 }
 
 @Preview(showBackground = true)

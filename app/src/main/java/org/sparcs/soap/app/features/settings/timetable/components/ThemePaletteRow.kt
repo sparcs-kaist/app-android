@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.features.settings.timetable.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,11 +13,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -38,7 +36,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.features.settings.components.LocalSettingsSegment
+import org.sparcs.soap.app.features.settings.components.SettingsSegment
+import org.sparcs.soap.app.features.settings.components.segmentedShapes
+import org.sparcs.soap.app.features.settings.components.settingsSegmentedColors
 import org.sparcs.soap.app.features.settings.timetable.PaletteColor
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.menuItemShape
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -57,10 +62,13 @@ internal fun ThemePaletteRow(
     val moveUp = stringResource(R.string.theme_move_color_up)
     val moveDown = stringResource(R.string.theme_move_color_down)
 
-    ListItem(
+    val segment = LocalSettingsSegment.current ?: SettingsSegment(0, 1)
+    SegmentedListItem(
+        onClick = onEdit,
+        shapes = segmentedShapes(segment),
+        colors = settingsSegmentedColors(),
         modifier = modifier
             .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onEdit)
             .semantics {
                 contentDescription = label
                 customActions = buildList {
@@ -96,30 +104,32 @@ internal fun ThemePaletteRow(
                 )
             }
         },
-        headlineContent = { Text(label) },
         supportingContent = { Text(stringResource(R.string.theme_color_hex_value, color.hex)) },
         trailingContent = {
             Box {
-                IconButton(onClick = { menuExpanded = true }) {
+                IconButton(onClick = { menuExpanded = true }, shapes = IconButtonDefaults.shapes()) {
                     Icon(Icons.Default.MoreVert, stringResource(R.string.theme_options, label))
                 }
-                DropdownMenu(
+                ExpressiveMenu(
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false }
                 ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.theme_remove_color)) },
-                        leadingIcon = { Icon(Icons.Default.DeleteOutline, null) },
-                        enabled = count > TimetableTheme.minimumColors,
-                        onClick = {
-                            menuExpanded = false
-                            onDelete()
-                        }
-                    )
+                    MenuGroup(index = 0, count = 1) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.theme_remove_color)) },
+                            leadingIcon = { Icon(Icons.Default.DeleteOutline, null) },
+                            enabled = count > TimetableTheme.minimumColors,
+                            onClick = {
+                                menuExpanded = false
+                                onDelete()
+                            },
+                            shape = menuItemShape(0, 1)
+                        )
+                    }
                 }
             }
         }
-    )
+    ) { Text(label) }
 }
 
 @Preview(showBackground = true, locale = "en")

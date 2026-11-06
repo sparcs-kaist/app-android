@@ -18,6 +18,7 @@
     <string name="write">글쓰기</string>
     <string name="submit">올리기</string>
     <string name="terms_of_use">이용약관</string>
+    <string name="terms_of_use_title">이용약관</string>
     <string name="anonymous">익명</string>
     <string name="post_option_anonymous">익명</string>
     <string name="post_options">게시글 옵션</string>
@@ -116,8 +117,9 @@
     <string name="timetable_delete">삭제</string>
     <string name="timetable_delete_confirm_title">“%1$s” 시간표를 삭제할까요?</string>
     <string name="timetable_delete_confirm_message">이 시간표와 등록된 과목이 모두 삭제됩니다.</string>
-    <string name="timetable_duplicate">내 시간표 복제</string>
+    <string name="timetable_duplicate">이 시간표 복제</string>
     <string name="timetable_duplicate_title">내 시간표 사본</string>
+    <string name="timetable_duplicate_title_of">%1$s 사본</string>
     <string name="timetable_duplicate_partial_title">시간표가 일부만 복제되었습니다.</string>
     <string name="timetable_duplicate_partial_message">일부 과목 또는 활동을 복사할 수 없습니다.</string>
     <string name="taxi_room_creation">방 개설하기</string>
@@ -350,8 +352,6 @@
     <string name="swap_route">출발지와 도착지 바꾸기</string>
     <string name="taxi_route_from">출발지</string>
     <string name="taxi_route_to">도착지</string>
-    <string name="taxi_route_choose">장소 선택</string>
-    <string name="taxi_route_none">선택 안 함</string>
     <string name="select_location">장소 선택</string>
     <string name="new_room">새 방</string>
     <string name="not_paid_message">
@@ -737,6 +737,7 @@
     <string name="activity_end_handle">종료 시간 조정</string>
     <string name="activity_list_empty">시간표에 활동이 없어요</string>
     <string name="activity_options">%1$s 옵션</string>
+    <string name="timetable_options">%1$s 옵션</string>
     <plurals name="activities_count">
         <item quantity="one">활동 %d개</item>
         <item quantity="other">활동 %d개</item>
@@ -803,4 +804,26 @@
     <string name="activity_time_number">시간 %1$d</string>
     <string name="activity_remove_time">시간 삭제</string>
     <string name="feed_comments">댓글</string>
+    <string name="taxi_arrives_around">%1$s쯤 도착</string>
+    <plurals name="taxi_seats_left">
+        <item quantity="other">%1$d자리 남음</item>
+    </plurals>
+    <string name="taxi_seats_full">만석</string>
+    <string name="taxi_phone_verified">전화번호 인증됨</string>
+    <string name="taxi_phone_not_verified">전화번호 미인증</string>
+    <string name="taxi_with_luggage">캐리어 있음</string>
+    <string name="taxi_no_luggage">캐리어 없음</string>
+    <string name="taxi_route_clear">%1$s 지우기</string>
+    <string name="taxi_save_route">이 경로 저장</string>
+    <string name="taxi_remove_favorite_route">즐겨찾기에서 삭제</string>
+    <string name="taxi_settlement_requested">정산 요청됨</string>
+    <string name="taxi_ride_info">탑승 정보</string>
+    <string name="taxi_ride_info_hint">탑승 정보를 보여줍니다</string>
+    <string name="taxi_my_status">내 상태</string>
+    <string name="taxi_im_here">도착했어요</string>
+    <string name="taxi_arrived_section">도착함 %1$d</string>
+    <string name="taxi_on_the_way_section">오는 중 %1$d</string>
+    <string name="taxi_me">나</string>
+    <string name="taxi_arrival_before_departure">출발 시간 전까지만 도착을 표시할 수 있어요.</string>
+    <string name="taxi_route">%1$s → %2$s</string>
 </resources>

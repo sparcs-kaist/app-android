@@ -32,6 +32,7 @@ fun LectureInformation(lecture: Lecture, navController: NavController) {
         DetailSectionHeader(stringResource(R.string.information)) {
             TextButton(
                 onClick = { navController.navigate(Channel.CourseView.name + "?courseId=${lecture.courseID}") },
+                shapes = ButtonDefaults.shapes(),
                 contentPadding = ButtonDefaults.TextButtonWithIconContentPadding
             ) {
                 Text(stringResource(R.string.view_course))

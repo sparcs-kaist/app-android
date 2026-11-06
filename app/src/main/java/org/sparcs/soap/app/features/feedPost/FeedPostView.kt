@@ -28,11 +28,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -41,6 +43,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -96,7 +99,7 @@ import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FeedPostView(
     viewModel: FeedPostViewModelProtocol,
@@ -117,7 +120,7 @@ fun FeedPostView(
             else Column {
                 CommentsPanelHeader(onClosePanel)
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    LoadingIndicator()
                 }
             }
         }
@@ -162,7 +165,7 @@ fun FeedPostView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun FeedPostContent(
     post: FeedPost,
@@ -287,7 +290,14 @@ private fun FeedPostContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .consumeWindowInsets(innerPadding)
+                .consumeWindowInsets(innerPadding),
+            indicator = {
+                PullToRefreshDefaults.LoadingIndicator(
+                    state = pullState,
+                    isRefreshing = isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            }
         ) {
             LazyColumn(
                 state = proxy,
@@ -322,7 +332,7 @@ private fun FeedPostContent(
                 }
                 if (viewModel.isLoadingComments) {
                     item(key = "comments-loading") {
-                        CircularProgressIndicator(Modifier.padding(24.dp))
+                        LoadingIndicator(Modifier.padding(24.dp))
                     }
                 } else if (commentItems.isEmpty()) {
                     item(key = "comments-empty") {
@@ -382,6 +392,7 @@ private fun FeedPostContent(
                                 }
                             }
                         },
+                        shapes = ButtonDefaults.shapes(),
                         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
                     ) {
                         Text(
@@ -498,7 +509,7 @@ private fun ReplyInputBarPreview() {
     Theme { InputBar(viewModel, FeedComment.mockList().first(), {}, remember { FocusRequester() }, {}) }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LoadingView(
     navController: NavController,
@@ -520,7 +531,7 @@ private fun LoadingView(
                 .padding(innerPadding),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            LoadingIndicator()
         }
     }
 }
@@ -576,7 +587,7 @@ private fun CommentsPanelHeader(onClose: () -> Unit) {
     TopAppBar(
         title = { Text(stringResource(R.string.feed_comments)) },
         actions = {
-            IconButton(onClick = onClose) {
+            IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.close))
             }
         },

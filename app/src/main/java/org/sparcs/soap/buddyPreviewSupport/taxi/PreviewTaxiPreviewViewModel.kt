@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import org.sparcs.soap.app.domain.enums.taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
+import org.sparcs.soap.app.domain.models.taxi.TaxiRoute
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 
@@ -24,12 +25,10 @@ class PreviewTaxiPreviewViewModel : TaxiPreviewViewModelProtocol {
         return false
     }
 
-    override suspend fun calculateRoutePoints(
+    override suspend fun calculateRoute(
         source: LatLng,
         destination: LatLng
-    ): List<LatLng> {
-        return listOf(source, destination)
-    }
+    ): TaxiRoute = TaxiRoute(listOf(source, destination), distanceMeters = 8_900, durationSeconds = 18 * 60)
 
     override suspend fun joinRoom(id: String, onSuccess: () -> Unit) {}
 }

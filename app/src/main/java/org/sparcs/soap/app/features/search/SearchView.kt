@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.search
 
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,8 +16,11 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,6 +55,9 @@ import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewView
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.viewModelMocks.MockSearchViewModel
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -76,6 +84,18 @@ fun SearchView(
     var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
     val filterSheetState = rememberModalBottomSheetState()
 
+    // The search bar and scope chips slide away together while results scroll down and come back
+    // as soon as they scroll up, leaving more of a phone screen to the results.
+    val topBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val showsResults = state !is SearchViewModel.ViewState.Error &&
+        !(searchText.isBlank() && (searchScope != SearchScope.Courses || courseFilterState.isEmpty()))
+    // A new scope or an empty or error state starts a fresh page, so bring the bar back: those
+    // states don't scroll, and a hidden bar would have no way to return.
+    LaunchedEffect(searchScope, showsResults) {
+        val scrollState = topBarScrollBehavior.scrollState
+        animate(scrollState.scrollOffset, 0f) { value, _ -> scrollState.scrollOffset = value }
+    }
+
     Scaffold(
         topBar = {
             Column(
@@ -83,6 +103,7 @@ fun SearchView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
+                    .then(topBarScrollBehavior.searchBarScrollBehaviorModifier)
                     .padding(top = 8.dp)
             ) {
                 Column(Modifier.widthIn(max = 600.dp)) {
@@ -105,12 +126,13 @@ fun SearchView(
         },
         modifier = Modifier
             .navigationBarsPadding()
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
             .analyticsScreen("Search")
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding.withoutBottom()),
             contentAlignment = Alignment.TopCenter
         ) {
             Box(
@@ -126,6 +148,7 @@ fun SearchView(
                     viewModel = viewModel,
                     navController = navController,
                     coroutineScope = coroutineScope,
+                    bottomPadding = innerPadding.onlyBottom(),
                     onTaxiClick = { selectedRoom = it }
                 )
             }
@@ -147,7 +170,9 @@ fun SearchView(
                             selectedRoom = null
                         }
                     },
-                    navController = navController
+                    navController = navController,
+                    // Once the sheet has opened, so making the map doesn't stall its animation.
+                    isOpen = sheetState.currentValue == SheetValue.Expanded,
                 )
             }
         }
@@ -176,6 +201,7 @@ private fun SearchResultContent(
     viewModel: SearchViewModelProtocol,
     navController: NavController,
     coroutineScope: CoroutineScope,
+    bottomPadding: PaddingValues,
     onTaxiClick: (TaxiRoom) -> Unit
 ) {
     val searchScope by viewModel.searchScope.collectAsState()
@@ -204,7 +230,8 @@ private fun SearchResultContent(
                 ResultView(
                     viewModel = viewModel,
                     navController = navController,
-                    onTaxiClick = onTaxiClick
+                    onTaxiClick = onTaxiClick,
+                    bottomPadding = bottomPadding,
                 )
             }
         }
@@ -216,6 +243,7 @@ fun ResultView(
     viewModel: SearchViewModelProtocol,
     navController: NavController,
     onTaxiClick: (TaxiRoom) -> Unit,
+    bottomPadding: PaddingValues = PaddingValues(),
 ) {
     val hasMoreCourses by viewModel.hasMoreCourses.collectAsState()
     val isLoadingMoreCourses by viewModel.isLoadingMoreCourses.collectAsState()
@@ -234,7 +262,7 @@ fun ResultView(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp) + bottomPadding
     ) {
         if (searchScope == SearchScope.All) {
             item {

@@ -15,13 +15,15 @@ import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,22 +43,26 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
 import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
 import org.sparcs.soap.app.shared.extensions.toggle
-import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockAraSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +82,7 @@ fun AraSettingsView(
         viewModel.updateContentPreference()
     }
 
-    val topBarScrollBehavior = topAppBarScrollBehavior()
+    val topBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -84,6 +90,7 @@ fun AraSettingsView(
                 title = stringResource(R.string.ara_settings),
                 onDismiss = { navController.popBackStack() },
                 scrollBehavior = topBarScrollBehavior,
+                flexible = true,
                 containerColor = MaterialTheme.colorScheme.surface
             )
         },
@@ -96,13 +103,14 @@ fun AraSettingsView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding.withoutBottom()),
             contentAlignment = Alignment.TopCenter
         ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 600.dp)
+                    .widthIn(max = 600.dp),
+                contentPadding = innerPadding.onlyBottom()
             ) {
                 when (state) {
                     is AraSettingsViewModel.ViewState.Loading -> item { LoadingView() }
@@ -134,12 +142,12 @@ fun AraSettingsView(
                     TextButton(onClick = {
                         showNicknameDialog = false
                         viewModel.updateNickname()
-                    }) { Text(stringResource(R.string.confirm)) }
+                    }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.confirm)) }
                 },
                 dismissButton = {
                     TextButton(onClick = {
                         showNicknameDialog = false
-                    }) { Text(stringResource(R.string.cancel)) }
+                    }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
                 },
                 title = { Text(stringResource(R.string.warning)) },
                 text = {
@@ -159,27 +167,38 @@ fun AraSettingsView(
 private fun LoadingView() {
     Column {
         SettingsSectionHeader(stringResource(R.string.profile))
-        OutlinedTextField(
-            value = stringResource(R.string.unknown),
-            onValueChange = {},
-            enabled = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
+        SettingsGroup {
+            row {
+                SettingsFieldItem {
+                    TextField(
+                        value = stringResource(R.string.unknown),
+                        onValueChange = {},
+                        enabled = false,
+                        colors = settingsTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
         SettingsSectionHeader(stringResource(R.string.content_preferences))
-        SettingsSwitchItem(
-            text = stringResource(R.string.allow_nsfw),
-            checked = true,
-            onCheckedChange = {},
-            enabled = false
-        )
-        SettingsSwitchItem(
-            text = stringResource(R.string.allow_political),
-            checked = true,
-            onCheckedChange = {},
-            enabled = false
-        )
+        SettingsGroup {
+            row {
+                SettingsSwitchItem(
+                    text = stringResource(R.string.allow_nsfw),
+                    checked = true,
+                    onCheckedChange = {},
+                    enabled = false
+                )
+            }
+            row {
+                SettingsSwitchItem(
+                    text = stringResource(R.string.allow_political),
+                    checked = true,
+                    onCheckedChange = {},
+                    enabled = false
+                )
+            }
+        }
     }
 }
 
@@ -197,75 +216,90 @@ private fun LoadedView(
     Column {
         SettingsSectionHeader(stringResource(R.string.profile))
 
-        OutlinedTextField(
-            value = viewModel.nickname,
-            onValueChange = { viewModel.nickname = it },
-            enabled = nicknameUpdatable,
-            label = { Text(stringResource(R.string.enter_nickname)) },
-            supportingText = {
-                Column {
-                    if (!nicknameUpdatable && nicknameUpdatableFrom != null) {
-                        Text(
-                            stringResource(
-                                R.string.you_cant_change_nickname_until,
-                                formatter.format(nicknameUpdatableFrom)
-                            )
-                        )
-                    }
-                    Text(stringResource(R.string.nicknames_can_only_be_changed_every_3_months))
+        SettingsGroup {
+            row {
+                SettingsFieldItem {
+                    TextField(
+                        value = viewModel.nickname,
+                        onValueChange = { viewModel.nickname = it },
+                        enabled = nicknameUpdatable,
+                        label = { Text(stringResource(R.string.enter_nickname)) },
+                        supportingText = {
+                            Column {
+                                if (!nicknameUpdatable && nicknameUpdatableFrom != null) {
+                                    Text(
+                                        stringResource(
+                                            R.string.you_cant_change_nickname_until,
+                                            formatter.format(nicknameUpdatableFrom)
+                                        )
+                                    )
+                                }
+                                Text(stringResource(R.string.nicknames_can_only_be_changed_every_3_months))
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { onNicknameClick() }
+                        ),
+                        singleLine = true,
+                        colors = settingsTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-            },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { onNicknameClick() }
-            ),
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
+            }
+        }
 
         SettingsSectionHeader(stringResource(R.string.content_preferences))
 
-        SettingsSwitchItem(
-            text = stringResource(R.string.allow_nsfw),
-            checked = viewModel.allowNSFW,
-            onCheckedChange = {
-                haptic.toggle(it)
-                viewModel.allowNSFW = it
+        SettingsGroup {
+            row {
+                SettingsSwitchItem(
+                    text = stringResource(R.string.allow_nsfw),
+                    checked = viewModel.allowNSFW,
+                    onCheckedChange = {
+                        haptic.toggle(it)
+                        viewModel.allowNSFW = it
+                    }
+                )
             }
-        )
-
-        SettingsSwitchItem(
-            text = stringResource(R.string.allow_political),
-            checked = viewModel.allowPolitical,
-            onCheckedChange = {
-                haptic.toggle(it)
-                viewModel.allowPolitical = it
+            row {
+                SettingsSwitchItem(
+                    text = stringResource(R.string.allow_political),
+                    checked = viewModel.allowPolitical,
+                    onCheckedChange = {
+                        haptic.toggle(it)
+                        viewModel.allowPolitical = it
+                    }
+                )
             }
-        )
+        }
 
         SettingsSectionHeader(stringResource(R.string.posts))
 
-        SettingsNavigationItem(
-            text = stringResource(R.string.my_posts),
-            onClick = {
-                val json = Uri.encode(Gson().toJson(AraMyPostViewModel.PostType.ALL))
-                navController.navigate(Channel.AraMyPostSettings.name + "?type_json=$json")
-            },
-            leadingContent = {
-                Icon(Icons.AutoMirrored.Outlined.FormatListBulleted, contentDescription = null)
+        SettingsGroup {
+            row {
+                SettingsNavigationItem(
+                    text = stringResource(R.string.my_posts),
+                    onClick = {
+                        val json = Uri.encode(Gson().toJson(AraMyPostViewModel.PostType.ALL))
+                        navController.navigate(Channel.AraMyPostSettings.name + "?type_json=$json")
+                    },
+                    leadingContent = {
+                        Icon(Icons.AutoMirrored.Outlined.FormatListBulleted, contentDescription = null)
+                    }
+                )
             }
-        )
-
-        SettingsNavigationItem(
-            text = stringResource(R.string.bookmarked_posts),
-            onClick = {
-                val json = Uri.encode(Gson().toJson(AraMyPostViewModel.PostType.BOOKMARK))
-                navController.navigate(Channel.AraMyPostSettings.name + "?type_json=$json")
-            },
-            leadingContent = { Icon(Icons.Outlined.BookmarkBorder, contentDescription = null) }
-        )
+            row {
+                SettingsNavigationItem(
+                    text = stringResource(R.string.bookmarked_posts),
+                    onClick = {
+                        val json = Uri.encode(Gson().toJson(AraMyPostViewModel.PostType.BOOKMARK))
+                        navController.navigate(Channel.AraMyPostSettings.name + "?type_json=$json")
+                    },
+                    leadingContent = { Icon(Icons.Outlined.BookmarkBorder, contentDescription = null) }
+                )
+            }
+        }
     }
 }
 

@@ -2,7 +2,6 @@ package org.sparcs.soap.app.theme.ui
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
@@ -38,34 +37,5 @@ val PretendardFontFamily = FontFamily(
     )
 )
 
-private fun TextStyle.withPretendard(): TextStyle {
-    return this.copy(
-        fontFamily = PretendardFontFamily
-    )
-}
-
-fun getAppTypography(): Typography {
-    val defaultTypography = Typography()
-
-    return Typography(
-        displayLarge = defaultTypography.displayLarge.withPretendard(),
-        displayMedium = defaultTypography.displayMedium.withPretendard(),
-        displaySmall = defaultTypography.displaySmall.withPretendard(),
-
-        headlineLarge = defaultTypography.headlineLarge.withPretendard(),
-        headlineMedium = defaultTypography.headlineMedium.withPretendard(),
-        headlineSmall = defaultTypography.headlineSmall.withPretendard(),
-
-        titleLarge = defaultTypography.titleLarge.withPretendard(),
-        titleMedium = defaultTypography.titleMedium.withPretendard(),
-        titleSmall = defaultTypography.titleSmall.withPretendard(),
-
-        bodyLarge = defaultTypography.bodyLarge.withPretendard(),
-        bodyMedium = defaultTypography.bodyMedium.withPretendard(),
-        bodySmall = defaultTypography.bodySmall.withPretendard(),
-
-        labelLarge = defaultTypography.labelLarge.withPretendard(),
-        labelMedium = defaultTypography.labelMedium.withPretendard(),
-        labelSmall = defaultTypography.labelSmall.withPretendard()
-    )
-}
+/** Default Material type scale, including the Expressive emphasized styles, set in Pretendard. */
+fun getAppTypography(): Typography = Typography(fontFamily = PretendardFontFamily)

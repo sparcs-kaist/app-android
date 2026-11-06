@@ -8,6 +8,7 @@
     <string name="board_sections_reset">기본값으로 재설정</string>
     <string name="board_sections_add">%1$s 추가</string>
     <string name="board_sections_remove">%1$s 제거</string>
+    <string name="board_sections_reorder">%1$s 순서 바꾸기</string>
     <string name="blocked_users_footer">Ara에서 이 사용자들의 글과 댓글이 보이지 않습니다.</string>
     <string name="blocked_users_empty_description">게시물이나 댓글에서 차단한 사용자가 여기에 표시됩니다.</string>
     <string name="debug_boards">게시판</string>

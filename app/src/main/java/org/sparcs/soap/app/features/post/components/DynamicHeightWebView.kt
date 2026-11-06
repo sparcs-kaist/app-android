@@ -13,7 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ import timber.log.Timber
 import java.util.UUID
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DynamicHeightWebView(
     html: String,
@@ -85,7 +87,7 @@ fun DynamicHeightWebView(
             modifier = Modifier.fillMaxWidth()
         )
         if (height == 0) {
-            CircularProgressIndicator(Modifier.align(Alignment.Center).padding(16.dp))
+            LoadingIndicator(Modifier.align(Alignment.Center).padding(16.dp))
         }
     }
 }
@@ -148,12 +150,17 @@ private fun heightScript(nonce: String) = """
     </script>
 """.trimIndent()
 
+/**
+ * The post wrapped in a page that themes it. Inline styles stay allowed (`style-src`): without it
+ * `default-src` blocks the page's own `<style>`, and old posts show in black on the dark theme.
+ * Only the height script may run.
+ */
 private fun wrapHtml(html: String, colors: HtmlColors, nonce: String): String = """
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
-      <meta http-equiv="Content-Security-Policy" content="default-src * data: blob:; script-src 'nonce-$nonce'; object-src 'none'; frame-src https:; child-src https:; form-action 'none'; base-uri 'none'">
+      <meta http-equiv="Content-Security-Policy" content="default-src * data: blob:; style-src * 'unsafe-inline'; script-src 'nonce-$nonce'; object-src 'none'; frame-src https:; child-src https:; form-action 'none'; base-uri 'none'">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <style>
         html, body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }

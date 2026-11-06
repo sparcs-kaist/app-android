@@ -34,15 +34,15 @@ import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,7 +79,11 @@ import org.sparcs.soap.app.features.postCompose.TermsOfUseButton
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostComposeViewModel
+import org.sparcs.soap.app.shared.views.contentViews.ComposeToolbar
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -332,53 +336,60 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
             },
         )
 
-        DropdownMenu(
+        ExpressiveMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            typeLabels.forEach { (type, label) ->
-                DropdownMenuItem(
-                    text = { Text(label ?: stringResource(R.string.unknown)) },
-                    trailingIcon = if (selectedType == type) {
-                        { Icon(Icons.Filled.Check, contentDescription = null) }
-                    } else null,
-                    onClick = {
-                        viewModel.selectedComposeType = type
-                        expanded = false
-                    }
-                )
+            MenuGroup(index = 0, count = 1) {
+                typeLabels.entries.forEachIndexed { index, (type, label) ->
+                    SelectableDropdownMenuItem(
+                        colors = selectableMenuItemColors(),
+                        selected = selectedType == type,
+                        text = { Text(label ?: stringResource(R.string.unknown)) },
+                        onClick = {
+                            viewModel.selectedComposeType = type
+                            expanded = false
+                        },
+                        shapes = MenuDefaults.itemShape(index, typeLabels.size),
+                        selectedLeadingIcon = {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(MenuDefaults.LeadingIconSize)
+                            )
+                        },
+                    )
+                }
             }
         }
     }
 }
 
-/** Attachment actions on the left and the character count on the right, above the keyboard. */
+/** Attachment actions in a floating toolbar, with the character count at the end, above the keyboard. */
 @Composable
 private fun FeedComposeToolbar(
     characterCount: Int,
     isUploading: Boolean,
     onPhotoButton: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth()) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
-        ) {
-            IconButton(onClick = onPhotoButton, enabled = !isUploading) {
-                Icon(
-                    imageVector = Icons.Outlined.AddPhotoAlternate,
-                    contentDescription = stringResource(R.string.add_photo)
-                )
-            }
-            Spacer(Modifier.weight(1f))
+    ComposeToolbar(
+        trailing = {
             Text(
                 stringResource(R.string.feed_character_count, characterCount, MAX_CHARACTERS),
                 style = MaterialTheme.typography.labelMedium,
                 color = if (characterCount > MAX_CHARACTERS) MaterialTheme.colorScheme.error
                 else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    ) {
+        IconButton(
+            onClick = onPhotoButton,
+            enabled = !isUploading,
+            shapes = IconButtonDefaults.shapes()
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.AddPhotoAlternate,
+                contentDescription = stringResource(R.string.add_photo)
             )
         }
     }

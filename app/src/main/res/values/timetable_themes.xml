@@ -61,6 +61,9 @@
     <string name="theme_sample_club">Club</string>
     <string name="theme_color_hsb">HSB</string>
     <string name="theme_color_rgb">RGB</string>
+    <string name="theme_color_grid">Grid</string>
+    <string name="theme_color_spectrum">Spectrum</string>
+    <string name="theme_color_sliders">Sliders</string>
     <string name="theme_hex_prefix">#</string>
     <string name="theme_color_value_unit">%1$d%2$s</string>
     <string name="theme_color_channel_value">%1$s · %2$d</string>

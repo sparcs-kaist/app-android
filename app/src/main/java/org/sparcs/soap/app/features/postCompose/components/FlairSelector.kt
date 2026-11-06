@@ -6,11 +6,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.MenuItemShapes
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,9 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.postCompose.PostComposeViewModelProtocol
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostComposeViewModel
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -51,18 +56,22 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
             }
         )
 
-        DropdownMenu(
+        ExpressiveMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            TopicMenuItem(stringResource(R.string.no_topic), selectedTopic == null) {
-                viewModel.selectedTopic = null
-                expanded = false
-            }
-            viewModel.board.topics.forEach { topic ->
-                TopicMenuItem(topic.name.localized(), selectedTopic == topic) {
-                    viewModel.selectedTopic = topic
+            val topics = viewModel.board.topics
+            val count = topics.size + 1
+            MenuGroup(index = 0, count = 1, maxHeight = 320.dp) {
+                TopicMenuItem(stringResource(R.string.no_topic), selectedTopic == null, MenuDefaults.itemShape(0, count)) {
+                    viewModel.selectedTopic = null
                     expanded = false
+                }
+                topics.forEachIndexed { index, topic ->
+                    TopicMenuItem(topic.name.localized(), selectedTopic == topic, MenuDefaults.itemShape(index + 1, count)) {
+                        viewModel.selectedTopic = topic
+                        expanded = false
+                    }
                 }
             }
         }
@@ -70,13 +79,16 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
 }
 
 @Composable
-private fun TopicMenuItem(name: String, selected: Boolean, onClick: () -> Unit) {
-    DropdownMenuItem(
+private fun TopicMenuItem(name: String, selected: Boolean, shapes: MenuItemShapes, onClick: () -> Unit) {
+    SelectableDropdownMenuItem(
+        colors = selectableMenuItemColors(),
+        selected = selected,
         text = { Text(name) },
-        trailingIcon = if (selected) {
-            { Icon(Icons.Filled.Check, contentDescription = null) }
-        } else null,
-        onClick = onClick
+        onClick = onClick,
+        shapes = shapes,
+        selectedLeadingIcon = {
+            Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(MenuDefaults.LeadingIconSize))
+        },
     )
 }
 

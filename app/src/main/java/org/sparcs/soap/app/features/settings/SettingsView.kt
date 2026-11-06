@@ -8,9 +8,9 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,11 +40,9 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -79,14 +77,20 @@ import org.sparcs.soap.app.domain.helpers.BoardSeenPostsStore
 import org.sparcs.soap.app.domain.helpers.BoardSeenPostsStoreProtocol
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.settings.components.RowElementView
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
+import org.sparcs.soap.app.features.settings.components.SettingsGroupScope
 import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipStore
 import org.sparcs.soap.app.shared.viewModelMocks.MockSettingsViewModel
@@ -132,38 +136,44 @@ fun SettingsView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding.withoutBottom()),
             contentAlignment = Alignment.TopCenter
         ) {
+            // Scrolls behind the gesture bar; the bottom inset keeps the last row clear of it.
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 600.dp)
+                    .widthIn(max = 600.dp),
+                contentPadding = innerPadding.onlyBottom() + PaddingValues(bottom = 16.dp)
             ) {
                 item { SettingsSectionHeader(stringResource(R.string.widget_miscellaneous)) }
-                item { LanguageItem(context) }
                 item {
-                    NavigationItem(
-                        text = stringResource(R.string.notifications_title),
-                        icon = Icons.Outlined.Notifications
-                    ) { navController.navigate(Channel.NotificationSettings.name) }
-                }
-                item { ThemeSwitcherItem(settingsViewModel) }
-                item {
-                    SendCrashReportsItem(isCrashlyticsEnabled) {
-                        haptic.toggle(it)
-                        isCrashlyticsEnabled = it
+                    SettingsGroup {
+                        row { LanguageItem(context) }
+                        row {
+                            NavigationItem(
+                                text = stringResource(R.string.notifications_title),
+                                icon = Icons.Outlined.Notifications
+                            ) { navController.navigate(Channel.NotificationSettings.name) }
+                        }
+                        row { ThemeSwitcherItem(settingsViewModel) }
+                        row {
+                            SendCrashReportsItem(isCrashlyticsEnabled) {
+                                haptic.toggle(it)
+                                isCrashlyticsEnabled = it
+                            }
+                        }
+                        row {
+                            NavigationItem(
+                                text = stringResource(R.string.chat_with_us),
+                                icon = Icons.Outlined.Feedback
+                            ) { activity?.let { ChannelManager.showMessenger(it) } }
+                        }
                     }
-                }
-                item {
-                    NavigationItem(
-                        text = stringResource(R.string.chat_with_us),
-                        icon = Icons.Outlined.Feedback
-                    ) { activity?.let { ChannelManager.showMessenger(it) } }
                 }
 
                 serviceSection(R.string.feed) {
-                    item {
+                    row {
                         NavigationItem(stringResource(R.string.profile), Icons.Outlined.Person) {
                             navController.navigate(Channel.FeedSettings.name)
                         }
@@ -171,12 +181,12 @@ fun SettingsView(
                 }
 
                 serviceSection(R.string.otl) {
-                    item {
+                    row {
                         NavigationItem(stringResource(R.string.settings), Icons.Outlined.Tune) {
                             navController.navigate(Channel.TimetableSettings.name)
                         }
                     }
-                    item {
+                    row {
                         NavigationItem(stringResource(R.string.timetable_theme), Icons.Outlined.Palette) {
                             navController.navigate(Channel.TimetableThemeSettings.name)
                         }
@@ -184,17 +194,17 @@ fun SettingsView(
                 }
 
                 serviceSection(R.string.ara) {
-                    item {
+                    row {
                         NavigationItem(stringResource(R.string.profile), Icons.Outlined.Person) {
                             navController.navigate(Channel.AraSettings.name)
                         }
                     }
-                    item {
+                    row {
                         NavigationItem(stringResource(R.string.board_sections), Icons.Outlined.ViewAgenda) {
                             navController.navigate(Channel.BoardSectionsSettings.name)
                         }
                     }
-                    item {
+                    row {
                         NavigationItem(stringResource(R.string.blocked_users), Icons.Outlined.Block) {
                             navController.navigate(Channel.BlockedUsersSettings.name)
                         }
@@ -202,7 +212,7 @@ fun SettingsView(
                 }
 
                 serviceSection(R.string.taxi) {
-                    item {
+                    row {
                         NavigationItem(stringResource(R.string.profile), Icons.Outlined.Person) {
                             navController.navigate(Channel.TaxiSettings.name)
                         }
@@ -211,40 +221,49 @@ fun SettingsView(
 
                 item { SettingsSectionHeader(stringResource(R.string.information)) }
                 item {
-                    NavigationItem(
-                        text = stringResource(R.string.privacy_policy),
-                        icon = Icons.Outlined.Policy
-                    ) { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.PRIVACY_POLICY_URL.toUri())) }
+                    SettingsGroup {
+                        row {
+                            NavigationItem(
+                                text = stringResource(R.string.privacy_policy),
+                                icon = Icons.Outlined.Policy
+                            ) { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.PRIVACY_POLICY_URL.toUri())) }
+                        }
+                        row {
+                            NavigationItem(
+                                text = stringResource(R.string.terms_of_use_title),
+                                icon = Icons.Outlined.Description
+                            ) { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.TERMS_OF_USE_URL.toUri())) }
+                        }
+                        row {
+                            NavigationItem(
+                                text = stringResource(R.string.acknowledgements),
+                                icon = Icons.Outlined.VolunteerActivism
+                            ) { navController.navigate(Channel.CreditView.name) }
+                        }
+                        row { VersionItem() }
+                    }
                 }
-                item {
-                    NavigationItem(
-                        text = stringResource(R.string.terms_of_use),
-                        icon = Icons.Outlined.Description
-                    ) { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.TERMS_OF_USE_URL.toUri())) }
-                }
-                item {
-                    NavigationItem(
-                        text = stringResource(R.string.acknowledgements),
-                        icon = Icons.Outlined.VolunteerActivism
-                    ) { navController.navigate(Channel.CreditView.name) }
-                }
-                item { VersionItem() }
 
                 item {
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    SignOutItem { showSignOutDialog = true }
+                    SettingsGroup(Modifier.padding(top = 24.dp)) {
+                        row { SignOutItem { showSignOutDialog = true } }
+                    }
                 }
 
                 if (BuildConfig.DEBUG) {
                     item { SettingsSectionHeader("Debug Menu") }
                     item {
-                        NavigationItem(text = "Force Crash", icon = Icons.Outlined.BugReport) {
-                            error("DEBUG: User forced a crash")
-                        }
-                    }
-                    item {
-                        NavigationItem(text = "Invoke Exception", icon = Icons.Outlined.BugReport) {
-                            settingsViewModel.handleException(Exception("Test exception from debug"))
+                        SettingsGroup {
+                            row {
+                                NavigationItem(text = "Force Crash", icon = Icons.Outlined.BugReport) {
+                                    error("DEBUG: User forced a crash")
+                                }
+                            }
+                            row {
+                                NavigationItem(text = "Invoke Exception", icon = Icons.Outlined.BugReport) {
+                                    settingsViewModel.handleException(Exception("Test exception from debug"))
+                                }
+                            }
                         }
                     }
                     item { LocalTipStore.current?.let { TipsDebugSection(it) } }
@@ -264,11 +283,12 @@ fun SettingsView(
                     onClick = {
                         showSignOutDialog = false
                         settingsViewModel.signOut()
-                    }
+                    },
+                    shapes = ButtonDefaults.shapes()
                 ) { Text(stringResource(R.string.sign_out)) }
             },
             dismissButton = {
-                TextButton(onClick = { showSignOutDialog = false }) {
+                TextButton(onClick = { showSignOutDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -289,15 +309,19 @@ private fun BoardsDebugSection() {
     var showsResetAlert by remember { mutableStateOf(false) }
     Column {
         SettingsSectionHeader(stringResource(R.string.debug_boards))
-        ListItem(
-            headlineContent = { Text(stringResource(R.string.debug_reset_new_post_dots)) },
-            supportingContent = { Text(stringResource(R.string.debug_reset_new_post_dots_footer)) },
-            leadingContent = { Icon(Icons.Outlined.RestartAlt, contentDescription = null) },
-            modifier = Modifier.clickable {
-                seenPostsStore.reset()
-                showsResetAlert = true
+        SettingsGroup {
+            row {
+                SettingsNavigationItem(
+                    text = stringResource(R.string.debug_reset_new_post_dots),
+                    supportingText = stringResource(R.string.debug_reset_new_post_dots_footer),
+                    leadingContent = { Icon(Icons.Outlined.RestartAlt, contentDescription = null) },
+                    onClick = {
+                        seenPostsStore.reset()
+                        showsResetAlert = true
+                    }
+                )
             }
-        )
+        }
     }
 
     if (showsResetAlert) {
@@ -306,7 +330,7 @@ private fun BoardsDebugSection() {
             title = { Text(stringResource(R.string.debug_dots_reset_title)) },
             text = { Text(stringResource(R.string.debug_dots_reset_message)) },
             confirmButton = {
-                TextButton(onClick = { showsResetAlert = false }) { Text(stringResource(R.string.ok)) }
+                TextButton(onClick = { showsResetAlert = false }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ok)) }
             }
         )
     }
@@ -324,25 +348,30 @@ private fun TipsDebugSection(store: TipStore) {
     var showsImmediately by remember { mutableStateOf(store.showsTipsImmediately) }
     Column {
         SettingsSectionHeader(stringResource(R.string.tips_debug_title))
-        ListItem(
-            headlineContent = { Text(stringResource(R.string.tips_debug_reset)) },
-            supportingContent = if (isResetPending) {
-                { Text(stringResource(R.string.tips_debug_reset_pending)) }
-            } else null,
-            modifier = Modifier.clickable(enabled = !isResetPending) {
-                store.requestReset()
-                isResetPending = true
+        SettingsGroup {
+            row {
+                SettingsNavigationItem(
+                    text = stringResource(R.string.tips_debug_reset),
+                    supportingText = if (isResetPending) stringResource(R.string.tips_debug_reset_pending) else null,
+                    enabled = !isResetPending,
+                    onClick = {
+                        store.requestReset()
+                        isResetPending = true
+                    }
+                )
             }
-        )
-        SettingsSwitchItem(
-            text = stringResource(R.string.tips_debug_show_immediately),
-            checked = showsImmediately,
-            onCheckedChange = {
-                store.showsTipsImmediately = it
-                showsImmediately = it
-            },
-            supportingText = stringResource(R.string.tips_debug_footer)
-        )
+            row {
+                SettingsSwitchItem(
+                    text = stringResource(R.string.tips_debug_show_immediately),
+                    checked = showsImmediately,
+                    onCheckedChange = {
+                        store.showsTipsImmediately = it
+                        showsImmediately = it
+                    },
+                    supportingText = stringResource(R.string.tips_debug_footer)
+                )
+            }
+        }
     }
 }
 
@@ -365,9 +394,10 @@ private fun NavigationItem(
     )
 }
 
-private fun LazyListScope.serviceSection(@StringRes title: Int, content: LazyListScope.() -> Unit) {
+/** A service's header over one card of its rows. */
+private fun LazyListScope.serviceSection(@StringRes title: Int, content: SettingsGroupScope.() -> Unit) {
     item { SettingsSectionHeader(stringResource(title)) }
-    content()
+    item { SettingsGroup(content = content) }
 }
 
 @Composable
@@ -399,11 +429,11 @@ private fun LanguageItem(context: Context) {
         }
     }
 
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.change_language)) },
-        supportingContent = { Text(languageDisplayName) },
+    SettingsNavigationItem(
+        text = stringResource(R.string.change_language),
+        supportingText = languageDisplayName,
         leadingContent = { Icon(Icons.Outlined.Language, contentDescription = null) },
-        modifier = Modifier.clickable { onClick() }
+        onClick = onClick
     )
 }
 
@@ -422,14 +452,11 @@ private fun SendCrashReportsItem(
 
 @Composable
 private fun SignOutItem(onClick: () -> Unit) {
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.sign_out)) },
+    SettingsNavigationItem(
+        text = stringResource(R.string.sign_out),
         leadingContent = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
-        colors = ListItemDefaults.colors(
-            headlineColor = MaterialTheme.colorScheme.error,
-            leadingIconColor = MaterialTheme.colorScheme.error
-        ),
-        modifier = Modifier.clickable(onClick = onClick)
+        destructive = true,
+        onClick = onClick
     )
 }
 
@@ -446,11 +473,11 @@ private fun ThemeSwitcherItem(
         Triple("dark", darkMode == true, stringResource(R.string.widget_dark_mode))
     )
 
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.widget_dark_mode)) },
-        supportingContent = { Text(options.first { it.second }.third) },
+    SettingsNavigationItem(
+        text = stringResource(R.string.widget_dark_mode),
+        supportingText = options.first { it.second }.third,
         leadingContent = { Icon(Icons.Outlined.DarkMode, contentDescription = null) },
-        modifier = Modifier.clickable { showDialog = true }
+        onClick = { showDialog = true }
     )
 
     if (showDialog) {
@@ -482,7 +509,7 @@ private fun ThemeSwitcherItem(
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { showDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -500,9 +527,9 @@ private fun VersionItem() {
         "0.0"
     }
 
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.app_version)) },
-        supportingContent = { Text(versionName) },
+    RowElementView(
+        title = stringResource(R.string.app_version),
+        content = versionName,
         leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) }
     )
 }

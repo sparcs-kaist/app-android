@@ -74,7 +74,7 @@ class PreviewTimetableViewModel(
     }
 
     override fun createTable() {}
-    override fun duplicateMyTable() {}
+    override fun duplicateTable() {}
     override fun deleteTable() {}
     override fun renameTable(title: String) {}
 

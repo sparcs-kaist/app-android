@@ -10,8 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,9 +24,10 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.theme.ui.Theme
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun CreditsSummaryCard(state: CreditCalculationViewState, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -39,7 +41,7 @@ internal fun CreditsSummaryCard(state: CreditCalculationViewState, onClick: () -
                 )
             }
             when {
-                state.isLoading -> LinearProgressIndicator(Modifier.fillMaxWidth())
+                state.isLoading -> LinearWavyProgressIndicator(Modifier.fillMaxWidth())
                 state.error != null -> Text(
                     stringResource(R.string.credit_load_error),
                     style = MaterialTheme.typography.bodySmall

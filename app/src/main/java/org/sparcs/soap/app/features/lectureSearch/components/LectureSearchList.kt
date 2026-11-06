@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
@@ -25,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -76,6 +76,7 @@ import org.sparcs.soap.app.shared.tips.TipEvent
 import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
+import org.sparcs.soap.app.shared.views.contentViews.FilterSheetHeader
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.wishlistColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
@@ -95,6 +96,7 @@ fun LectureSearchList(
     listState: LazyListState = rememberLazyListState(),
     timetablePreview: (@Composable () -> Unit)? = null,
     floatingTimetablePreview: Boolean = false,
+    bottomInset: Dp = 0.dp,
 ) {
     val state by viewModel.state.collectAsState()
     val searchText by viewModel.searchText.collectAsState()
@@ -146,6 +148,7 @@ fun LectureSearchList(
             Box(Modifier.fillMaxSize()) {
                 LectureSearchContent(
                     topInset = topInset,
+                    bottomInset = bottomInset,
                     listState = listState,
                     showsWishlist = showsWishlist,
                     state = displayedState,
@@ -202,7 +205,7 @@ fun LectureSearchList(
     if (showTimeRangePicker) {
         Dialog(
             onDismissRequest = { showTimeRangePicker = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
         ) {
             LectureTimeRangeContent(timetable, time, viewModel::onTimeChange) {
                 showTimeRangePicker = false
@@ -257,6 +260,7 @@ private fun WishlistHeader() {
 @Composable
 private fun LectureSearchContent(
     topInset: Dp,
+    bottomInset: Dp,
     listState: LazyListState,
     showsWishlist: Boolean,
     state: LectureSearchViewModel.ViewState,
@@ -294,6 +298,7 @@ private fun LectureSearchContent(
 
         else -> CourseLazyList(
             topInset = topInset,
+            bottomInset = bottomInset,
             listState = listState,
             showsWishlist = showsWishlist,
             displayedCourses = displayedCourses,
@@ -331,6 +336,7 @@ private fun LectureSearchPlaceholder(
 @Composable
 private fun CourseLazyList(
     topInset: Dp,
+    bottomInset: Dp,
     listState: LazyListState,
     showsWishlist: Boolean,
     displayedCourses: List<CourseLecture>,
@@ -351,7 +357,7 @@ private fun CourseLazyList(
     val cardColor = CardDefaults.cardColors().containerColor
     LazyColumn(
         state = listState,
-        contentPadding = PaddingValues(top = topInset + if (showsWishlist) 0.dp else 12.dp, bottom = 12.dp)
+        contentPadding = PaddingValues(top = topInset + if (showsWishlist) 0.dp else 12.dp, bottom = 12.dp + bottomInset)
     ) {
         if (showsWishlist) {
             item(key = "wishlist-header") { WishlistHeader() }
@@ -466,29 +472,16 @@ private fun TimeFilterBottomSheet(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = stringResource(R.string.lecture_time_filter),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { heading() },
-                )
-                TextButton(onClick = { onTimeChange(LectureTimeFilter()) }) {
-                    Text(stringResource(R.string.reset))
-                }
-            }
+            FilterSheetHeader(
+                title = stringResource(R.string.lecture_time_filter),
+                selectedCount = 0,
+                onReset = { onTimeChange(LectureTimeFilter()) },
+                resetEnabled = !time.isEmpty,
+            )
             Column(Modifier
                 .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState())) {
-                LectureTimeFilterRow(time, onTimeChange)
-                TextButton(onClick = onChooseOnTimetable) {
-                    Text(stringResource(R.string.choose_time_on_timetable))
-                }
+                LectureTimeFilterRow(time, onTimeChange, onChooseOnTimetable)
             }
         }
     }
@@ -514,11 +507,11 @@ internal fun LectureCollisionDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = onReplace) {
+            TextButton(onClick = onReplace, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.replace_overlapping_lecture))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) } },
     )
 }
 

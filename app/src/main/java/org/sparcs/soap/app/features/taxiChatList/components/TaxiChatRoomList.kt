@@ -68,7 +68,7 @@ private fun LazyListScope.roomSection(
     }
     items(rooms, key = { room -> "$key-${room.id}" }) { room ->
         Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-            TaxiRoomCell(room = room, onClick = { onRoomClick(room) }, taxiUser = taxiUser)
+            TaxiRoomCell(room = room, taxiUser = taxiUser, showsRiders = true, onClick = { onRoomClick(room) })
         }
     }
 }

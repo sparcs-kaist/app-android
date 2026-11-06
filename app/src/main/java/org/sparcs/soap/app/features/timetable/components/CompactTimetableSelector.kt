@@ -1,12 +1,12 @@
 package org.sparcs.soap.app.features.timetable.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -15,15 +15,20 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SplitButtonDefaults
+import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +41,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -125,12 +131,12 @@ fun CompactTimetableSelector(
                 TextButton(onClick = {
                     showDeleteDialog = false
                     viewModel.deleteTable()
-                }) {
+                }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = { showDeleteDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -142,7 +148,7 @@ fun CompactTimetableSelector(
             onDismissRequest = { showRenameDialog = false },
             title = { Text(text = stringResource(R.string.action_rename_user, timetableName)) },
             text = {
-                OutlinedTextField(
+                TextField(
                     value = renameText,
                     onValueChange = { renameText = it },
                     placeholder = { Text(timetableName) },
@@ -158,11 +164,12 @@ fun CompactTimetableSelector(
                             renameText = ""
                         }
                     },
-                    enabled = renameText.isNotBlank() && !loadState.isReadOnly
+                    enabled = renameText.isNotBlank() && !loadState.isReadOnly,
+                    shapes = ButtonDefaults.shapes()
                 ) { Text(stringResource(R.string.confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) {
+                TextButton(onClick = { showRenameDialog = false }, shapes = ButtonDefaults.shapes()) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -201,7 +208,8 @@ fun SemesterSelector(
                     haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                     coroutineScope.launch { viewModel.selectPreviousSemester() }
                 },
-                enabled = isEnabledPreviousButton
+                enabled = isEnabledPreviousButton,
+                shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
@@ -230,7 +238,8 @@ fun SemesterSelector(
                     haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                     coroutineScope.launch { viewModel.selectNextSemester() }
                 },
-                enabled = isEnabledNextButton
+                enabled = isEnabledNextButton,
+                shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -241,7 +250,10 @@ fun SemesterSelector(
     }
 }
 
-/** The selected table as a pill; tapping it opens the table menu. */
+/**
+ * The selected table as a Material 3 Expressive split button: the name switches between the
+ * semester's tables, and the arrow opens what can be done with them.
+ */
 @Composable
 fun TableSelector(
     viewModel: TimetableViewModelProtocol,
@@ -251,41 +263,76 @@ fun TableSelector(
     onShareClick: (() -> Unit)? = null,
     isLoading: Boolean = false,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var listExpanded by remember { mutableStateOf(false) }
+    var actionsExpanded by remember { mutableStateOf(false) }
+    // The semester selector's pill color and height, so the two read as one row.
+    val colors = ButtonDefaults.filledTonalButtonColors(
+        containerColor = CardDefaults.cardColors().containerColor,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    )
+    val height = 48.dp
 
-    Box {
-        // A pill matching the semester selector; tapping anywhere opens the table menu.
-        Card(onClick = { expanded = true }, enabled = !isLoading, shape = CircleShape) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier
-                    .height(48.dp)
-                    .padding(start = 16.dp, end = 12.dp)
-            ) {
-                if (isLoading) {
-                    SkeletonLine(MaterialTheme.typography.titleSmall, Modifier.width(72.dp))
-                } else {
-                    Text(
-                        displayName,
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+    SplitButtonLayout(
+        leadingButton = {
+            Box {
+                SplitButtonDefaults.TonalLeadingButton(
+                    onClick = { listExpanded = true },
+                    enabled = !isLoading,
+                    shapes = SplitButtonDefaults.leadingButtonShapesFor(height),
+                    colors = colors,
+                    contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(height),
+                    modifier = Modifier.height(height)
+                ) {
+                    if (isLoading) {
+                        SkeletonLine(MaterialTheme.typography.titleSmall, Modifier.width(72.dp))
+                    } else {
+                        Text(
+                            displayName,
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                TimetableListMenu(
+                    expanded = listExpanded,
+                    onDismiss = { listExpanded = false },
+                    viewModel = viewModel
+                )
+            }
+        },
+        trailingButton = {
+            Box {
+                SplitButtonDefaults.TonalTrailingButton(
+                    checked = actionsExpanded,
+                    onCheckedChange = { actionsExpanded = it },
+                    enabled = !isLoading,
+                    shapes = SplitButtonDefaults.trailingButtonShapesFor(height),
+                    colors = colors,
+                    contentPadding = SplitButtonDefaults.trailingButtonContentPaddingFor(height),
+                    modifier = Modifier.height(height)
+                ) {
+                    // Points up while its menu is open, as in the spec's split button.
+                    val rotation by animateFloatAsState(if (actionsExpanded) 180f else 0f, label = "Arrow")
+                    Icon(
+                        Icons.Filled.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.timetable_options, displayName),
+                        modifier = Modifier
+                            .size(SplitButtonDefaults.trailingButtonIconSizeFor(height))
+                            .graphicsLayer { rotationZ = rotation }
                     )
                 }
-                Icon(Icons.Filled.ArrowDropDown, contentDescription = "Menu")
+                TimetableActionsMenu(
+                    expanded = actionsExpanded,
+                    onDismiss = { actionsExpanded = false },
+                    onRenameClick = onRenameClick,
+                    onDeleteClick = onDeleteClick,
+                    onShareClick = onShareClick,
+                    viewModel = viewModel
+                )
             }
-        }
-
-        TimetableDropDownMenu(
-            expanded = expanded,
-            onDismiss = { expanded = false },
-            onRenameClick = onRenameClick,
-            onDeleteClick = onDeleteClick,
-            onShareClick = onShareClick,
-            viewModel = viewModel
-        )
-    }
+        },
+    )
 }
 
 @Composable

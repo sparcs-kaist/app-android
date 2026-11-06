@@ -6,8 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -35,6 +36,7 @@ import org.sparcs.soap.app.features.fullscreenImage.SafeInsets
 import org.sparcs.soap.app.features.fullscreenImage.zoomGestures
 import org.sparcs.soap.app.theme.ui.Theme
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun ZoomableImagePage(
     url: String,
@@ -57,7 +59,7 @@ internal fun ZoomableImagePage(
                 model = url,
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
-                loading = { Box(contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Color.White) } },
+                loading = { Box(contentAlignment = Alignment.Center) { LoadingIndicator(color = Color.White) } },
                 error = { Box(contentAlignment = Alignment.Center) { ImageLoadError(onRetry = { attempt++ }) } },
                 success = {
                     SubcomposeAsyncImageContent(

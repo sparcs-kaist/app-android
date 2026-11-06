@@ -1,11 +1,6 @@
 package org.sparcs.soap.app.features.post.components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.automirrored.rounded.Reply
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -26,12 +19,12 @@ import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material.icons.outlined.Summarize
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,7 +51,10 @@ import org.sparcs.soap.app.domain.models.ara.isHiddenForBlockedAuthor
 import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.app.shared.mocks.ara.mock
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.menuItemShape
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -228,7 +224,11 @@ fun <T> PostCommentActionsMenu(
     var reportExpanded by remember { mutableStateOf(false) }
 
     Box {
-        IconButton(onClick = { expanded = true }, modifier = modifier) {
+        IconButton(
+            onClick = { expanded = true },
+            shapes = IconButtonDefaults.shapes(),
+            modifier = modifier
+        ) {
             Icon(
                 imageVector = Icons.Filled.MoreVert,
                 contentDescription = stringResource(R.string.more),
@@ -237,122 +237,102 @@ fun <T> PostCommentActionsMenu(
             )
         }
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-                reportExpanded = false
-            }) {
-            onReply?.let { reply ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.feed_reply_action)) },
-                    onClick = { expanded = false; reply() },
-                    leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Reply, contentDescription = null) },
-                )
-            }
-            if (isMine == false) {
-                onSetAuthorBlocked?.let { setBlocked ->
-                    BlockItem(isAuthorBlocked) { expanded = false; setBlocked(!isAuthorBlocked) }
-                }
-            }
-            if (isMine == false && showsContentActions) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.report)) },
-                    onClick = {
-                        reportExpanded = !reportExpanded
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.SmsFailed,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = if (reportExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                            contentDescription = null
+        val dismiss = {
+            expanded = false
+            reportExpanded = false
+        }
+        // Replying and the author's moderation first, then the reading tools; your own comment
+        // gets edit, then delete on its own.
+        val showsBlock = isMine == false && onSetAuthorBlocked != null
+        val showsReport = isMine == false && showsContentActions
+        val showsEdit = isMine != false && !showsReport && enumClass == AraContentReportType::class
+        val showsDelete = isMine != false && !showsReport
+        val firstCount = listOf(onReply != null, showsBlock, showsReport).count { it }
+        val readingCount = if (showsReport) (if (isComment) 1 else 2) else 0
+        val groups = listOf(firstCount > 0, readingCount > 0, showsEdit, showsDelete).count { it }
+        var group = 0
+
+        ExpressiveMenu(expanded = expanded, onDismissRequest = dismiss) {
+            if (firstCount > 0) {
+                MenuGroup(index = group++, count = groups) {
+                    var item = 0
+                    onReply?.let { reply ->
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.feed_reply_action)) },
+                            onClick = { dismiss(); reply() },
+                            shape = menuItemShape(item++, firstCount),
+                            leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Reply, contentDescription = null) },
                         )
                     }
-                )
-
-                AnimatedVisibility(
-                    visible = reportExpanded,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    Column {
-                        enumClass.java.enumConstants?.forEach { type ->
-
-                            DropdownMenuItem(
-                                text = {
-                                    Text(stringResource(type.labelRes))
-                                },
-                                onClick = {
-                                    onReport(type)
-                                    expanded = false
-                                    reportExpanded = false
-                                }
-                            )
+                    if (showsBlock) {
+                        BlockItem(isAuthorBlocked, menuItemShape(item++, firstCount)) {
+                            dismiss(); onSetAuthorBlocked?.invoke(!isAuthorBlocked)
+                        }
+                    }
+                    if (showsReport) {
+                        ExpandableItem(
+                            label = stringResource(R.string.report),
+                            icon = { Icon(Icons.Outlined.SmsFailed, contentDescription = null) },
+                            // Open, its reasons close the group below it instead.
+                            shape = menuItemShape(item, firstCount + if (reportExpanded) 1 else 0),
+                            isExpanded = reportExpanded,
+                            onToggle = { reportExpanded = !reportExpanded },
+                        ) {
+                            val types = enumClass.java.enumConstants.orEmpty()
+                            types.forEachIndexed { i, type ->
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(type.labelRes)) },
+                                    onClick = { dismiss(); onReport(type) },
+                                    // Below Report, the last reason closes the group.
+                                    shape = menuItemShape(i + 1, types.size + 1),
+                                )
+                            }
                         }
                     }
                 }
+            }
 
-                HorizontalDivider()
-
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.translate)) },
-                    onClick = { onTranslate(); expanded = false },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Translate,
-                            contentDescription = null
+            if (readingCount > 0) {
+                MenuGroup(index = group++, count = groups) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.translate)) },
+                        onClick = { onTranslate(); dismiss() },
+                        shape = menuItemShape(0, readingCount),
+                        leadingIcon = { Icon(Icons.Outlined.Translate, contentDescription = null) },
+                    )
+                    if (!isComment) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.summarize)) },
+                            onClick = { onSummarize(); dismiss() },
+                            shape = menuItemShape(1, readingCount),
+                            leadingIcon = { Icon(Icons.Outlined.Summarize, contentDescription = null) },
                         )
                     }
-                )
-                if (!isComment) {
+                }
+            }
+
+            if (showsEdit) {
+                MenuGroup(index = group++, count = groups) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.summarize)) },
-                        onClick = { onSummarize(); expanded = false },
+                        text = { Text(stringResource(R.string.edit)) },
+                        onClick = { onEdit(); dismiss() },
+                        shape = menuItemShape(0, 1),
+                        leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                    )
+                }
+            }
+
+            if (showsDelete) {
+                MenuGroup(index = group, count = groups) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) },
+                        onClick = { onDelete(); dismiss() },
+                        shape = menuItemShape(0, 1),
                         leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Summarize,
-                                contentDescription = null
-                            )
-                        }
+                            Icon(Icons.Outlined.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        },
                     )
                 }
-
-            } else if (isMine != false) {
-                if (enumClass == AraContentReportType::class) {
-                    DropdownMenuItem(
-                    text = { Text(stringResource(R.string.edit)) },
-                    onClick = { onEdit(); expanded = false },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = null
-                        )
-                    }
-                    )
-                    HorizontalDivider()
-                }
-
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    },
-                    onClick = { onDelete(); expanded = false },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                )
             }
         }
     }

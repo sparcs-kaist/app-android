@@ -74,7 +74,7 @@ interface TimetableViewModelProtocol {
     suspend fun selectNextSemester()
     fun selectTimetable(id: Int)
     fun createTable()
-    fun duplicateMyTable()
+    fun duplicateTable()
     fun deleteTable()
     fun renameTable(title: String)
     fun addLecture(lecture: Lecture)
@@ -172,16 +172,7 @@ class TimetableViewModel @Inject constructor(
     override val timetableName: StateFlow<String> = combine(
         _selectedTimetableID,
         _timetableList
-    ) { id, list ->
-        when {
-            id == null || id == MY_TABLE_ID -> context.getString(R.string.my_table)
-            else -> {
-                val title = list.find { it.id == id }?.title
-                if (title == null) context.getString(R.string.timetable_number, id)
-                else if (title.isEmpty()) context.getString(R.string.untitled) else title
-            }
-        }
-    }.stateIn(
+    ) { id, list -> tableName(id, list) }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = context.getString(R.string.my_table)
@@ -439,15 +430,16 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
-    /** Copies "My Table" of the selected semester into a new table and selects it. */
-    override fun duplicateMyTable() {
+    /** Copies the selected table, "My Table" included, into a new table and selects the copy. */
+    override fun duplicateTable() {
         if (_loadState.value.isReadOnly) return
         val semester = _selectedSemester.value ?: return
+        val sourceID = _selectedTimetableID.value?.takeIf { it != MY_TABLE_ID }
         if (_isDuplicatingTable.value) return
         _isDuplicatingTable.value = true
         viewModelScope.launch {
             try {
-                val duplication = timetableUseCase.duplicateMyTable(semester, duplicateTitle())
+                val duplication = timetableUseCase.duplicateTable(semester, sourceID, duplicateTitle(sourceID))
                 analyticsService.logEvent(TimetableViewEvent.TableDuplicated)
                 if (_selectedSemester.value == semester) {
                     selectionRevision++
@@ -474,12 +466,23 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
+    /** The name shown for table [id] among [list]: My Table, its title, or a stand-in. */
+    private fun tableName(id: Int?, list: List<TimetableSummary>): String = when {
+        id == null || id == MY_TABLE_ID -> context.getString(R.string.my_table)
+        else -> {
+            val title = list.find { it.id == id }?.title
+            if (title == null) context.getString(R.string.timetable_number, id)
+            else if (title.isEmpty()) context.getString(R.string.untitled) else title
+        }
+    }
+
     /**
      * A title that does not clash with the semester's existing tables, so repeated duplicates stay
      * distinguishable in the selector.
      */
-    private fun duplicateTitle(): String {
-        val base = context.getString(R.string.timetable_duplicate_title)
+    private fun duplicateTitle(sourceID: Int?): String {
+        val base = if (sourceID == null) context.getString(R.string.timetable_duplicate_title)
+        else context.getString(R.string.timetable_duplicate_title_of, tableName(sourceID, _timetableList.value))
         val existing = _timetableList.value.map { it.title }.toSet()
         if (base !in existing) return base
 

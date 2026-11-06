@@ -45,7 +45,7 @@
     <string name="hse_general">HSE-G</string>
     <string name="lecture_type_hse_core_full">Humanities and Social Elective (Core)</string>
     <string name="lecture_type_hse_general_full">Humanities and Social Elective (General)</string>
-    <string name="credit_retaken">Retaken ? excluded from cumulative totals</string>
+    <string name="credit_retaken">Retaken · excluded from cumulative totals</string>
     <string name="credit_widget_open">Open Credits in Buddy to calculate your GPA and credits.</string>
     <string name="credit_widget_progress">%1$d / %2$d credits</string>
     <string name="credit_widget_description">Your GPA and progress towards graduation.</string>

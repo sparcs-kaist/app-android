@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.features.settings.feed
 
 import android.net.Uri
@@ -24,16 +26,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,12 +64,16 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.features.settings.components.RowElementView
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
 import org.sparcs.soap.app.features.settings.feed.viewState.FeedProfileImageState
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
@@ -85,7 +94,7 @@ fun FeedSettingsView(
         viewModel.fetchUser()
     }
 
-    val topBarScrollBehavior = topAppBarScrollBehavior()
+    val topBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -93,6 +102,7 @@ fun FeedSettingsView(
                 title = stringResource(R.string.feed_settings),
                 onDismiss = { navController.popBackStack() },
                 scrollBehavior = topBarScrollBehavior,
+                flexible = true,
                 containerColor = MaterialTheme.colorScheme.surface
             )
         },
@@ -106,14 +116,15 @@ fun FeedSettingsView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding.withoutBottom()),
             contentAlignment = Alignment.TopCenter
         ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 600.dp)
-                    .then(if (viewModel.isUpdatingProfile) Modifier.alpha(0.5f) else Modifier)
+                    .then(if (viewModel.isUpdatingProfile) Modifier.alpha(0.5f) else Modifier),
+                contentPadding = innerPadding.onlyBottom()
             ) {
                 when (state) {
                     is FeedSettingsViewModel.ViewState.Loading -> item { LoadingView() }
@@ -150,7 +161,7 @@ fun FeedSettingsView(
                     modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    ContainedLoadingIndicator()
                 }
             }
         }
@@ -277,7 +288,7 @@ private fun LoadedView(
                             contentScale = ContentScale.Crop
                         )
                     }
-                    else -> CircularProgressIndicator(modifier = Modifier.size(50.dp))
+                    else -> LoadingIndicator(modifier = Modifier.size(50.dp))
                 }
             }
             Row(
@@ -291,10 +302,12 @@ private fun LoadedView(
                                 ActivityResultContracts.PickVisualMedia.ImageOnly
                             )
                         )
-                    }
+                    },
+                    shapes = ButtonDefaults.shapes()
                 ) { Text(stringResource(R.string.edit)) }
                 TextButton(
                     onClick = { viewModel.updateProfileImage(null, context) },
+                    shapes = ButtonDefaults.shapes(),
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
@@ -304,39 +317,45 @@ private fun LoadedView(
 
         Spacer(Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = viewModel.nickname,
-            onValueChange = {
-                viewModel.nickname = it
-                viewModel.nicknameError = null
-            },
-            isError = viewModel.nicknameError != null,
-            supportingText = viewModel.nicknameError?.let { errorRes ->
-                { Text(stringResource(errorRes)) }
-            },
-            label = { Text(stringResource(R.string.enter_nickname)) },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    viewModel.updateNickname { success ->
-                        if (success) {
-                            keyboardController?.hide()
-                            onUpdateSuccess()
-                        }
-                    }
+        SettingsGroup {
+            row {
+                SettingsFieldItem {
+                    TextField(
+                        value = viewModel.nickname,
+                        onValueChange = {
+                            viewModel.nickname = it
+                            viewModel.nicknameError = null
+                        },
+                        isError = viewModel.nicknameError != null,
+                        supportingText = viewModel.nicknameError?.let { errorRes ->
+                            { Text(stringResource(errorRes)) }
+                        },
+                        label = { Text(stringResource(R.string.enter_nickname)) },
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                viewModel.updateNickname { success ->
+                                    if (success) {
+                                        keyboardController?.hide()
+                                        onUpdateSuccess()
+                                    }
+                                }
+                            }
+                        ),
+                        singleLine = true,
+                        colors = settingsTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-            ),
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
-
-        RowElementView(
-            title = stringResource(R.string.karma),
-            content = viewModel.karma.toString(),
-            trailing = true
-        )
+            }
+            row {
+                RowElementView(
+                    title = stringResource(R.string.karma),
+                    content = viewModel.karma.toString(),
+                    trailing = true
+                )
+            }
+        }
     }
 }
 

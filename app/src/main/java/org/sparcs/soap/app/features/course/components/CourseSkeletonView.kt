@@ -67,7 +67,7 @@ fun CourseHistorySkeleton() {
                 .padding(horizontal = 16.dp)
         ) {
             repeat(3) {
-                Card(modifier = Modifier.width(190.dp)) {
+                Card(modifier = Modifier.width(190.dp), shape = MaterialTheme.shapes.large) {
                     Column(Modifier.padding(12.dp)) {
                         SkeletonLine(MaterialTheme.typography.titleSmall, Modifier.width(96.dp))
                         Spacer(Modifier.height(8.dp))

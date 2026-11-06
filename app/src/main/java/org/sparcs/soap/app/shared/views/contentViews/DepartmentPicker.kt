@@ -15,18 +15,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,9 +36,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,6 +49,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.settings.timetable.TimetableSettingsViewModel
+import org.sparcs.soap.app.shared.extensions.plus
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -77,26 +81,12 @@ fun DepartmentPickerContent(
     onRetry: () -> Unit,
 ) {
     Column {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp)
-        ) {
-            val count = selectedDepartmentIDs.size
-            Text(
-                text = stringResource(R.string.department) +
-                    if (count > 0) " " + stringResource(R.string.selected_count, count) else "",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f)
-            )
-            TextButton(
-                onClick = { onSelectionChange(emptySet()) },
-                enabled = selectedDepartmentIDs.isNotEmpty()
-            ) {
-                Text(stringResource(R.string.reset))
-            }
-        }
+        FilterSheetHeader(
+            title = stringResource(R.string.department),
+            selectedCount = selectedDepartmentIDs.size,
+            onReset = { onSelectionChange(emptySet()) },
+            modifier = Modifier.padding(start = 20.dp, end = 8.dp, bottom = 8.dp)
+        )
         DepartmentList(
             state = state,
             selectedDepartmentIDs = selectedDepartmentIDs,
@@ -121,6 +111,7 @@ fun DepartmentList(
     @StringRes errorMessage: Int,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     header: LazyListScope.() -> Unit = {},
 ) {
     var searchText by remember { mutableStateOf("") }
@@ -130,7 +121,7 @@ fun DepartmentList(
         loaded?.let { departmentGroups(it.departments, it.savedDepartmentIDs, keyword) }.orEmpty()
     }
 
-    LazyColumn(modifier = modifier, contentPadding = PaddingValues(bottom = 16.dp)) {
+    LazyColumn(modifier = modifier, contentPadding = contentPadding + PaddingValues(bottom = 16.dp)) {
         header()
 
         when (state) {
@@ -161,34 +152,48 @@ fun DepartmentList(
                     if (title != null) {
                         item(key = "header-$title") { SettingsSectionHeader(stringResource(title)) }
                     }
-                    items(options, key = { it.id }) { department ->
+                    // One segmented card per section, like the settings groups.
+                    itemsIndexed(options, key = { _, it -> it.id }) { index, department ->
                         val selected = department.id in selectedDepartmentIDs
-                        ListItem(
-                            headlineContent = { Text(department.name) },
-                            supportingContent = { Text(department.code) },
+                        val toggle = {
+                            onSelectionChange(
+                                if (!selected) selectedDepartmentIDs + department.id
+                                else selectedDepartmentIDs - department.id
+                            )
+                        }
+                        // The click overload rather than the checkable one, which would tint every
+                        // checked row; the checkbox shows the state.
+                        SegmentedListItem(
+                            onClick = toggle,
+                            shapes = ListItemDefaults.segmentedShapes(index, options.size),
+                            enabled = enabled,
+                            colors = ListItemDefaults.segmentedColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ),
                             leadingContent = {
                                 Checkbox(checked = selected, onCheckedChange = null, enabled = enabled)
                             },
-                            // Transparent so the list works on a screen or inside a sheet.
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            modifier = Modifier.toggleable(
-                                value = selected,
-                                enabled = enabled,
-                                role = Role.Checkbox,
-                                onValueChange = { checked ->
-                                    onSelectionChange(
-                                        if (checked) selectedDepartmentIDs + department.id
-                                        else selectedDepartmentIDs - department.id
-                                    )
-                                }
-                            ),
-                        )
+                            supportingContent = { Text(department.code) },
+                            modifier = Modifier
+                                .segmentedRowPadding(index)
+                                .semantics {
+                                    role = Role.Checkbox
+                                    toggleableState = ToggleableState(selected)
+                                },
+                        ) { Text(department.name) }
                     }
                 }
             }
         }
     }
 }
+
+/** Insets a segmented row 16dp like a settings group, with the segmented gap above all but the first. */
+private fun Modifier.segmentedRowPadding(index: Int): Modifier = padding(
+    start = 16.dp,
+    end = 16.dp,
+    top = if (index == 0) 0.dp else ListItemDefaults.SegmentedGap,
+)
 
 @Composable
 private fun NoDepartmentsFound() {
@@ -234,27 +239,33 @@ private fun LazyListScope.departmentListSkeleton() {
         item(key = "skeleton-header-$section") {
             SkeletonBlock(
                 Modifier
-                    .padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
+                    .padding(start = 32.dp, top = 24.dp, bottom = 8.dp)
                     .width(100.dp)
                     .height(14.dp)
             )
         }
         items(3, key = { "skeleton-row-$section-$it" }) { row ->
-            // Same height and inset as a two-line ListItem with a leading checkbox.
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            // Same height, inset and corners as a loaded two-line row with a leading checkbox.
+            Surface(
+                shape = ListItemDefaults.segmentedShapes(row, 3).shape,
+                color = MaterialTheme.colorScheme.surfaceContainer,
                 modifier = Modifier
+                    .segmentedRowPadding(row)
                     .fillMaxWidth()
                     .height(72.dp)
-                    .padding(horizontal = 16.dp)
             ) {
-                Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
-                    SkeletonBlock(Modifier.size(18.dp))
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SkeletonBlock(Modifier.width(skeletonWidths[row % skeletonWidths.size]).height(16.dp))
-                    SkeletonBlock(Modifier.width(40.dp).height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                        SkeletonBlock(Modifier.size(18.dp))
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        SkeletonBlock(Modifier.width(skeletonWidths[row % skeletonWidths.size]).height(16.dp))
+                        SkeletonBlock(Modifier.width(40.dp).height(12.dp))
+                    }
                 }
             }
         }

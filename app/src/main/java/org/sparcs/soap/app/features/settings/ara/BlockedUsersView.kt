@@ -15,10 +15,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.HowToReg
 import androidx.compose.material.icons.outlined.PersonOff
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -26,6 +28,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -54,7 +57,7 @@ import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BlockedUsersView(
     navController: NavController,
@@ -81,6 +84,13 @@ fun BlockedUsersView(
             onRefresh = viewModel::refresh,
             state = pullState,
             contentAlignment = Alignment.TopCenter,
+            indicator = {
+                PullToRefreshDefaults.LoadingIndicator(
+                    state = pullState,
+                    isRefreshing = viewModel.isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
@@ -92,7 +102,7 @@ fun BlockedUsersView(
             ) {
                 when (val state = viewModel.state) {
                     BlockedUsersViewModel.ViewState.Loading -> item(key = "loading") {
-                        FullHeight { CircularProgressIndicator() }
+                        FullHeight { LoadingIndicator() }
                     }
 
                     is BlockedUsersViewModel.ViewState.Error -> item(key = "error") {
@@ -203,7 +213,7 @@ private fun BlockedUserRow(user: AraBlockedUser, onUnblock: () -> Unit, modifier
             },
             headlineContent = { Text(user.nickname, maxLines = 1, overflow = TextOverflow.Ellipsis) },
             trailingContent = {
-                OutlinedButton(onClick = onUnblock) { Text(stringResource(R.string.unblock)) }
+                OutlinedButton(onClick = onUnblock, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.unblock)) }
             }
         )
     }

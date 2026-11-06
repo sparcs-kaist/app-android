@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -54,6 +55,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.kakao.vectormap.KakaoMapSdk
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.R
 import org.sparcs.soap.app.ChannelManager
@@ -72,7 +74,6 @@ import org.sparcs.soap.app.shared.tips.TipStore
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.widgets.WidgetSyncHelper
-import javax.inject.Inject
 
 val LocalAnalytics = staticCompositionLocalOf<AnalyticsServiceProtocol> {
     MockAnalyticsService()
@@ -269,7 +270,8 @@ fun NoticeDialog(
                 ) {
                     TextButton(
                         onClick = { onDismiss() },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Text(
                             text = stringResource(R.string.close),
@@ -282,7 +284,8 @@ fun NoticeDialog(
 
                     TextButton(
                         onClick = { onDoNotShowAgain() },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Text(
                             text = stringResource(R.string.never_show_again),

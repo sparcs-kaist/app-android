@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -121,6 +124,7 @@ fun CommentInputBar(
 }
 
 /** The filled send button of the comment and chat bars, with a spinner while sending. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun SendButton(
     onClick: () -> Unit,
@@ -131,9 +135,10 @@ internal fun SendButton(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier.size(48.dp),
+        shapes = IconButtonDefaults.shapes(),
     ) {
         if (isSubmitting) {
-            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            LoadingIndicator(modifier = Modifier.size(32.dp), color = LocalContentColor.current)
         } else {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -65,7 +66,7 @@ fun PostInputBar(
             leadingContent = { AuthorAvatar(profilePictureUrl, size = 24.dp) },
             trailingContent = if (isEditing) {
                 {
-                    IconButton(onClick = onCancelEdit) {
+                    IconButton(onClick = onCancelEdit, shapes = IconButtonDefaults.shapes()) {
                         Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cancel))
                     }
                 }

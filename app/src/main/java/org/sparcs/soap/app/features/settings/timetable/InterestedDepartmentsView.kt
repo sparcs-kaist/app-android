@@ -5,15 +5,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,6 +26,8 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.views.contentViews.DepartmentList
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -42,7 +47,7 @@ fun InterestedDepartmentsView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun InterestedDepartmentsContent(
     state: TimetableSettingsViewModel.ViewState,
@@ -54,9 +59,12 @@ private fun InterestedDepartmentsContent(
     val loaded = state as? TimetableSettingsViewModel.ViewState.Loaded
     val isEditable = loaded != null
     val isDoneEnabled = loaded?.hasChanges == true && !loaded.isSaving
+    val topBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.analyticsScreen("Interested Departments"),
+        modifier = Modifier
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
+            .analyticsScreen("Interested Departments"),
         topBar = {
             Column {
                 SettingsViewNavigationBar(
@@ -67,9 +75,11 @@ private fun InterestedDepartmentsContent(
                     isSaving = loaded?.isSaving == true,
                     onClickDone = onSave,
                     containerColor = MaterialTheme.colorScheme.surface,
+                    scrollBehavior = topBarScrollBehavior,
+                    flexible = true,
                 )
                 if (loaded?.isSaving == true) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
             }
         },
@@ -84,7 +94,8 @@ private fun InterestedDepartmentsContent(
             enabled = loaded?.isSaving != true,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding.withoutBottom()),
+            contentPadding = padding.onlyBottom()
         ) {
             item(key = "description") {
                 Text(
@@ -127,6 +138,27 @@ private fun InterestedDepartmentsLoadingPreview() {
     Theme {
         InterestedDepartmentsContent(
             TimetableSettingsViewModel.ViewState.Loading,
+            {},
+            {},
+            {},
+            {}
+        )
+    }
+}
+@Preview(showBackground = true)
+@Composable
+private fun InterestedDepartmentsSavingPreview() {
+    Theme {
+        InterestedDepartmentsContent(
+            TimetableSettingsViewModel.ViewState.Loaded(
+                departments = listOf(
+                    DepartmentOption(1, "Computer Science", "CS"),
+                    DepartmentOption(2, "Mathematics", "MAS"),
+                ),
+                savedDepartmentIDs = setOf(1),
+                selectedDepartmentIDs = setOf(1, 2),
+                isSaving = true,
+            ),
             {},
             {},
             {},

@@ -19,10 +19,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -39,10 +41,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +119,7 @@ fun PostTranslationSheet(
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                OutlinedButton(onClick = onDownload) {
+                                OutlinedButton(onClick = onDownload, shapes = ButtonDefaults.shapes()) {
                                     Text(stringResource(R.string.translation_download))
                                 }
                             }
@@ -165,7 +167,7 @@ fun PostTranslationSheet(
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                TextButton(onClick = onRetry) {
+                                TextButton(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
                                     Text(stringResource(R.string.retry))
                                 }
                             }
@@ -186,7 +188,7 @@ fun PostTranslationSheet(
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    OutlinedButton(onClick = { picking = true }) {
+                    OutlinedButton(onClick = { picking = true }, shapes = ButtonDefaults.shapes()) {
                         Icon(
                             imageVector = Icons.Outlined.Translate,
                             contentDescription = null,
@@ -249,16 +251,14 @@ private fun LanguageList(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LoadingRow(label: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(16.dp),
-            strokeWidth = 2.dp
-        )
+        LoadingIndicator(modifier = Modifier.size(24.dp))
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,

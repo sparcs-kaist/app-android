@@ -62,8 +62,11 @@ interface TimetableUseCaseProtocol {
 
     suspend fun createTable(semester: Semester): TimetableCreation
 
-    /** Creates a new table for the semester holding a copy of the semester's "my table". */
-    suspend fun duplicateMyTable(semester: Semester, title: String): TableDuplication
+    /**
+     * Creates a new table for the semester holding a copy of the table [sourceID], or of the
+     * semester's "my table" when it is null.
+     */
+    suspend fun duplicateTable(semester: Semester, sourceID: Int?, title: String): TableDuplication
 
     suspend fun addLecture(timetableID: Int, lectureID: Int)
 
@@ -207,12 +210,13 @@ class TimetableUseCase @Inject constructor(
         }
     }
 
-    override suspend fun duplicateMyTable(semester: Semester, title: String): TableDuplication {
+    override suspend fun duplicateTable(semester: Semester, sourceID: Int?, title: String): TableDuplication {
         val context = CrashContext(
             feature,
             metadata = mapOf(
                 "year" to semester.year.toString(),
-                "semester" to semester.semesterType.toString()
+                "semester" to semester.semesterType.toString(),
+                "source" to (sourceID?.toString() ?: "myTable")
             )
         )
 
@@ -220,7 +224,10 @@ class TimetableUseCase @Inject constructor(
             // Copy from the server, not the cache, so the duplicate matches what the user sees on
             // other devices too.
             val (source, creation) = coroutineScope {
-                val source = async { otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType) }
+                val source = async {
+                    if (sourceID == null) otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType)
+                    else otlTimetableRepository.getTimetable(sourceID)
+                }
                 val creation = async { otlTimetableRepository.createTable(semester.year, semester.semesterType) }
                 source.await() to creation.await()
             }
@@ -408,7 +415,7 @@ class MockTimetableUseCase(
     override suspend fun createTable(semester: Semester): TimetableCreation =
         TimetableCreation(id = 1)
 
-    override suspend fun duplicateMyTable(semester: Semester, title: String): TableDuplication =
+    override suspend fun duplicateTable(semester: Semester, sourceID: Int?, title: String): TableDuplication =
         TableDuplication(id = 1, skippedLectureCount = 0, skippedActivityCount = 0)
 
     override suspend fun addLecture(timetableID: Int, lectureID: Int) {}

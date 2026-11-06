@@ -4,7 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,6 +25,7 @@ import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCreditCalculationViewModel
 import java.io.IOException
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun GradeEntryRoute(
     semesterId: String,
@@ -43,7 +45,7 @@ internal fun GradeEntryRoute(
                     .fillMaxSize()
                     .padding(padding), contentAlignment = Alignment.Center) {
                     when {
-                        state.isLoading -> CircularProgressIndicator()
+                        state.isLoading -> LoadingIndicator()
                         error != null -> ErrorView(
                             error = error,
                             defaultMessageResId = R.string.credit_load_error,

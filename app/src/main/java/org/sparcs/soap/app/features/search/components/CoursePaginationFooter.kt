@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.features.search.components
 
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -15,8 +19,8 @@ fun CoursePaginationFooter(hasMoreCourses: Boolean, isLoadingMoreCourses: Boolea
     LaunchedEffect(courseCount, hasMoreCourses) {
         if (hasMoreCourses && !isLoadingMoreCourses && error == null) onLoadMore()
     }
-    if (isLoadingMoreCourses) CircularProgressIndicator()
-    else if (hasMoreCourses) TextButton(onClick = onLoadMore) {
+    if (isLoadingMoreCourses) LoadingIndicator()
+    else if (hasMoreCourses) TextButton(onClick = onLoadMore, shapes = ButtonDefaults.shapes()) {
         Text(stringResource(if (error == null) R.string.lecture_load_more else R.string.retry))
     }
 }

@@ -59,7 +59,7 @@ class TimetableOfflineTest {
         model.renameTable("Changed")
         model.deleteTable()
         model.createTable()
-        model.duplicateMyTable()
+        model.duplicateTable()
         assertTrue(runCatching { model.saveActivity(44, null, ActivityDraft("Study")) }.exceptionOrNull() is NetworkError.NoConnection)
         assertTrue(runCatching { model.deleteActivity(44, 1) }.exceptionOrNull() is NetworkError.NoConnection)
         assertEquals(0, api.writes)

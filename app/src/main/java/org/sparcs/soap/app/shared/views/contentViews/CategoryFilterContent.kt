@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.shared.views.contentViews
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -9,20 +8,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
@@ -57,30 +57,12 @@ fun CategoryFilterContent(
             .padding(horizontal = 20.dp)
             .padding(bottom = 32.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val title = stringResource(category.labelResId)
-            val subtitle = if (selectedCount > 0) " " + stringResource(R.string.selected_count, selectedCount) else ""
-            Text(
-                text = title + subtitle,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Text(
-                text = stringResource(R.string.reset),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable {
-                    onFilterChange(selectedFilters.withSelection(category, emptyList()))
-                }
-            )
-        }
+        FilterSheetHeader(
+            title = stringResource(category.labelResId),
+            selectedCount = selectedCount,
+            onReset = { onFilterChange(selectedFilters.withSelection(category, emptyList())) },
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
 
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
@@ -108,6 +90,36 @@ fun CategoryFilterContent(
     }
 }
 
+/**
+ * A filter sheet's title, with how many options are selected, and its Reset button, shared by
+ * every course filter sheet so they read as one set.
+ */
+@Composable
+fun FilterSheetHeader(
+    title: String,
+    selectedCount: Int,
+    onReset: () -> Unit,
+    modifier: Modifier = Modifier,
+    resetEnabled: Boolean = selectedCount > 0,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title + if (selectedCount > 0) " " + stringResource(R.string.selected_count, selectedCount) else "",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() }
+        )
+        TextButton(onClick = onReset, enabled = resetEnabled, shapes = ButtonDefaults.shapes()) {
+            Text(stringResource(R.string.reset))
+        }
+    }
+}
+
+/** A standard Material 3 Expressive filter chip: a check appears at the start while selected. */
 @Composable
 private fun TagChip(
     label: String,
@@ -117,31 +129,16 @@ private fun TagChip(
     FilterChip(
         selected = isSelected,
         onClick = onClick,
-        label = {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        trailingIcon = {
-            Icon(
-                imageVector = if (isSelected) Icons.Default.Check else Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = if (isSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        shape = RoundedCornerShape(100.dp),
-        border = if (isSelected) null else FilterChipDefaults.filterChipBorder(
-            borderColor = MaterialTheme.colorScheme.outlineVariant,
-            borderWidth = 1.dp,
-            enabled = true,
-            selected = false
-        ),
+        label = { Text(label) },
+        leadingIcon = if (isSelected) {
+            {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            }
+        } else null,
         colors = getTagChipColors()
     )
 }

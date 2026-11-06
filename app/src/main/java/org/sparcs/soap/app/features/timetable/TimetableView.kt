@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,14 +21,18 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -71,7 +76,9 @@ import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.escapeHash
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.sharing.ScreenshotEffect
 import org.sparcs.soap.app.shared.sharing.navigateToShareFeed
 import org.sparcs.soap.app.shared.tips.BuddyTip
@@ -80,7 +87,7 @@ import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun TimetableView(
@@ -171,6 +178,7 @@ fun TimetableView(
                 .hideTopBarOnScroll(topBarScrollBehavior.takeUnless { isLandscape })
                 .analyticsScreen("Timetable")
         ) { innerPadding ->
+            val pullToRefreshState = rememberPullToRefreshState()
             PullToRefreshBox(
                 isRefreshing = loadState.isRefreshing,
                 onRefresh = {
@@ -180,8 +188,16 @@ fun TimetableView(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
-                    .padding(innerPadding),
-                contentAlignment = Alignment.TopCenter
+                    .padding(innerPadding.withoutBottom()),
+                state = pullToRefreshState,
+                contentAlignment = Alignment.TopCenter,
+                indicator = {
+                    PullToRefreshDefaults.LoadingIndicator(
+                        state = pullToRefreshState,
+                        isRefreshing = loadState.isRefreshing,
+                        modifier = Modifier.align(Alignment.TopCenter)
+                    )
+                }
             ) {
                 if (isLandscape) {
                     TimetableLandscapeLayout(
@@ -199,6 +215,7 @@ fun TimetableView(
                         isEditable = isEditable,
                         creditsContent = creditsContent,
                         onSelectorDialogChange = { isSelectorDialogPresented = it },
+                        bottomPadding = innerPadding.onlyBottom(),
                     )
                 } else {
                     TimetablePortraitLayout(
@@ -215,6 +232,7 @@ fun TimetableView(
                         scrollState = scrollState,
                         creditsContent = creditsContent,
                         onSelectorDialogChange = { isSelectorDialogPresented = it },
+                        bottomPadding = innerPadding.onlyBottom(),
                     )
                 }
             }
@@ -228,7 +246,8 @@ fun TimetableView(
                         onClick = {
                             showDeleteDialog = false
                             viewModel.deleteLecture(lecture = lectureToDelete!!)
-                        }
+                        },
+                        shapes = ButtonDefaults.shapes()
                     ) {
                         Text(stringResource(R.string.ok))
                     }
@@ -262,6 +281,7 @@ private fun TimetableLandscapeLayout(
     isEditable: Boolean,
     creditsContent: @Composable () -> Unit,
     onSelectorDialogChange: (Boolean) -> Unit,
+    bottomPadding: PaddingValues,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
@@ -307,7 +327,7 @@ private fun TimetableLandscapeLayout(
             isMyTable = selectedTimetableID == null,
             isEditable = isEditable,
             onNewTable = viewModel::createTable,
-            onDuplicateMyTable = viewModel::duplicateMyTable,
+            onDuplicateMyTable = viewModel::duplicateTable,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
 
@@ -325,6 +345,7 @@ private fun TimetableLandscapeLayout(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
+                    .padding(bottomPadding)
             ) {
                 Row(
                     modifier = Modifier
@@ -336,6 +357,7 @@ private fun TimetableLandscapeLayout(
                         modifier = Modifier
                             .weight(1.2f)
                             .height(contentHeight),
+                        shape = MaterialTheme.shapes.large,
                         colors = CardDefaults.cardColors(
                             containerColor = LocalTimetableTheme.current.backgroundColor
                                 ?: MaterialTheme.colorScheme.background
@@ -362,17 +384,13 @@ private fun TimetableLandscapeLayout(
                             },
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Card(modifier = Modifier.fillMaxWidth()) {
-                            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                                LectureList(
-                                    lectures = selectedTimetable?.lectures ?: emptyList(),
-                                    onLectureSelected = { lecture ->
-                                        val json = Gson().toJson(lecture).escapeHash()
-                                        navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                                    }
-                                )
+                        LectureList(
+                            lectures = selectedTimetable?.lectures ?: emptyList(),
+                            onLectureSelected = { lecture ->
+                                val json = Gson().toJson(lecture).escapeHash()
+                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                             }
-                        }
+                        )
 
                         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
                             ActivityList(
@@ -404,6 +422,7 @@ private fun TimetablePortraitLayout(
     scrollState: ScrollState,
     creditsContent: @Composable () -> Unit,
     onSelectorDialogChange: (Boolean) -> Unit,
+    bottomPadding: PaddingValues,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
@@ -413,6 +432,7 @@ private fun TimetablePortraitLayout(
             .fillMaxSize()
             .widthIn(max = 600.dp)
             .verticalScroll(scrollState)
+            .padding(bottomPadding)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -434,13 +454,14 @@ private fun TimetablePortraitLayout(
             isMyTable = selectedTimetableID == null,
             isEditable = isEditable,
             onNewTable = viewModel::createTable,
-            onDuplicateMyTable = viewModel::duplicateMyTable,
+            onDuplicateMyTable = viewModel::duplicateTable,
         )
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(screenHeight * 0.66f),
+            shape = MaterialTheme.shapes.large,
             colors = CardDefaults.cardColors(
                 containerColor = LocalTimetableTheme.current.backgroundColor
                     ?: MaterialTheme.colorScheme.background
@@ -459,17 +480,13 @@ private fun TimetablePortraitLayout(
             }
         }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                LectureList(
-                    lectures = selectedTimetable?.lectures ?: emptyList(),
-                    onLectureSelected = { lecture ->
-                        val json = Gson().toJson(lecture).escapeHash()
-                        navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                    }
-                )
+        LectureList(
+            lectures = selectedTimetable?.lectures ?: emptyList(),
+            onLectureSelected = { lecture ->
+                val json = Gson().toJson(lecture).escapeHash()
+                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
             }
-        }
+        )
 
         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
             ActivityList(

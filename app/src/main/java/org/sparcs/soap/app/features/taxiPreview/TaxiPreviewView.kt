@@ -3,25 +3,49 @@ package org.sparcs.soap.app.features.taxiPreview
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.outlined.LocalTaxi
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.TextOverflow
+import org.sparcs.soap.app.domain.models.taxi.TaxiRoute
+import org.sparcs.soap.app.features.taxiPreview.components.TaxiDepartureHeader
+import org.sparcs.soap.app.features.taxiPreview.components.TaxiRideStats
+import org.sparcs.soap.app.features.taxiPreview.components.TaxiRiderRow
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiRouteStops
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ContainedLoadingIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,7 +62,6 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.toArgb
@@ -46,7 +69,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -62,30 +84,34 @@ import org.sparcs.soap.app.domain.enums.taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.taxiPreview.components.DepartureTimeRow
-import org.sparcs.soap.app.features.taxiPreview.components.RouteHeaderView
-import org.sparcs.soap.app.features.taxiPreview.components.TaxiCarrierIndicator
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.createKakaoMap
 import org.sparcs.soap.app.shared.extensions.drawTaxiRoute
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
-import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiParticipantsIndicator
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
 import org.sparcs.soap.app.theme.ui.upvote
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiPreviewView(
     room: TaxiRoom,
     viewModel: TaxiPreviewViewModelProtocol = hiltViewModel<TaxiPreviewViewModel>(),
     onDismiss: () -> Unit,
     navController: NavController,
+    isOpen: Boolean = true,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // Kakao's map view is slow to create and blocks the main thread while it starts, which would
+    // drop every frame of the sheet's opening animation; so it is made once the sheet holding the
+    // preview has opened ([isOpen]), and kept from then on.
+    var showsMap by remember { mutableStateOf(isOpen) }
+    LaunchedEffect(isOpen) { if (isOpen) showsMap = true }
 
     val isPreview = LocalInspectionMode.current
     var isMapLoading by remember { mutableStateOf(true) }
@@ -94,12 +120,14 @@ fun TaxiPreviewView(
     val blockStatus = viewModel.blockStatus.collectAsState().value
     val taxiUser = viewModel.taxiUser.collectAsState().value
     var kakaoMap by remember { mutableStateOf<KakaoMap?>(null) }
-    var pathPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
+    // Null until the route arrives; then its points, and its figures when one was found.
+    var route by remember { mutableStateOf<TaxiRoute?>(null) }
 
     val pathColor = MaterialTheme.colorScheme.primary.toArgb()
     val sourceString = stringResource(R.string.source)
     val destinationString = stringResource(R.string.destination)
-    val sheetColor = MaterialTheme.colorScheme.surface
+    // The bottom sheet's own colour, so the details and the map's fade run on from its drag handle.
+    val sheetColor = BottomSheetDefaults.ContainerColor
 
     val isJoinButtonDisabled: Boolean =
         taxiUser == null || (!viewModel.isJoined(room.participants) && (room.participants.size >= room.capacity ||
@@ -115,15 +143,15 @@ fun TaxiPreviewView(
         shareUrl
     )
     LaunchedEffect(room) {
-        pathPoints = viewModel.calculateRoutePoints(
+        route = viewModel.calculateRoute(
             LatLng.from(room.source.latitude, room.source.longitude),
             LatLng.from(room.destination.latitude, room.destination.longitude)
         )
     }
 
-    LaunchedEffect(kakaoMap, pathPoints) {
+    LaunchedEffect(kakaoMap, route) {
         val map = kakaoMap ?: return@LaunchedEffect
-        if (pathPoints.isEmpty()) return@LaunchedEffect
+        val pathPoints = route?.points ?: return@LaunchedEffect
 
         map.drawTaxiRoute(
             context = context,
@@ -139,17 +167,13 @@ fun TaxiPreviewView(
         isMapLoading = false
     }
 
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .background(MaterialTheme.colorScheme.surface)
-            .analyticsScreen("Taxi Preview")
-    ) {
+    // A phone in landscape is too short to stack the map above the details, so they go side by
+    // side; a tablet is tall enough in either orientation to stack them.
+    val isShort = LocalConfiguration.current.screenHeightDp < 480
+
+    val routeMap: @Composable (Modifier) -> Unit = { modifier ->
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
+            modifier = modifier
                 .drawWithCache {
                     val radius = CornerRadius(28.dp.toPx())
                     val bounds = Rect(0f, 0f, size.width, size.height)
@@ -157,17 +181,40 @@ fun TaxiPreviewView(
                         PathOperation.Difference,
                         Path().apply { addRect(bounds) },
                         Path().apply {
-                            addRoundRect(RoundRect(bounds, topLeft = radius, topRight = radius))
+                            // Beside the details on a short screen, only the sheet's top-left corner is the map's.
+                            addRoundRect(
+                                RoundRect(bounds, topLeft = radius, topRight = if (isShort) CornerRadius.Zero else radius)
+                            )
                         }
                     )
+                    // The map fades into the sheet, so the details below it, or beside it on a
+                    // short screen, read as one panel with it.
+                    val fadeLength = 64.dp.toPx()
+                    val colors = listOf(sheetColor.copy(alpha = 0f), sheetColor)
+                    val fade = if (isShort) {
+                        Brush.horizontalGradient(colors, startX = size.width - fadeLength, endX = size.width)
+                    } else {
+                        Brush.verticalGradient(colors, startY = size.height - fadeLength, endY = size.height)
+                    }
+                    val fadeOrigin = if (isShort) Offset(size.width - fadeLength, 0f) else Offset(0f, size.height - fadeLength)
                     onDrawWithContent {
                         drawContent()
+                        drawRect(fade, topLeft = fadeOrigin)
                         drawPath(corners, sheetColor)
                     }
                 }
         ) {
             //MAP
-            if (!isPreview && !isMapError) {
+            if (!isPreview && !isMapError && !showsMap) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ContainedLoadingIndicator()
+                }
+            } else if (!isPreview && !isMapError) {
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { ctx ->
@@ -185,13 +232,10 @@ fun TaxiPreviewView(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)),
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 3.dp
-                        )
+                        ContainedLoadingIndicator()
                     }
                 }
                 Box(
@@ -205,65 +249,61 @@ fun TaxiPreviewView(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Gray),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Map Preview")
-                }
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                )
             }
         }
-        Column(modifier = Modifier.padding(16.dp)) {
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+    }
 
-                Text(
-                    text = room.title,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+    val details: @Composable (Modifier) -> Unit = { modifier ->
+        Column(
+            // At the bottom beside the map on a short screen, as below it otherwise, so Join stays
+            // where your thumb is.
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),
+            modifier = modifier.padding(start = 24.dp, end = 24.dp, bottom = 16.dp),
+        ) {
+            TaxiDepartureHeader(room.departAt)
 
-                Spacer(Modifier.weight(1f))
-
-                TaxiParticipantsIndicator(
-                    participants = room.participants.size,
-                    capacity = room.capacity
-                )
-
-                TaxiCarrierIndicator(
-                    carrierCount = room.participants.count { it.hasCarrier }
-                )
-            }
-
-            RouteHeaderView(
+            TaxiRouteStops(
                 source = room.source.title.localized(),
-                destination = room.destination.title.localized()
+                destination = room.destination.title.localized(),
             )
 
-            HorizontalDivider(Modifier.padding(vertical = 12.dp))
+            // Held from the start, so the rows below don't move when the route arrives; gone only
+            // when no route could be found.
+            if (route?.hasStats != false) {
+                TaxiRideStats(departAt = room.departAt, route = route)
+            }
 
-            DepartureTimeRow(room.departAt)
-
-            Spacer(Modifier.padding(8.dp))
+            TaxiRiderRow(participants = room.participants, capacity = room.capacity)
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = {
-                    val sendIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, shareMessage)
-                        type = "text/plain"
-                    }
+                FilledTonalIconButton(
+                    onClick = {
+                        val sendIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, shareMessage)
+                            type = "text/plain"
+                        }
 
-                    val shareIntent = Intent.createChooser(sendIntent, null)
-                    context.startActivity(shareIntent)
-                }) {
-                    Icon(Icons.Default.Share, contentDescription = "Share")
+                        val shareIntent = Intent.createChooser(sendIntent, null)
+                        context.startActivity(shareIntent)
+                    },
+                    shapes = IconButtonDefaults.shapes(),
+                    modifier = Modifier.size(IconButtonDefaults.mediumContainerSize()),
+                ) {
+                    Icon(
+                        Icons.Outlined.Share,
+                        contentDescription = stringResource(R.string.share),
+                        modifier = Modifier.size(IconButtonDefaults.mediumIconSize),
+                    )
                 }
 
                 Button(
@@ -284,10 +324,19 @@ fun TaxiPreviewView(
                             }
                         }
                     },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 12.dp),
+                    shapes = ButtonDefaults.shapes(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(ButtonDefaults.MediumContainerHeight),
+                    contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
                     enabled = !isJoinButtonDisabled
                 ) {
+                    Icon(
+                        Icons.Outlined.LocalTaxi,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.iconSizeFor(ButtonDefaults.MediumContainerHeight)),
+                    )
+                    Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(ButtonDefaults.MediumContainerHeight)))
                     Text(
                         text =
                             when {
@@ -298,11 +347,65 @@ fun TaxiPreviewView(
                                 blockStatus == TaxiRoomBlockStatus.NotPaid -> stringResource(R.string.room_settlement_required)
                                 else -> stringResource(R.string.join)
                             },
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
+                        style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
+        }
+    }
+
+    if (isShort) {
+        // Sized from the screen rather than from the sheet's constraints, which change over the
+        // first frames as the window insets arrive: Kakao's map view blocks the main thread while
+        // its surface is resized until it draws a frame, and one that can't draw — refused its key,
+        // say — never does, freezing the app.
+        val configuration = LocalConfiguration.current
+        // Clear of the status bar, the drag handle and the navigation bar.
+        val rowHeight = (configuration.screenHeightDp - 160).coerceIn(220, 360).dp
+        val detailsScroll = rememberScrollState()
+        // Opens on Join rather than on the date when the details have to scroll.
+        LaunchedEffect(detailsScroll.maxValue) { detailsScroll.scrollTo(detailsScroll.maxValue) }
+        val detailsWidth = (minOf(configuration.screenWidthDp, 640) * 0.45f).dp.coerceIn(320.dp, 400.dp)
+        Row(
+            Modifier
+                .background(sheetColor)
+                // Outside the fixed height, and only below, so the insets never resize the map.
+                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                .fillMaxWidth()
+                .height(rowHeight)
+                .analyticsScreen("Taxi Preview")
+        ) {
+            routeMap(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
+            // Scrolls only when the details are taller than the row; otherwise as tall, so they
+            // sit at the bottom.
+            Column(
+                Modifier
+                    .width(detailsWidth)
+                    .verticalScroll(detailsScroll)
+            ) {
+                details(Modifier.heightIn(min = rowHeight).padding(top = 16.dp))
+            }
+        }
+    } else {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .background(sheetColor)
+                .analyticsScreen("Taxi Preview")
+        ) {
+            routeMap(
+                Modifier
+                    .fillMaxWidth()
+                    .height(280.dp)
+            )
+            details(Modifier)
         }
     }
 

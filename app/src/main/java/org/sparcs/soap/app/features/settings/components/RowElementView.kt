@@ -4,6 +4,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,8 +21,25 @@ fun RowElementView(
     title: String,
     content: String,
     modifier: Modifier = Modifier,
-    trailing: Boolean = false
+    trailing: Boolean = false,
+    leadingContent: (@Composable () -> Unit)? = null,
 ) {
+    val segment = LocalSettingsSegment.current
+    if (segment != null) {
+        SegmentedListItem(
+            shapes = segmentedShapes(segment),
+            modifier = modifier,
+            colors = settingsSegmentedColors(),
+            leadingContent = leadingContent,
+            supportingContent = if (trailing) null else {
+                { Text(text = content) }
+            },
+            trailingContent = if (trailing) {
+                { Text(text = content, style = MaterialTheme.typography.bodyLarge) }
+            } else null,
+        ) { Text(text = title) }
+        return
+    }
     ListItem(
         headlineContent = { Text(text = title) },
         supportingContent = if (trailing) null else {
@@ -30,6 +48,7 @@ fun RowElementView(
         trailingContent = if (trailing) {
             { Text(text = content, style = MaterialTheme.typography.bodyLarge) }
         } else null,
+        leadingContent = leadingContent,
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = modifier
     )

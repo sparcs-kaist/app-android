@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.features.settings.timetable
 
 import androidx.compose.foundation.layout.Arrangement
@@ -29,9 +31,10 @@ import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -133,12 +136,12 @@ fun TimetableThemeCodeDialog(onDismiss: () -> Unit, onContinue: (String) -> Unit
             }
         },
         confirmButton = {
-            TextButton(onClick = { normalized?.let(onContinue) }, enabled = normalized != null) {
+            TextButton(onClick = { normalized?.let(onContinue) }, enabled = normalized != null, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.theme_continue))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
         }
     )
 }
@@ -424,6 +427,7 @@ private fun ExchangeScaffold(
 private fun ExchangeButton(label: Int, icon: ImageVector, enabled: Boolean = true, onClick: () -> Unit) {
     Button(
         onClick = onClick,
+        shapes = ButtonDefaults.shapes(),
         enabled = enabled,
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         modifier = Modifier
@@ -461,7 +465,7 @@ private fun ExchangeNote(text: String) {
 @Composable
 private fun ExchangeProgress(text: String) {
     ExchangeMessage {
-        CircularProgressIndicator()
+        LoadingIndicator()
         Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

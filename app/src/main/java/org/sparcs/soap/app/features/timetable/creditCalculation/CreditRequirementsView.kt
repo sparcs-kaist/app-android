@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
@@ -27,16 +28,15 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Apartment
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.People
+import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -53,8 +53,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,10 +65,16 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
 import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import org.sparcs.soap.app.features.navigationBar.components.TopBarTextAction
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
 import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.SettingsSegmentRow
+import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
 import org.sparcs.soap.app.features.timetable.creditCalculation.components.CreditRequirementsNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.SegmentedSection
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.creditCompleteColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCreditCalculationViewModel
@@ -185,25 +189,8 @@ private fun RequirementGroupCard(
     group: RequirementGroup,
     modifier: Modifier = Modifier,
 ) {
-    CreditCard(modifier) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                group.icon,
-                null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(18.dp)
-            )
-            Text(
-                group.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.semantics { heading() }
-            )
-        }
-        group.rows.forEach { row -> RequirementProgress(row) }
+    SegmentedSection(group.title, group.rows.size, modifier, icon = group.icon) { index ->
+        RequirementProgress(group.rows[index])
     }
 }
 
@@ -397,7 +384,9 @@ private fun CreditRequirementsEditor(
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        // Edge to edge, like the screens: without it the dialog's window stops above the gesture
+        // bar and the screen beneath shows through below it.
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
         CreditRequirementsEditorContent(groups, requirements, onDismiss, onSave)
     }
@@ -450,6 +439,8 @@ private fun CreditRequirementsEditorContent(
                 }
             )
         },
+        // Surface, as in Settings, so the surfaceContainer field cards stand out.
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier.imePadding()
     ) { padding ->
         LazyColumn(contentPadding = padding) {
@@ -457,37 +448,46 @@ private fun CreditRequirementsEditorContent(
                 item(key = "header-${group.key}") {
                     SettingsSectionHeader(group.title, icon = group.icon)
                 }
-                items(groupRows, key = { it.key }) { row ->
+                // Each minimum is a field in one card per group, like the Settings fields.
+                itemsIndexed(groupRows, key = { _, row -> row.key }) { index, row ->
                     val value = drafts[row.key].orEmpty()
                     val isError = parsed(row.key) == null
-                    OutlinedTextField(
-                        value = value,
-                        onValueChange = { drafts[row.key] = it.filter(Char::isDigit) },
-                        label = { Text(row.title) },
-                        singleLine = true,
-                        isError = isError,
-                        supportingText = if (isError) {
-                            { Text(stringResource(R.string.credit_invalid_minimum)) }
-                        } else null,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
+                    SettingsSegmentRow(index, groupRows.size) {
+                        SettingsFieldItem {
+                            TextField(
+                                value = value,
+                                onValueChange = { drafts[row.key] = it.filter(Char::isDigit) },
+                                label = { Text(row.title) },
+                                singleLine = true,
+                                isError = isError,
+                                supportingText = if (isError) {
+                                    { Text(stringResource(R.string.credit_invalid_minimum)) }
+                                } else null,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                colors = settingsTextFieldColors(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
                 }
             }
             item(key = "reset") {
-                TextButton(
-                    onClick = {
-                        val defaults = CreditRequirements()
-                        rows.forEach { drafts[it.key] = it.read!!(defaults).toString() }
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
-                ) { Text(stringResource(R.string.credit_reset)) }
+                SettingsGroup(Modifier.padding(top = 24.dp, bottom = 16.dp)) {
+                    row {
+                        SettingsNavigationItem(
+                            text = stringResource(R.string.credit_reset),
+                            onClick = {
+                                val defaults = CreditRequirements()
+                                rows.forEach { drafts[it.key] = it.read!!(defaults).toString() }
+                            },
+                            leadingContent = { Icon(Icons.Outlined.RestartAlt, contentDescription = null) },
+                            destructive = true,
+                        )
+                    }
+                }
             }
         }
     }

@@ -24,9 +24,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,6 +56,9 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -84,6 +88,7 @@ fun CreditCalculationView(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun CreditCalculationContent(
     state: CreditCalculationViewState,
@@ -99,7 +104,7 @@ internal fun CreditCalculationContent(
                     .fillMaxSize()
                     .padding(padding),
                 contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator() }
+            ) { LoadingIndicator() }
 
             state.error != null -> Box(
                 modifier = Modifier
@@ -145,7 +150,7 @@ private fun CreditCalculationLandscapeLayout(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding)
+            .padding(padding.withoutBottom())
             .padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -154,6 +159,7 @@ private fun CreditCalculationLandscapeLayout(
                 .weight(1f)
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState())
+                .padding(padding.onlyBottom())
                 .padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -164,7 +170,7 @@ private fun CreditCalculationLandscapeLayout(
             modifier = Modifier
                 .weight(1.2f)
                 .fillMaxHeight(),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp) + padding.onlyBottom(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             semesterItems(state, onSemester)
@@ -282,9 +288,9 @@ internal fun CreditCard(
         )
     }
     if (onClick != null) {
-        Card(onClick = onClick, modifier = modifier.fillMaxWidth(), content = body)
+        Card(onClick = onClick, modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, content = body)
     } else {
-        Card(modifier = modifier.fillMaxWidth(), content = body)
+        Card(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, content = body)
     }
 }
 

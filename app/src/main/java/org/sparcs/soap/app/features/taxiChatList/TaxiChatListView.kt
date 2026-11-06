@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,7 +31,9 @@ import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomList
 import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomListSkeleton
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.plus
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
@@ -48,7 +51,7 @@ fun TaxiChatListView(
         viewModel.fetchData()
     }
 
-    val topBarScrollBehavior = topAppBarScrollBehavior()
+    val topBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -65,7 +68,7 @@ fun TaxiChatListView(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(innerPadding),
+                .padding(innerPadding.withoutBottom()),
             contentAlignment = Alignment.TopCenter
         ) {
             Column(
@@ -76,7 +79,7 @@ fun TaxiChatListView(
             ) {
                 when (state) {
                     is TaxiChatListViewModel.ViewState.Loading -> {
-                        TaxiChatRoomListSkeleton(contentPadding = PaddingValues(vertical = 8.dp))
+                        TaxiChatRoomListSkeleton(contentPadding = PaddingValues(vertical = 8.dp) + innerPadding.onlyBottom())
                     }
 
                     is TaxiChatListViewModel.ViewState.Loaded -> {
@@ -89,7 +92,7 @@ fun TaxiChatListView(
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
                             },
-                            contentPadding = PaddingValues(vertical = 8.dp)
+                            contentPadding = PaddingValues(vertical = 8.dp) + innerPadding.onlyBottom()
                         )
                     }
 

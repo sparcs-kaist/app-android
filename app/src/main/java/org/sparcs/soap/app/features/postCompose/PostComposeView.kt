@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -219,7 +220,8 @@ private fun TitleField(title: String, onTitleChange: (String) -> Unit, focusRequ
 fun TermsOfUseButton() {
     val context = LocalContext.current
     TextButton(
-        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.TERMS_OF_USE_URL.toUri())) }
+        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.TERMS_OF_USE_URL.toUri())) },
+        shapes = ButtonDefaults.shapes()
     ) {
         Text(
             text = stringResource(R.string.terms_of_use),

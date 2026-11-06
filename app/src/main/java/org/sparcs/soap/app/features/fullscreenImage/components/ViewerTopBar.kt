@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +30,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.fullscreenImage.ImageAction
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
+import org.sparcs.soap.app.shared.views.contentViews.menuItemShape
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -52,7 +54,7 @@ internal fun ViewerTopBar(
             .statusBarsPadding()
             .padding(horizontal = 4.dp, vertical = 4.dp)
     ) {
-        IconButton(onClick = onClose, colors = iconColors) {
+        IconButton(onClick = onClose, colors = iconColors, shapes = IconButtonDefaults.shapes()) {
             Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close))
         }
         Text(
@@ -75,19 +77,28 @@ private fun ImageActionsMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { expanded = true }, enabled = enabled, colors = iconColors) {
+        IconButton(
+            onClick = { expanded = true },
+            enabled = enabled,
+            colors = iconColors,
+            shapes = IconButtonDefaults.shapes()
+        ) {
             Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.more))
         }
-        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
-            ImageAction.entries.forEach { action ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(action.label)) },
-                    leadingIcon = { Icon(action.icon, contentDescription = null) },
-                    onClick = {
-                        expanded = false
-                        onAction(action)
-                    }
-                )
+        ExpressiveMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
+            MenuGroup(index = 0, count = 1) {
+                val actions = ImageAction.entries
+                actions.forEachIndexed { index, action ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(action.label)) },
+                        shape = menuItemShape(index, actions.size),
+                        leadingIcon = { Icon(action.icon, contentDescription = null) },
+                        onClick = {
+                            expanded = false
+                            onAction(action)
+                        }
+                    )
+                }
             }
         }
     }

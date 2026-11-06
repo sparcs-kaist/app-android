@@ -245,6 +245,7 @@ private fun WriteReviewButton(
             navController.navigate(Channel.ReviewCompose.name + "?lecture_json=$json&written_review_json=$writtenJSON")
         },
         enabled = enabled,
+        shapes = ButtonDefaults.shapes(),
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding
     ) {
         Icon(

@@ -22,7 +22,7 @@ import java.util.Date
 @Composable
 fun TimetableOfflineStatus(state: TimetableLoadState, modifier: Modifier = Modifier) {
     val locale = LocalConfiguration.current.locales[0]
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 stringResource(R.string.timetable_offline),

@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,16 +24,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -50,6 +54,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,12 +86,15 @@ fun AdvancedColorPicker(
         }
     }
 
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    // Grid, spectrum or sliders, as SwiftUI's picker offers; the sliders read HSB or RGB.
+    var mode by rememberSaveable { mutableIntStateOf(0) }
+    var sliderModel by rememberSaveable { mutableIntStateOf(0) }
+    val onColorChange: (Color) -> Unit = { newColor -> hex = newColor.toHex() }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.theme_change_color)) },
-        shape = RoundedCornerShape(24.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         containerColor = MaterialTheme.colorScheme.background,
         text = {
             Column(
@@ -96,15 +106,33 @@ fun AdvancedColorPicker(
                     Modifier
                         .fillMaxWidth()
                         .height(60.dp)
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(MaterialTheme.shapes.large)
                         .background(color)
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
                 )
 
-                HsvPickerComponent(
-                    color = color,
-                    onColorChange = { newColor -> hex = newColor.toHex() }
+                ConnectedChoiceGroup(
+                    labels = listOf(
+                        stringResource(R.string.theme_color_grid),
+                        stringResource(R.string.theme_color_spectrum),
+                        stringResource(R.string.theme_color_sliders),
+                    ),
+                    selected = mode,
+                    onSelect = { mode = it },
                 )
+
+                when (mode) {
+                    0 -> ColorGrid(selected = color, onSelect = onColorChange)
+                    1 -> HsvPickerComponent(color = color, onColorChange = onColorChange)
+                    else -> {
+                        ConnectedChoiceGroup(
+                            labels = listOf(stringResource(R.string.theme_color_hsb), stringResource(R.string.theme_color_rgb)),
+                            selected = sliderModel,
+                            onSelect = { sliderModel = it },
+                        )
+                        if (sliderModel == 0) HsbSliders(color, onColorChange) else RgbSliders(color, onColorChange)
+                    }
+                }
 
                 OutlinedTextField(
                     value = hex,
@@ -121,27 +149,11 @@ fun AdvancedColorPicker(
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                TabRow(
-                    selectedTabIndex = selectedTab,
-                    containerColor = Color.Transparent,
-                    divider = {}
-                ) {
-                    Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
-                        Text(stringResource(R.string.theme_color_hsb), Modifier.padding(8.dp))
-                    }
-                    Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) {
-                        Text(stringResource(R.string.theme_color_rgb), Modifier.padding(8.dp))
-                    }
-                }
-
-                when (selectedTab) {
-                    0 -> HsbSliders(color) { newColor -> hex = newColor.toHex() }
-                    1 -> RgbSliders(color) { newColor -> hex = newColor.toHex() }
-                }
 
                 if (onRemove != null) {
                     TextButton(
                         onClick = onRemove,
+                        shapes = ButtonDefaults.shapes(),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
@@ -155,13 +167,14 @@ fun AdvancedColorPicker(
         confirmButton = {
             TextButton(
                 onClick = { onApply(hex) },
-                enabled = hex.length == 6
+                enabled = hex.length == 6,
+                shapes = ButtonDefaults.shapes()
             ) {
                 Text(stringResource(R.string.theme_apply), fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.cancel))
             }
         }
@@ -368,6 +381,7 @@ fun ColorSliderWithButtons(
         
         IconButton(
             onClick = { onValueChange((value - 1f).coerceIn(range)) },
+            shapes = IconButtonDefaults.shapes(),
             modifier = Modifier.size(24.dp)
         ) {
             Icon(Icons.Default.Remove, null, modifier = Modifier.size(16.dp))
@@ -396,6 +410,7 @@ fun ColorSliderWithButtons(
 
         IconButton(
             onClick = { onValueChange((value + 1f).coerceIn(range)) },
+            shapes = IconButtonDefaults.shapes(),
             modifier = Modifier.size(24.dp)
         ) {
             Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
@@ -405,13 +420,43 @@ fun ColorSliderWithButtons(
 
 private fun Color.toHex(): String = "%06X".format(toArgb() and 0xFFFFFF)
 
+/** One of [labels], as a connected group of toggle buttons; one is always chosen. */
+@Composable
+private fun ConnectedChoiceGroup(labels: List<String>, selected: Int, onSelect: (Int) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        labels.forEachIndexed { index, label ->
+            ToggleButton(
+                checked = selected == index,
+                onCheckedChange = { onSelect(index) },
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    labels.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                // The default container would vanish into the dialog's.
+                colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                // Three labels share a dialog's width, so keep the side padding small.
+                contentPadding = PaddingValues(horizontal = 4.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { role = Role.RadioButton },
+            ) {
+                Text(label, maxLines = 1)
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun AdvancedColorPickerPreview() {
     var show by remember { mutableStateOf(true) }
     Theme {
         Box(Modifier.fillMaxSize().padding(16.dp)) {
-            TextButton(onClick = { show = true }) {
+            TextButton(onClick = { show = true }, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(R.string.theme_change_color))
             }
             if (show) {

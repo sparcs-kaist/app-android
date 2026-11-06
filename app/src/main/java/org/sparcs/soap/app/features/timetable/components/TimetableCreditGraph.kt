@@ -75,7 +75,7 @@ fun TimetableCreditGraph(
     val tickTextSize = with(density) { 11.sp.toPx() }
     val tickOffset = with(density) { 14.dp.toPx() }
     
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
         Column(modifier = modifier.padding(16.dp)) {
             Canvas(
                 modifier = Modifier

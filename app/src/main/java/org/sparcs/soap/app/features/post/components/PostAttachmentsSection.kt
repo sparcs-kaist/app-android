@@ -13,7 +13,8 @@ import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Download
 import org.sparcs.soap.app.shared.extensions.fileTypeIcon
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -37,14 +38,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.models.ara.AraPostAttachment
-import org.sparcs.soap.app.theme.ui.Theme
 import java.util.Date
 import java.util.Locale
 import kotlin.math.log10
 import kotlin.math.pow
+import kotlinx.coroutines.launch
+import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.models.ara.AraPostAttachment
+import org.sparcs.soap.app.theme.ui.Theme
 
 /**
  * Files attached to a post. Tapping one saves it to Downloads with progress shown on the card,
@@ -128,6 +129,7 @@ fun PostAttachmentsSection(
 }
 
 /** One file as an outlined card; the trailing icon shows whether it downloads, is saving, or opens. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AttachmentItem(
     attachment: AraPostAttachment,
@@ -152,13 +154,13 @@ private fun AttachmentItem(
                         val indicatorModifier = Modifier
                             .size(24.dp)
                             .semantics { contentDescription = label }
+                        // Wavy both before and once progress is known, so the ring keeps its look.
                         if (status.progress == null) {
-                            CircularProgressIndicator(modifier = indicatorModifier, strokeWidth = 2.dp)
+                            CircularWavyProgressIndicator(modifier = indicatorModifier)
                         } else {
-                            CircularProgressIndicator(
+                            CircularWavyProgressIndicator(
                                 progress = { status.progress },
-                                modifier = indicatorModifier,
-                                strokeWidth = 2.dp
+                                modifier = indicatorModifier
                             )
                         }
                     }

@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.taxiChat
 
+import androidx.annotation.StringRes
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.getValue
@@ -313,41 +314,45 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     override fun toggleCarrier(hasCarrier: Boolean) {
-        viewModelScope.launch {
-            try {
-                val updatedRoom = taxiRoomRepository.toggleCarrier(
-                    id = room.value.id,
-                    hasCarrier = hasCarrier
-                )
-
-                _room.value = updatedRoom
-
-                taxiChatUseCase.setRoom(updatedRoom)
-
-            } catch (e: Exception) {
-                alertState = e.toAlertState(R.string.error_toggle_carrier_failed)
-                isAlertPresented = true
-                Timber.e(e, "toggleCarrier failed")
-            }
-        }
+        updateMine(
+            change = { it.copy(hasCarrier = hasCarrier) },
+            send = { taxiRoomRepository.toggleCarrier(id = room.value.id, hasCarrier = hasCarrier) },
+            error = R.string.error_toggle_carrier_failed,
+        )
     }
 
     override fun updateArrival(isArrived: Boolean) {
+        updateMine(
+            change = { it.copy(isArrived = isArrived) },
+            send = { taxiRoomRepository.updateArrival(id = room.value.id, isArrived = isArrived) },
+            error = R.string.error_update_arrival_failed,
+        )
+    }
+
+    /**
+     * Changes your own rider entry at once, so the switch you touched moves straight away, then
+     * sends it; the room comes back from the server, or your entry is put back if it refuses.
+     */
+    private fun updateMine(
+        change: (TaxiParticipant) -> TaxiParticipant,
+        send: suspend () -> TaxiRoom,
+        @StringRes error: Int,
+    ) {
+        val myId = _taxiUser.value?.oid
+        val before = room.value
+        if (myId != null) {
+            _room.value = before.copy(participants = before.participants.map { if (it.id == myId) change(it) else it })
+        }
         viewModelScope.launch {
             try {
-                val updatedRoom = taxiRoomRepository.updateArrival(
-                    id = room.value.id,
-                    isArrived = isArrived
-                )
-
+                val updatedRoom = send()
                 _room.value = updatedRoom
-
                 taxiChatUseCase.setRoom(updatedRoom)
-
             } catch (e: Exception) {
-                alertState = e.toAlertState(R.string.error_update_arrival_failed)
+                _room.value = before
+                alertState = e.toAlertState(error)
                 isAlertPresented = true
-                Timber.e(e, "updateArrival failed")
+                Timber.e(e, "updating your status failed")
             }
         }
     }

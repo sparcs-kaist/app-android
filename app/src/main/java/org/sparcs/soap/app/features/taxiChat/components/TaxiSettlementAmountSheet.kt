@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -60,6 +61,7 @@ internal fun TaxiSettlementAmountSheet(participantCount: Int, onDismiss: () -> U
             Button(
                 modifier = Modifier.fillMaxWidth(), enabled = total != null,
                 onClick = { total?.let { onCommit(it); onDismiss() } },
+                shapes = ButtonDefaults.shapes(),
             ) { Text(stringResource(R.string.taxi_settlement_request)) }
         }
     }

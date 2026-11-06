@@ -30,7 +30,7 @@ class TableDuplicationTest {
         TimetableUseCase(repository, null, cache, WearableDataManager(RuntimeEnvironment.getApplication()))
 
     @Test fun replaysEveryLectureAndActivityIntoTheNewTable() = runBlocking {
-        val result = useCase().duplicateMyTable(semester, "My Table Copy")
+        val result = useCase().duplicateTable(semester, null, "My Table Copy")
 
         assertEquals(77, result.id)
         assertTrue(result.isComplete)
@@ -44,17 +44,26 @@ class TableDuplicationTest {
         // The cache can hold an older copy from another device; the duplicate must not inherit it.
         cache.store(Timetable("myTable", emptyList()), "${semester.year}-${semester.semesterType.name}-myTable")
 
-        useCase().duplicateMyTable(semester, "My Table Copy")
+        useCase().duplicateTable(semester, null, "My Table Copy")
 
         assertEquals(repository.source.lectures.size, repository.addedLectures.size)
         assertTrue(repository.calls.first() == "getMyTimetable")
+    }
+
+    @Test fun copiesTheGivenTableInsteadOfMyTable() = runBlocking {
+        val result = useCase().duplicateTable(semester, 5, "Plan B Copy")
+
+        assertEquals(77, result.id)
+        assertEquals(listOf("getTimetable:5", "createTable"), repository.calls)
+        assertEquals(repository.other.lectures.map { it.id }, repository.addedLectures.map { it.second })
+        assertEquals(77 to "Plan B Copy", repository.renamed)
     }
 
     @Test fun rejectedItemsAreSkippedAndCountedInsteadOfFailingTheCopy() = runBlocking {
         repository.rejectLectureIDs = setOf(repository.source.lectures.first().id)
         repository.rejectActivities = true
 
-        val result = useCase().duplicateMyTable(semester, "My Table Copy")
+        val result = useCase().duplicateTable(semester, null, "My Table Copy")
 
         assertEquals(77, result.id)
         assertEquals(1, result.skippedLectureCount)
@@ -67,7 +76,7 @@ class TableDuplicationTest {
     @Test fun aFailedRenameStillLeavesAUsableTable() = runBlocking {
         repository.rejectRename = true
 
-        val result = useCase().duplicateMyTable(semester, "My Table Copy")
+        val result = useCase().duplicateTable(semester, null, "My Table Copy")
 
         assertEquals(77, result.id)
         assertTrue(result.isComplete)
@@ -76,7 +85,7 @@ class TableDuplicationTest {
     }
 
     @Test fun anEmptyTitleLeavesTheServerNameUntouched() = runBlocking {
-        useCase().duplicateMyTable(semester, "")
+        useCase().duplicateTable(semester, null, "")
 
         assertNull(repository.renamed)
     }
@@ -85,7 +94,7 @@ class TableDuplicationTest {
         repository.rejectCreate = true
 
         try {
-            useCase().duplicateMyTable(semester, "My Table Copy")
+            useCase().duplicateTable(semester, null, "My Table Copy")
             fail("Expected the create failure to surface")
         } catch (_: NetworkError.NoConnection) {
         }
@@ -143,7 +152,12 @@ class TableDuplicationTest {
             renamed = timetableID to title
         }
 
-        override suspend fun getTimetable(timetableID: Int): Timetable = error("unused")
+        val other = Timetable(id = "5", lectures = Lecture.mockList().drop(3).take(2))
+
+        override suspend fun getTimetable(timetableID: Int): Timetable {
+            calls += "getTimetable:$timetableID"
+            return other
+        }
         override suspend fun deleteActivity(timetableID: Int, activityID: Int) = Unit
         override suspend fun getTimetables(year: Int, semester: SemesterType) = emptyList<TimetableSummary>()
         override suspend fun deleteTable(timetableID: Int) = Unit

@@ -1,49 +1,40 @@
 package org.sparcs.soap.app.features.timetable.activity
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,15 +45,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -75,16 +64,24 @@ import org.sparcs.soap.app.domain.models.otl.ParsedActivity
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.models.otl.withActivityTimes
+import org.sparcs.soap.app.features.settings.components.SettingsFieldItem
+import org.sparcs.soap.app.features.settings.components.SettingsGroup
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.settingsTextFieldColors
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.onlyBottom
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.formatters.formattedTime
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
-import org.sparcs.soap.app.shared.views.contentViews.PickerField
+import org.sparcs.soap.app.shared.views.contentViews.ExpressiveMenu
+import org.sparcs.soap.app.shared.views.contentViews.MenuGroup
 import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
+import org.sparcs.soap.app.shared.views.contentViews.selectableMenuItemColors
 import org.sparcs.soap.app.theme.ui.Theme
-import java.time.LocalDate
 
 @Composable
 internal fun activityTime(minutes: Int): String {
@@ -98,7 +95,7 @@ internal fun activityTimeRange(time: ActivityTime): String {
     return "$day ${activityTime(time.begin)} – ${activityTime(time.end)}"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ActivityCreationView(
     timetable: Timetable,
@@ -156,7 +153,8 @@ fun ActivityCreationView(
                     navigationIcon = {
                         IconButton(
                             onClick = onClose,
-                            enabled = !saving
+                            enabled = !saving,
+                            shapes = IconButtonDefaults.shapes()
                         ) {
                             Icon(
                                 Icons.Rounded.Close,
@@ -165,14 +163,14 @@ fun ActivityCreationView(
                         }
                     },
                     actions = {
-                        if (saving) CircularProgressIndicator(
+                        if (saving) LoadingIndicator(
                             Modifier
                                 .padding(16.dp)
-                                .size(24.dp),
-                            strokeWidth = 2.dp
+                                .size(24.dp)
                         )
                         else TextButton(
                             enabled = needsRefresh || (draft.isValid && !conflict),
+                            shapes = ButtonDefaults.shapes(),
                             onClick = {
                                 focus.clearFocus()
                                 scope.launch {
@@ -206,16 +204,17 @@ fun ActivityCreationView(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(padding.withoutBottom())
                     .imePadding()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(padding.onlyBottom())
+                    .padding(bottom = 32.dp)
             ) {
-                FormSectionHeader(timetableName)
+                // The form in the style of Settings: a header per section over one card of rows.
+                SettingsSectionHeader(timetableName)
 
                 if (activity == null && quickFill.isAvailable) {
-                    TipView(BuddyTip.QuickFill)
+                    TipView(BuddyTip.QuickFill, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp))
                     ActivityQuickFillField(
                         state = quickFill,
                         enabled = !saving && !needsRefresh,
@@ -225,29 +224,41 @@ fun ActivityCreationView(
                             tipStore?.invalidate(BuddyTip.QuickFill)
                             onQuickFill(description, applyParsed)
                         },
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
 
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text(stringResource(R.string.activity_title)) },
-                    enabled = !saving && !needsRefresh,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                OutlinedTextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    label = { Text(stringResource(R.string.activity_location)) },
-                    enabled = !saving && !needsRefresh,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                SettingsGroup {
+                    row {
+                        SettingsFieldItem {
+                            TextField(
+                                value = title,
+                                onValueChange = { title = it },
+                                label = { Text(stringResource(R.string.activity_title)) },
+                                enabled = !saving && !needsRefresh,
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                                colors = settingsTextFieldColors(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                    row {
+                        SettingsFieldItem {
+                            TextField(
+                                value = location,
+                                onValueChange = { location = it },
+                                label = { Text(stringResource(R.string.activity_location)) },
+                                enabled = !saving && !needsRefresh,
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
+                                colors = settingsTextFieldColors(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
 
                 times.forEachIndexed { index, time ->
                     ActivityTimeCard(
@@ -261,20 +272,22 @@ fun ActivityCreationView(
                     )
                 }
 
-                TextButton(
-                    onClick = {
-                        focus.clearFocus()
-                        times = times + ActivityDraft.freeTime(timetable, times.last().day, times)
-                    },
-                    enabled = !saving && !needsRefresh,
-                    contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
-                ) {
-                    Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.activity_add_time))
+                SettingsGroup(Modifier.padding(top = 16.dp)) {
+                    row {
+                        SettingsNavigationItem(
+                            text = stringResource(R.string.activity_add_time),
+                            onClick = {
+                                focus.clearFocus()
+                                times = times + ActivityDraft.freeTime(timetable, times.last().day, times)
+                            },
+                            enabled = !saving && !needsRefresh,
+                            leadingContent = { Icon(Icons.Rounded.Add, contentDescription = null) },
+                        )
+                    }
                 }
-                ActivityConflictNotice(conflict)
-                Spacer(Modifier.height(16.dp))
+                Box(Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
+                    ActivityConflictNotice(conflict)
+                }
             }
         }
     }
@@ -285,30 +298,17 @@ fun ActivityCreationView(
         confirmButton = {
             TextButton(onClick = {
                 error = 0
-            }) { Text(stringResource(R.string.ok)) }
+            }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.ok)) }
         })
-}
-
-/** A heading in the form, in the style of the settings section headers. */
-@Composable
-private fun FormSectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .semantics { heading() }
-    )
 }
 
 private enum class TimeField { Begin, End }
 
 /**
- * One meeting time: its day, start and end, a link to adjust it on the timetable, and delete.
- * Tapping a time opens wheels below it in 15-minute steps, like the timetable.
+ * One meeting time as a header and a card of rows: its day, start and end, adjusting it on the
+ * timetable, and removing it. Tapping a time opens wheels below it in 15-minute steps, like the
+ * timetable.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ActivityTimeCard(
     number: Int,
@@ -321,126 +321,124 @@ private fun ActivityTimeCard(
 ) {
     val focus = LocalFocusManager.current
     var editing by rememberSaveable { mutableStateOf<TimeField?>(null) }
-    val toggle = { field: TimeField -> editing = if (editing == field) null else field }
+    val toggle = { field: TimeField -> focus.clearFocus(); editing = if (editing == field) null else field }
     var expandedDay by remember { mutableStateOf(false) }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(start = 16.dp, end = 4.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.heightIn(min = 48.dp)
-            ) {
-                Text(
-                    stringResource(R.string.activity_time_number, number),
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { heading() }
-                )
-                if (onRemove != null) {
-                    IconButton(onClick = onRemove, enabled = enabled) {
-                        Icon(Icons.Outlined.Delete, stringResource(R.string.activity_remove_time))
-                    }
-                }
-            }
-
-            Column(
-                modifier = Modifier.padding(end = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                ExposedDropdownMenuBox(
-                    expanded = expandedDay,
-                    onExpandedChange = { if (enabled) { focus.clearFocus(); expandedDay = it } },
-                ) {
-                    OutlinedTextField(
-                        value = stringResource(DayType.fromValue(time.day)!!.fullStringValue),
-                        onValueChange = {},
-                        readOnly = true,
-                        enabled = enabled,
-                        singleLine = true,
-                        label = { Text(stringResource(R.string.activity_day)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedDay) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    )
-                    ExposedDropdownMenu(expanded = expandedDay, onDismissRequest = { expandedDay = false }) {
-                        DayType.entries.sortedBy { it.value }.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(option.fullStringValue)) },
-                                onClick = {
-                                    onChange(time.move(time.begin, option.value))
-                                    expandedDay = false
-                                },
-                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                            )
+    SettingsSectionHeader(stringResource(R.string.activity_time_number, number))
+    SettingsGroup(Modifier.animateContentSize()) {
+        row {
+            SettingsNavigationItem(
+                text = stringResource(R.string.activity_day),
+                onClick = { focus.clearFocus(); expandedDay = true },
+                enabled = enabled,
+                trailingContent = {
+                    Box {
+                        TimeValue(stringResource(DayType.fromValue(time.day)!!.fullStringValue), open = expandedDay)
+                        ExpressiveMenu(
+                            expanded = expandedDay,
+                            onDismissRequest = { expandedDay = false },
+                        ) {
+                            val days = DayType.entries.sortedBy { it.value }
+                            MenuGroup(index = 0, count = 1) {
+                                days.forEachIndexed { index, option ->
+                                    SelectableDropdownMenuItem(
+                                        colors = selectableMenuItemColors(),
+                                        selected = option.value == time.day,
+                                        onClick = {
+                                            onChange(time.move(time.begin, option.value))
+                                            expandedDay = false
+                                        },
+                                        text = { Text(stringResource(option.fullStringValue)) },
+                                        shapes = MenuDefaults.itemShape(index, days.size),
+                                        selectedLeadingIcon = {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(MenuDefaults.LeadingIconSize)
+                                            )
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PickerField(
-                        label = stringResource(R.string.activity_starts),
-                        value = activityTime(time.begin),
-                        icon = Icons.Outlined.Schedule,
-                        isOpen = editing == TimeField.Begin,
-                        enabled = enabled,
-                        isError = conflict,
-                        modifier = Modifier.weight(1f)
-                    ) { focus.clearFocus(); toggle(TimeField.Begin) }
-                    PickerField(
-                        label = stringResource(R.string.activity_ends),
-                        value = activityTime(time.end),
-                        icon = Icons.Outlined.Schedule,
-                        isOpen = editing == TimeField.End,
-                        enabled = enabled,
-                        isError = conflict,
-                        modifier = Modifier.weight(1f)
-                    ) { focus.clearFocus(); toggle(TimeField.End) }
-                }
-
-                AnimatedVisibility(editing == TimeField.Begin) {
-                    TimeWheel(minuteOfDay = time.begin, step = 15) { newBegin ->
-                        if (newBegin != time.begin) {
-                            onChange(time.copy(begin = newBegin, end = if (newBegin >= time.end) (newBegin + 15).coerceAtMost(1440) else time.end))
-                        }
+                },
+            )
+        }
+        row {
+            SettingsNavigationItem(
+                text = stringResource(R.string.activity_starts),
+                onClick = { toggle(TimeField.Begin) },
+                enabled = enabled,
+                trailingContent = {
+                    TimeValue(activityTime(time.begin), open = editing == TimeField.Begin, error = conflict)
+                },
+            )
+        }
+        if (editing == TimeField.Begin) row {
+            SettingsFieldItem {
+                TimeWheel(minuteOfDay = time.begin, step = 15) { newBegin ->
+                    if (newBegin != time.begin) {
+                        onChange(time.copy(begin = newBegin, end = if (newBegin >= time.end) (newBegin + 15).coerceAtMost(1440) else time.end))
                     }
-                }
-                AnimatedVisibility(editing == TimeField.End) {
-                    TimeWheel(minuteOfDay = time.end % 1440, step = 15) { picked ->
-                        // 00:00 as an end time means midnight at the end of the day.
-                        val newEnd = if (picked == 0) 1440 else picked
-                        if (newEnd != time.end) {
-                            onChange(time.copy(begin = if (newEnd <= time.begin) (newEnd - 15).coerceAtLeast(0) else time.begin, end = newEnd))
-                        }
-                    }
-                }
-
-                if (conflict) {
-                    Text(
-                        stringResource(R.string.activity_conflict),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-
-                OutlinedButton(
-                    onClick = onAdjust,
-                    enabled = enabled,
-                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Outlined.CalendarMonth, null, Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.activity_adjust))
                 }
             }
         }
+        row {
+            SettingsNavigationItem(
+                text = stringResource(R.string.activity_ends),
+                onClick = { toggle(TimeField.End) },
+                enabled = enabled,
+                supportingText = if (conflict) stringResource(R.string.activity_conflict) else null,
+                trailingContent = {
+                    TimeValue(activityTime(time.end), open = editing == TimeField.End, error = conflict)
+                },
+            )
+        }
+        if (editing == TimeField.End) row {
+            SettingsFieldItem {
+                TimeWheel(minuteOfDay = time.end % 1440, step = 15) { picked ->
+                    // 00:00 as an end time means midnight at the end of the day.
+                    val newEnd = if (picked == 0) 1440 else picked
+                    if (newEnd != time.end) {
+                        onChange(time.copy(begin = if (newEnd <= time.begin) (newEnd - 15).coerceAtLeast(0) else time.begin, end = newEnd))
+                    }
+                }
+            }
+        }
+        row {
+            SettingsNavigationItem(
+                text = stringResource(R.string.activity_adjust),
+                onClick = onAdjust,
+                enabled = enabled,
+                leadingContent = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
+            )
+        }
+        if (onRemove != null) row {
+            SettingsNavigationItem(
+                text = stringResource(R.string.activity_remove_time),
+                onClick = onRemove,
+                enabled = enabled,
+                leadingContent = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                destructive = true,
+            )
+        }
     }
+}
+
+/** A row's current value: primary while its picker is open, the error color when it conflicts. */
+@Composable
+private fun TimeValue(text: String, open: Boolean, error: Boolean = false) {
+    val colors = MaterialTheme.colorScheme
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyLarge,
+        color = when {
+            error -> colors.error
+            open -> colors.primary
+            else -> colors.onSurfaceVariant
+        }
+    )
 }
 
 private val activityTimesSaver = listSaver<List<ActivityTime>, Int>(
@@ -449,37 +447,46 @@ private val activityTimesSaver = listSaver<List<ActivityTime>, Int>(
 )
 
 /** Describe the activity in words; the on-device model fills in the fields below. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActivityQuickFillField(
     state: ActivityQuickFillState,
     enabled: Boolean,
     onTextChange: () -> Unit,
     onFill: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var description by rememberSaveable { mutableStateOf("") }
     val canFill = enabled && description.isNotBlank() && !state.isParsing
-    OutlinedTextField(
-        value = description,
-        onValueChange = { description = it; onTextChange() },
-        label = { Text(stringResource(R.string.activity_quick_fill)) },
-        placeholder = { Text(stringResource(R.string.activity_quick_fill_placeholder)) },
-        supportingText = { Text(stringResource(state.errorRes ?: R.string.activity_quick_fill_footer)) },
-        isError = state.errorRes != null,
-        enabled = enabled && !state.isParsing,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { if (canFill) onFill(description) }),
-        trailingIcon = {
-            if (state.isParsing) {
-                CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
-            } else {
-                IconButton(onClick = { onFill(description) }, enabled = canFill) {
-                    Icon(Icons.Outlined.AutoAwesome, stringResource(R.string.activity_quick_fill_action))
-                }
+    SettingsGroup(modifier) {
+        row {
+            SettingsFieldItem {
+                TextField(
+                    value = description,
+                    onValueChange = { description = it; onTextChange() },
+                    label = { Text(stringResource(R.string.activity_quick_fill)) },
+                    placeholder = { Text(stringResource(R.string.activity_quick_fill_placeholder)) },
+                    supportingText = { Text(stringResource(state.errorRes ?: R.string.activity_quick_fill_footer)) },
+                    isError = state.errorRes != null,
+                    enabled = enabled && !state.isParsing,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { if (canFill) onFill(description) }),
+                    trailingIcon = {
+                        if (state.isParsing) {
+                            LoadingIndicator(Modifier.size(24.dp))
+                        } else {
+                            IconButton(onClick = { onFill(description) }, enabled = canFill, shapes = IconButtonDefaults.shapes()) {
+                                Icon(Icons.Outlined.AutoAwesome, stringResource(R.string.activity_quick_fill_action))
+                            }
+                        }
+                    },
+                    colors = settingsTextFieldColors(),
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-        },
-        modifier = Modifier.fillMaxWidth()
-    )
+        }
+    }
 }
 
 @Composable

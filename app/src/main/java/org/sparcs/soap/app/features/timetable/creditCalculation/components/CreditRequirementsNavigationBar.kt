@@ -5,6 +5,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -29,7 +30,7 @@ fun CreditRequirementsNavigationBar(
         },
         actions = {
             if (onEdit != null) {
-                IconButton(onClick = onEdit) {
+                IconButton(onClick = onEdit, shapes = IconButtonDefaults.shapes()) {
                     Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.credit_edit))
                 }
             }

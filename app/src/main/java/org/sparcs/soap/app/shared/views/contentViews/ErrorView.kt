@@ -87,6 +87,7 @@ fun ErrorView(
 
         Button(
             onClick = { onRetry() },
+            shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Icon(

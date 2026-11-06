@@ -13,17 +13,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleButtonSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.models.SearchScope
@@ -51,23 +58,39 @@ fun SearchFilterRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            items(SearchScope.entries) { scope ->
+            // The scopes are mutually exclusive, so they form a connected button group sized to
+            // match the course filter chips that follow them.
+            itemsIndexed(SearchScope.entries) { index, scope ->
                 val selected = searchScope == scope
-                FilterChip(
-                    selected = selected,
-                    onClick = { onScopeChange(scope) },
-                    label = { Text(stringResource(scope.labelRes)) },
-                    leadingIcon = if (selected) {
+                ToggleButton(
+                    checked = selected,
+                    onCheckedChange = { onScopeChange(scope) },
+                    buttonSize = ToggleButtonSize.ExtraSmall,
+                    icon = if (selected) {
                         {
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = null,
-                                modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                modifier = Modifier.size(ButtonDefaults.ExtraSmallIconSize)
                             )
                         }
                     } else null,
+                    shapes = when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        SearchScope.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                    // The default container is the dark background's own colour, so lift it a step.
+                    colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    modifier = Modifier.semantics { role = Role.RadioButton },
+                ) {
+                    Text(stringResource(scope.labelRes))
+                }
+                Spacer(
+                    modifier = Modifier.width(
+                        if (index == SearchScope.entries.lastIndex) 8.dp else ButtonGroupDefaults.ConnectedSpaceBetween
+                    )
                 )
-                Spacer(modifier = Modifier.width(8.dp))
             }
 
             item {

@@ -1,11 +1,10 @@
 package org.sparcs.soap.app.cache
 
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.kakao.vectormap.LatLng
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.sparcs.soap.app.domain.models.taxi.TaxiRoute
 import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,19 +22,18 @@ class TaxiRouteCache @Inject constructor(
         }
     }
 
-    suspend fun getRoute(key: String): List<LatLng>? {
+    suspend fun getRoute(key: String): TaxiRoute? {
         val cached = taxiRouteCacheDao.getRoute(key) ?: return null
         return try {
-            val type = object : TypeToken<List<LatLng>>() {}.type
             val jsonString = String(cached.data, Charsets.UTF_8)
-            gson.fromJson<List<LatLng>>(jsonString, type)
+            gson.fromJson(jsonString, TaxiRoute::class.java)?.takeIf { it.points.isNotEmpty() }
         } catch (_: Exception) {
             null
         }
     }
 
-    suspend fun store(key: String, points: List<LatLng>) {
-        val jsonString = gson.toJson(points)
+    suspend fun store(key: String, route: TaxiRoute) {
+        val jsonString = gson.toJson(route)
         val entry = CachedTaxiRoute(
             cacheKey = key,
             data = jsonString.toByteArray(Charsets.UTF_8),

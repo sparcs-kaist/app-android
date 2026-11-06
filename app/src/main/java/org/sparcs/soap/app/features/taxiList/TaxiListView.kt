@@ -6,26 +6,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +35,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,9 +81,11 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationP
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.onlyBottom
 import org.sparcs.soap.app.shared.extensions.toLocalDate
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.weekdaySymbol
+import org.sparcs.soap.app.shared.extensions.withoutBottom
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SkeletonLine
@@ -91,7 +96,7 @@ import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiListViewModel
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TaxiListView(
     viewModel: TaxiListViewModelProtocol = hiltViewModel<TaxiListViewModel>(),
@@ -158,9 +163,11 @@ fun TaxiListView(
                 text = { Text(newRoom) }
             )
         },
+        // No padding for the navigation bar here: the list's own bottom padding lets it scroll on
+        // behind the gesture bar, which the bottom navigation covers in portrait but not beside the
+        // navigation rail in landscape.
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
-            .navigationBarsPadding()
             .analyticsScreen("Taxi List")
     ) { innerPadding ->
         PullToRefreshBox(
@@ -174,7 +181,14 @@ fun TaxiListView(
                 }
             },
             state = pullState,
-            modifier = Modifier.padding(innerPadding)
+            indicator = {
+                PullToRefreshDefaults.LoadingIndicator(
+                    state = pullState,
+                    isRefreshing = isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            },
+            modifier = Modifier.padding(innerPadding.withoutBottom())
         ) {
             Box(
                 modifier = Modifier
@@ -196,7 +210,8 @@ fun TaxiListView(
                         },
                         navController = navController,
                         haptic = haptic,
-                        scrollState = scrollState
+                        scrollState = scrollState,
+                        bottomPadding = innerPadding.onlyBottom()
                     )
                 } else {
                     TaxiPortraitLayout(
@@ -212,7 +227,8 @@ fun TaxiListView(
                         },
                         navController = navController,
                         haptic = haptic,
-                        scrollState = scrollState
+                        scrollState = scrollState,
+                        bottomPadding = innerPadding.onlyBottom()
                     )
                 }
             }
@@ -237,7 +253,9 @@ fun TaxiListView(
                         }
                         viewModel.fetchData()
                     },
-                    navController = navController
+                    navController = navController,
+                    // Once the sheet has opened, so making the map doesn't stall its animation.
+                    isOpen = sheetState.currentValue == SheetValue.Expanded,
                 )
             }
         }
@@ -256,6 +274,7 @@ private fun TaxiLandscapeLayout(
     navController: NavController,
     haptic: HapticFeedback,
     scrollState: ScrollState,
+    bottomPadding: PaddingValues,
 ) {
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -265,6 +284,7 @@ private fun TaxiLandscapeLayout(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
+                .padding(bottomPadding)
                 .padding(start = 24.dp, top = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -276,6 +296,7 @@ private fun TaxiLandscapeLayout(
             modifier = Modifier
                 .weight(1.5f)
                 .verticalScroll(scrollState)
+                .padding(bottomPadding)
                 .padding(end = 24.dp, top = 16.dp, bottom = 16.dp)
         ) {
             TaxiResultContent(
@@ -302,12 +323,14 @@ private fun TaxiPortraitLayout(
     navController: NavController,
     haptic: HapticFeedback,
     scrollState: ScrollState,
+    bottomPadding: PaddingValues,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .widthIn(max = 600.dp)
             .verticalScroll(scrollState)
+            .padding(bottomPadding)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -355,7 +378,7 @@ private fun TaxiWeekSelectorCard(
     selectedDate: Date?,
     haptic: HapticFeedback,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.fillMaxWidth()) {
         Box(modifier = Modifier.padding(4.dp)) {
             WeekDaySelector(
                 week = viewModel.week,
@@ -558,6 +581,7 @@ private fun EmptyView(navController: NavController) {
             onClick = {
                 navController.navigate(Channel.TaxiRoomCreation.name)
             },
+            shapes = ButtonDefaults.shapes(),
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {
             Text(stringResource(R.string.create_a_new_group))
@@ -609,8 +633,8 @@ private fun EmptyResultView(
                 onClick = {
                     navController.navigate(Channel.TaxiRoomCreation.name)
                 },
-                modifier = Modifier.fillMaxWidth(0.6f),
-                shape = RoundedCornerShape(12.dp)
+                shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.fillMaxWidth(0.6f)
             ) {
                 Text(stringResource(R.string.create_a_new_group))
             }
@@ -619,8 +643,8 @@ private fun EmptyResultView(
 
             OutlinedButton(
                 onClick = onClear,
-                modifier = Modifier.fillMaxWidth(0.6f),
-                shape = RoundedCornerShape(12.dp)
+                shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.fillMaxWidth(0.6f)
             ) {
                 Text(stringResource(R.string.clear_selection))
             }

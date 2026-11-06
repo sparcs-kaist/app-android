@@ -84,7 +84,7 @@ fun PostContent(
     galleryStart?.let { start ->
         Dialog(
             onDismissRequest = { galleryStart = null },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
         ) {
             FullscreenImagesViewer(imageUrls = galleryUrls, startIndex = start, onDismiss = { galleryStart = null })
         }

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package org.sparcs.soap.app.features.settings.timetable
 
 import androidx.compose.foundation.layout.Arrangement
@@ -12,10 +14,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -146,17 +150,23 @@ private fun ThemeModelStatusView(
         ThemeModelStatus.CHECKING -> Text(stringResource(R.string.theme_ai_checking))
         ThemeModelStatus.DOWNLOADABLE -> Column {
             Text(stringResource(R.string.theme_ai_download_description))
-            TextButton(onClick = onDownload) { Text(stringResource(R.string.theme_ai_download)) }
+            TextButton(onClick = onDownload, shapes = ButtonDefaults.shapes()) {
+                Text(stringResource(R.string.theme_ai_download))
+            }
         }
 
         ThemeModelStatus.DOWNLOADING -> Column {
             Text(stringResource(R.string.theme_ai_downloading))
-            TextButton(onClick = onDownload) { Text(stringResource(R.string.theme_ai_check_download)) }
+            TextButton(onClick = onDownload, shapes = ButtonDefaults.shapes()) {
+                Text(stringResource(R.string.theme_ai_check_download))
+            }
         }
 
         ThemeModelStatus.UNAVAILABLE -> Column {
             Text(stringResource(R.string.theme_ai_unavailable))
-            TextButton(onClick = onRefresh) { Text(stringResource(R.string.theme_ai_refresh)) }
+            TextButton(onClick = onRefresh, shapes = ButtonDefaults.shapes()) {
+                Text(stringResource(R.string.theme_ai_refresh))
+            }
         }
     }
 }
@@ -231,7 +241,7 @@ private fun ThemeGenerationProgress(generating: Boolean, onCancel: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+        LoadingIndicator(Modifier.size(24.dp))
         Text(
             stringResource(if (generating) R.string.theme_ai_generating else R.string.theme_ai_downloading),
             modifier = Modifier
@@ -239,7 +249,9 @@ private fun ThemeGenerationProgress(generating: Boolean, onCancel: () -> Unit) {
                 .semantics { liveRegion = LiveRegionMode.Polite },
             style = MaterialTheme.typography.bodyMedium,
         )
-        TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
+        TextButton(onClick = onCancel, shapes = ButtonDefaults.shapes()) {
+            Text(stringResource(R.string.cancel))
+        }
     }
 }
 
@@ -248,6 +260,7 @@ private fun ThemeGenerateButton(state: ThemeGeneratorState, onGenerate: (String)
     val prompt = stringResource(R.string.theme_ai_prompt, state.description.trim())
     Button(
         onClick = { onGenerate(prompt) },
+        shapes = ButtonDefaults.shapes(),
         enabled = state.canGenerate,
         modifier = Modifier
             .padding(horizontal = 16.dp)
