@@ -46,6 +46,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,8 +64,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -87,14 +88,19 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.createKakaoMap
+import org.sparcs.soap.app.shared.extensions.TaxiRouteStyle
 import org.sparcs.soap.app.shared.extensions.drawTaxiRoute
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.extensions.setSafeArea
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.downvote
-import org.sparcs.soap.app.theme.ui.upvote
+import org.sparcs.soap.app.theme.ui.theme_light_onPrimary
+import org.sparcs.soap.app.theme.ui.theme_light_onSurface
+import org.sparcs.soap.app.theme.ui.theme_light_onTertiary
+import org.sparcs.soap.app.theme.ui.theme_light_primary
+import org.sparcs.soap.app.theme.ui.theme_light_surfaceContainerHighest
+import org.sparcs.soap.app.theme.ui.theme_light_tertiary
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -125,9 +131,31 @@ fun TaxiPreviewView(
     // Null until the route arrives; then its points, and its figures when one was found.
     var route by remember { mutableStateOf<TaxiRoute?>(null) }
 
-    val pathColor = MaterialTheme.colorScheme.primary.toArgb()
-    val sourceString = stringResource(R.string.source)
-    val destinationString = stringResource(R.string.destination)
+    // The route in the theme's primary, its stops as Material 3 Expressive shapes: the meeting
+    // point in primary, the destination in tertiary, each named in a pill like the sheet's chips.
+    // Always from the light scheme, whose tones are made for a light background, as Kakao's map is
+    // in either appearance.
+    val routeStyle = TaxiRouteStyle(
+        routeColor = theme_light_primary.toArgb(),
+        // Edged like the markers' rings, which it runs into.
+        routeOutlineColor = theme_light_surfaceContainerHighest.toArgb(),
+        start = TaxiRouteStyle.Stop(
+            title = room.source.title.localized(),
+            shape = MaterialShapes.Cookie9Sided,
+            containerColor = theme_light_primary.toArgb(),
+            contentColor = theme_light_onPrimary.toArgb(),
+            glyph = R.drawable.round_near_me,
+        ),
+        end = TaxiRouteStyle.Stop(
+            title = room.destination.title.localized(),
+            shape = MaterialShapes.Clover4Leaf,
+            containerColor = theme_light_tertiary.toArgb(),
+            contentColor = theme_light_onTertiary.toArgb(),
+            glyph = R.drawable.round_location_on,
+        ),
+        labelContainerColor = theme_light_surfaceContainerHighest.toArgb(),
+        labelContentColor = theme_light_onSurface.toArgb(),
+    )
     // The bottom sheet's own colour, so the details and the map's fade run on from its drag handle.
     val sheetColor = BottomSheetDefaults.ContainerColor
 
@@ -148,20 +176,27 @@ fun TaxiPreviewView(
     // side; a tablet is tall enough in either orientation to stack them.
     val isShort = LocalConfiguration.current.screenHeightDp < 480
 
-    // The map's edges that are covered or crowded: the fade into the details (below it, or beside
-    // it on a short screen) and the rounded corners; and, above the stops, the pins standing on them.
+    // The map's edges that are covered: the fade into the details (below it, or beside it on a
+    // short screen) and the rounded corners; and around each stop, its marker, which is centred on
+    // it with its name in a pill beneath, as wide as the name.
     val density = LocalDensity.current
     val fitPadding = with(density) { 16.dp.roundToPx() }
     val applySafeArea: (KakaoMap) -> Unit = { map ->
         with(density) {
             val fade = 64.dp.roundToPx()
             val edge = 16.dp.roundToPx()
-            val pin = 40.dp.roundToPx()
+            val markerSide = 16.dp.roundToPx()
+            // Below the badge, the pill may run onto the fade's faint first half.
+            val markerBelow = 20.dp.roundToPx()
+            val right = if (isShort) fade else edge
+            val bottom = if (isShort) edge else fade
             map.setSafeArea(
-                left = edge,
-                top = pin,
-                right = if (isShort) fade else edge,
-                bottom = if (isShort) edge else fade,
+                left = edge + markerSide,
+                top = edge,
+                right = right + markerSide,
+                bottom = bottom + markerBelow,
+                logoRight = right,
+                logoBottom = bottom,
             )
         }
     }
@@ -183,11 +218,7 @@ fun TaxiPreviewView(
             startPos = LatLng.from(room.source.latitude, room.source.longitude),
             endPos = LatLng.from(room.destination.latitude, room.destination.longitude),
             pathPoints = pathPoints,
-            pathColor = pathColor,
-            startLabel = sourceString,
-            endLabel = destinationString,
-            startIconColor = downvote.toArgb(),
-            endIconColor = upvote.toArgb(),
+            style = routeStyle,
             fitPadding = fitPadding,
         )
         isMapLoading = false
@@ -355,6 +386,11 @@ fun TaxiPreviewView(
                         .weight(1f)
                         .heightIn(ButtonDefaults.MediumContainerHeight),
                     contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+                    // The light scheme's vibrant primary in either appearance, like the route on the map.
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = theme_light_primary,
+                        contentColor = theme_light_onPrimary,
+                    ),
                     enabled = !isJoinButtonDisabled
                 ) {
                     Icon(
