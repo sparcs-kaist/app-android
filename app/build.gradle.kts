@@ -43,8 +43,8 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 37
-        versionCode = 40
-        versionName = "2.1.1"
+        versionCode = 41
+        versionName = "2.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"\"")
@@ -112,6 +112,7 @@ tasks.withType<KotlinCompile>().configureEach {
 
 dependencies {
 
+    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
