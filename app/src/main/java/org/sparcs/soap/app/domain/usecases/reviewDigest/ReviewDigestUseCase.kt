@@ -10,7 +10,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
+import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.app.domain.models.otl.LectureReview
+import org.sparcs.soap.app.domain.models.reviewDigest.LectureReviewDigest
 import org.sparcs.soap.app.domain.models.reviewDigest.LectureReviewDigestError
 import org.sparcs.soap.app.domain.models.reviewDigest.LectureReviewDigestException
 import org.sparcs.soap.app.domain.models.reviewDigest.LectureReviewDigestProgress
@@ -25,6 +27,7 @@ interface ReviewDigestUseCaseProtocol {
 
 class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
     override suspend fun isAvailable(): Boolean {
+        if (BuildConfig.DEBUG) return true
         val model = Generation.getClient()
         return try {
             model.checkStatus() == FeatureStatus.AVAILABLE
@@ -41,6 +44,10 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
         if (lines.isEmpty()) throw LectureReviewDigestException(LectureReviewDigestError.NO_REVIEWS)
         val model = Generation.getClient()
         try {
+            if (BuildConfig.DEBUG && !model.isReady()) {
+                emitFakeDigest()
+                return@flow
+            }
             if (model.checkStatus() != FeatureStatus.AVAILABLE) {
                 throw LectureReviewDigestException(LectureReviewDigestError.UNAVAILABLE)
             }
@@ -90,6 +97,29 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
         emit(LectureReviewDigestProgress.Reading(batches.size, batches.size))
         return notes.filter { it.isNotBlank() }.joinToString("\n")
             .ifBlank { throw LectureReviewDigestException(LectureReviewDigestError.FAILED) }
+    }
+
+    private suspend fun GenerativeModel.isReady(): Boolean =
+        runCatching { checkStatus() == FeatureStatus.AVAILABLE }.getOrDefault(false)
+
+    /** Debug-only stand-in for devices without Gemini Nano, so the digest card can still be seen. */
+    private suspend fun FlowCollector<LectureReviewDigestProgress>.emitFakeDigest() {
+        emit(LectureReviewDigestProgress.Started(FAKE_REVIEW_COUNT))
+        repeat(FAKE_BATCHES + 1) { completed ->
+            emit(LectureReviewDigestProgress.Reading(completed, FAKE_BATCHES))
+            delay(FAKE_STEP_MILLIS)
+        }
+        val steps = listOf(
+            LectureReviewDigest(overview = FAKE_DIGEST.overview),
+            LectureReviewDigest(overview = FAKE_DIGEST.overview, liked = FAKE_DIGEST.liked),
+            FAKE_DIGEST.copy(workload = null, grading = null),
+            FAKE_DIGEST.copy(grading = null),
+            FAKE_DIGEST,
+        )
+        steps.forEach {
+            emit(LectureReviewDigestProgress.Writing(it))
+            delay(FAKE_STEP_MILLIS)
+        }
     }
 
     private suspend fun <T> retryingWhenBusy(block: suspend () -> T): T {
@@ -183,5 +213,15 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
         const val DIGEST_TOKENS = 512
         const val BUSY_RETRIES = 3
         const val BUSY_BACKOFF_MILLIS = 1_500L
+        const val FAKE_REVIEW_COUNT = 100
+        const val FAKE_BATCHES = 3
+        const val FAKE_STEP_MILLIS = 400L
+        val FAKE_DIGEST = LectureReviewDigest(
+            overview = "전반적으로 강의는 이해하기 쉬우며 유익하다고 평가됨. 일부는 성적이 후하게 주어지지만, 과제와 채점 기준에 불만을 표함.",
+            liked = listOf("이해하기 쉬움", "유익함", "설명 상세함", "초보자 적합"),
+            disliked = listOf("과제 부담", "채점 기준 모호함", "플젝 난이도", "코드 설명 불명확함"),
+            workload = "과제 부담이 크고, 특히 플젝과 코드 설명이 어려움.",
+            grading = "성적이 일반적으로 후하게 주어짐.",
+        )
     }
 }
