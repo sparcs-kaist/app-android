@@ -7,6 +7,7 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.text.TextPaint
 import android.text.TextUtils
 import androidx.annotation.DrawableRes
@@ -179,7 +180,7 @@ private fun Context.stopMarker(stop: TaxiRouteStyle.Stop, style: TaxiRouteStyle)
 }
 
 /** Where the drawable's ink balances, drawn [size] pixels square: the centre of its opaque pixels. */
-private fun android.graphics.drawable.Drawable.inkCentre(size: Int): Pair<Float, Float> {
+private fun Drawable.inkCentre(size: Int): Pair<Float, Float> {
     val sample = createBitmap(size, size)
     setBounds(0, 0, size, size)
     draw(Canvas(sample))
