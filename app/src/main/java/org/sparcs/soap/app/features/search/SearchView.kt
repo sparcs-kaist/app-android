@@ -2,10 +2,16 @@ package org.sparcs.soap.app.features.search
 
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -66,6 +72,8 @@ import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 
+private val SearchMaxWidth = 600.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchView(
@@ -98,20 +106,20 @@ fun SearchView(
 
     Scaffold(
         topBar = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .then(topBarScrollBehavior.searchBarScrollBehaviorModifier)
                     .padding(top = 8.dp)
             ) {
-                Column(Modifier.widthIn(max = 600.dp)) {
+                val gutter = ((maxWidth - SearchMaxWidth) / 2).coerceAtLeast(0.dp) + 16.dp
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     MaterialSearchField(
                         query = searchText,
                         onQueryChange = viewModel::onSearchTextChange,
                         placeholder = stringResource(R.string.search),
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.widthIn(max = SearchMaxWidth).padding(horizontal = 16.dp)
                     )
                     SearchFilterRow(
                         searchScope = searchScope,
@@ -119,12 +127,14 @@ fun SearchView(
                         onScopeChange = viewModel::onScopeChange,
                         onCategoryClick = { activeFilterCategory = it },
                         onResetFilters = { viewModel.onFilterChange(CourseFilterState()) },
+                        contentPadding = PaddingValues(horizontal = gutter),
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
             }
         },
         modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
             .navigationBarsPadding()
             .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
             .analyticsScreen("Search")
@@ -137,8 +147,8 @@ fun SearchView(
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .widthIn(max = 600.dp),
+                    .widthIn(max = SearchMaxWidth)
+                    .fillMaxSize(),
                 contentAlignment = Alignment.TopCenter
             ) {
                 SearchResultContent(

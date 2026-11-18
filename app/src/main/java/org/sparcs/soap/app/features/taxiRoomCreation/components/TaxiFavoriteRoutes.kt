@@ -1,16 +1,19 @@
 package org.sparcs.soap.app.features.taxiRoomCreation.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.outlined.Delete
@@ -31,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -41,6 +45,7 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiFavoriteRoute
@@ -66,39 +71,44 @@ fun TaxiFavoriteRoutes(
     onDelete: (String) -> Unit,
     onSaveCurrent: () -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(end = 8.dp),
 ) {
     if (!canSaveCurrent && favorites.isEmpty()) return
     val haptic = LocalHapticFeedback.current
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-            .horizontalScroll(rememberScrollState())
-            .animateContentSize(MaterialTheme.motionScheme.fastSpatialSpec()),
-    ) {
-        if (canSaveCurrent) {
-            RouteChip(
-                icon = Icons.Rounded.StarOutline,
-                container = MaterialTheme.colorScheme.secondaryContainer,
-                content = MaterialTheme.colorScheme.onSecondaryContainer,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                    onSaveCurrent()
-                },
-            ) {
-                Text(stringResource(R.string.taxi_save_route), style = MaterialTheme.typography.labelLarge)
+    BoxWithConstraints(modifier) {
+        val direction = LocalLayoutDirection.current
+        val maxChipWidth = (maxWidth - contentPadding.calculateLeftPadding(direction) -
+            contentPadding.calculateRightPadding(direction)).coerceAtLeast(0.dp)
+        LazyRow(
+            contentPadding = contentPadding,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (canSaveCurrent) item {
+                RouteChip(
+                    icon = Icons.Rounded.StarOutline,
+                    container = MaterialTheme.colorScheme.secondaryContainer,
+                    content = MaterialTheme.colorScheme.onSecondaryContainer,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                        onSaveCurrent()
+                    },
+                ) {
+                    Text(stringResource(R.string.taxi_save_route), style = MaterialTheme.typography.labelLarge)
+                }
             }
-        }
-        favorites.forEach { route ->
-            FavoriteRouteChip(
-                route = route,
-                isChosen = route.from.id == source?.id && route.to.id == destination?.id,
-                onSelect = {
-                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                    onSelect(route)
-                },
-                onDelete = { onDelete(route.id) },
-            )
+            items(favorites, key = { it.id }) { route ->
+                FavoriteRouteChip(
+                    route = route,
+                    maxChipWidth = maxChipWidth,
+                    isChosen = route.from.id == source?.id && route.to.id == destination?.id,
+                    onSelect = {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                        onSelect(route)
+                    },
+                    onDelete = { onDelete(route.id) },
+                )
+            }
         }
     }
 }
@@ -107,6 +117,7 @@ fun TaxiFavoriteRoutes(
 @Composable
 private fun FavoriteRouteChip(
     route: TaxiFavoriteRoute,
+    maxChipWidth: Dp,
     isChosen: Boolean,
     onSelect: () -> Unit,
     onDelete: () -> Unit,
@@ -128,20 +139,25 @@ private fun FavoriteRouteChip(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 showsMenu = true
             },
-            modifier = Modifier.clearAndSetSemantics {
+            modifier = Modifier.widthIn(max = maxChipWidth).clearAndSetSemantics {
                 contentDescription = "$from → $to"
                 selected = isChosen
                 role = Role.Button
                 customActions = listOf(CustomAccessibilityAction(removeLabel) { onDelete(); true })
             },
         ) {
-            Text(from, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowForward,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-            )
-            Text(to, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(from, style = MaterialTheme.typography.labelLarge)
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowForward,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(to, style = MaterialTheme.typography.labelLarge)
+            }
         }
 
         ExpressiveMenu(expanded = showsMenu, onDismissRequest = { showsMenu = false }) {

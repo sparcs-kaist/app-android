@@ -2,9 +2,10 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn sun.misc.**
--keep class org.sparcs.soap.app.Models.** { *; }
--keep class org.sparcs.soap.app.networking.** { *; }
--keep interface org.sparcs.soap.app.networking.** { *; }
+# DTO field names are part of the wire format. Some DTOs live beside the API interfaces.
+-keep class org.sparcs.soap.app.networking.requestDTO.** { *; }
+-keep class org.sparcs.soap.app.networking.responseDTO.** { *; }
+-keep class org.sparcs.soap.app.networking.retrofitAPI.** { *; }
 
 # Retrofit
 -keepattributes Signature
@@ -23,8 +24,8 @@
 # Hilt
 -keep @dagger.hilt.android.lifecycle.HiltViewModel class * { *; }
 
-# Enums
--keep class org.sparcs.soap.app.domain.** { *; }
+# Domain models are also serialized in navigation arguments and on-disk caches.
+-keep class org.sparcs.soap.app.domain.models.** { *; }
 -keepclassmembers enum org.sparcs.soap.app.domain.enums.** { *; }
 
 # Widget
@@ -36,8 +37,4 @@
 -keep class com.kakao.vectormap.** { *; }
 -keep interface com.kakao.vectormap.**
 
-# ChannelTalk / ChannelIO (recommended for older SDK versions)
--keep class com.zoyi.** { *; }
--keep class io.channel.** { *; }
--dontwarn com.zoyi.**
--dontwarn io.channel.**
+# ChannelTalk ships consumer rules for its plugin, serializers, and shaded libraries.

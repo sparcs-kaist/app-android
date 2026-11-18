@@ -47,6 +47,7 @@ fun SearchFilterRow(
     onCategoryClick: (CourseFilterCategory) -> Unit,
     onResetFilters: () -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp),
 ) {
     Box(
         modifier = modifier
@@ -55,7 +56,7 @@ fun SearchFilterRow(
     ) {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp),
+            contentPadding = contentPadding,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // The scopes are mutually exclusive, so they form a connected button group sized to

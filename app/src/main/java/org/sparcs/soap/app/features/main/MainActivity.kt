@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -188,6 +189,7 @@ class MainActivity : ComponentActivity() {
                                     hostState = snackbarHostState,
                                     modifier = Modifier
                                         .align(Alignment.BottomCenter)
+                                        .safeDrawingPadding()
                                         .padding(bottom = 20.dp)
                                 ) {
                                     Snackbar(

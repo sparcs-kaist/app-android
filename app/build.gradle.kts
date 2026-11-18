@@ -77,6 +77,7 @@ android {
             buildConfigField("String", "FEED_HOST", "\"buddy.sparcs.org\"")
             buildConfigField("String", "OTL_HOST", "\"otl.sparcs.org\"")
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -116,6 +117,9 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    constraints {
+        implementation(libs.material.views) { because("Use Android 15 compatible Material dialogs in SDK screens") }
+    }
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)

@@ -15,6 +15,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -51,6 +52,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiFavoriteRoute
@@ -82,6 +84,7 @@ fun TaxiDestinationPicker(
     onFavoriteDelete: (String) -> Unit = {},
     onFavoriteAdd: () -> Unit = {},
     containerColor: Color = CardDefaults.cardColors().containerColor,
+    horizontalInset: Dp = 0.dp,
 ) {
     val haptic = LocalHapticFeedback.current
     val canAddFavorite = source != null && destination != null && source.id != destination.id &&
@@ -96,7 +99,7 @@ fun TaxiDestinationPicker(
         Card(
             shape = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.cardColors(containerColor = containerColor),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalInset),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(
@@ -162,6 +165,7 @@ fun TaxiDestinationPicker(
             onDelete = onFavoriteDelete,
             onSaveCurrent = onFavoriteAdd,
             modifier = Modifier.padding(top = 12.dp),
+            contentPadding = PaddingValues(start = horizontalInset, end = horizontalInset.coerceAtLeast(8.dp)),
         )
     }
 }
