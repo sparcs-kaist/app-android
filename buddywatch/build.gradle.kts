@@ -16,7 +16,7 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 36
-        versionCode = 42
+        versionCode = 45
         versionName = "2.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
