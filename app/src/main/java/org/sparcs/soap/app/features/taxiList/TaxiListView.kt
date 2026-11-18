@@ -60,6 +60,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -334,10 +335,12 @@ private fun TaxiPortraitLayout(
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp)
         ) {
-            TaxiFilterCard(viewModel, locations, favoriteRoutes)
-            TaxiWeekSelectorCard(viewModel, selectedDate, haptic)
+            TaxiFilterCard(viewModel, locations, favoriteRoutes, horizontalInset = 16.dp)
+            Box(Modifier.padding(horizontal = 16.dp)) {
+                TaxiWeekSelectorCard(viewModel, selectedDate, haptic)
+            }
         }
 
         TaxiResultContent(
@@ -358,6 +361,7 @@ private fun TaxiFilterCard(
     viewModel: TaxiListViewModelProtocol,
     locations: List<TaxiLocation>,
     favoriteRoutes: List<TaxiFavoriteRoute>,
+    horizontalInset: Dp = 0.dp,
 ) {
     TaxiDestinationPicker(
         source = viewModel.source,
@@ -368,7 +372,8 @@ private fun TaxiFilterCard(
         favoriteRoutes = favoriteRoutes,
         onFavoriteSelect = { viewModel.selectFavoriteRoute(it) },
         onFavoriteDelete = { viewModel.deleteFavoriteRoute(it) },
-        onFavoriteAdd = { viewModel.addFavoriteRoute() }
+        onFavoriteAdd = { viewModel.addFavoriteRoute() },
+        horizontalInset = horizontalInset,
     )
 }
 
