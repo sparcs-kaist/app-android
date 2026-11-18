@@ -172,7 +172,7 @@ class AuthUseCase @Inject constructor(
     }
 
     private suspend fun performTokenRefresh(force: Boolean) {
-        val revision = synchronized(sessionLock) { sessionRevision }
+        val (revision, wasAuthenticated) = synchronized(sessionLock) { sessionRevision to _isAuthenticated.value }
         val now = System.currentTimeMillis()
         synchronized(sessionLock) {
             if (sessionRevision != revision) throw CancellationException("Authentication session changed")
@@ -187,7 +187,7 @@ class AuthUseCase @Inject constructor(
         }
 
         val currentRefreshToken = tokenStorage.readRefreshToken() ?: run {
-            clearSession(revision)
+            if (wasAuthenticated) clearSession(revision)
             throw AuthUseCaseError.NoAccessToken()
         }
 

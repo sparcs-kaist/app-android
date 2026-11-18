@@ -18,6 +18,7 @@ import org.sparcs.soap.app.cache.CachedTimetable
 import org.sparcs.soap.app.cache.TimetableCache
 import org.sparcs.soap.app.cache.TimetableCacheDAO
 import org.sparcs.soap.app.domain.error.NetworkError
+import org.sparcs.soap.app.domain.error.auth.AuthUseCaseError
 import org.sparcs.soap.app.domain.helpers.CreditSummarySnapshotStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
@@ -123,6 +124,16 @@ class AuthRefreshTest {
         assertEquals(1, storage.clears)
     }
 
+    @Test fun refreshBeforeFirstTokensDoesNotClearSession() = runTest {
+        storage.refresh = null
+        val model = useCase()
+        val error = runCatching { model.refreshAccessToken() }.exceptionOrNull()
+        assertTrue(error is AuthUseCaseError.NoAccessToken)
+        assertEquals(0, storage.clears)
+        assertEquals(0, service.calls)
+        assertFalse(model.isAuthenticatedFlow.first())
+    }
+
     @Test fun missingRefreshTokenClearsCreditSnapshot() = runTest {
         val store = CreditSummarySnapshotStore(RuntimeEnvironment.getApplication())
         store.save(CreditSummarySnapshot(4.0, 100, 138))
@@ -149,7 +160,7 @@ class AuthRefreshTest {
         }
         override fun getAccessToken() = access
         override fun getRefreshToken(): String? = null
-        override fun hasStoredRefreshToken() = true
+        override fun hasStoredRefreshToken() = refresh != null
         override fun readRefreshToken(): String? {
             readFailure?.let { throw it }
             return refresh
