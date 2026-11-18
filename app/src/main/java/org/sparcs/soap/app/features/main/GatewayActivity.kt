@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -46,6 +47,7 @@ class GatewayActivity : ComponentActivity() {
         splashScreen.setKeepOnScreenCondition { themeModeState == null }
 
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         lifecycleScope.launch {
             themeModeState = settingsRepository.themeMode.first()

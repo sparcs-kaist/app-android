@@ -26,7 +26,8 @@ kotlinxCoroutinesAndroid = "1.8.1"
 kotlinxCoroutinesTest = "1.9.0"
 kotlinxSerializationJson = "1.6.0"
 lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.10.1"
+activityCompose = "1.12.4"
+materialViews = "1.14.0"
 composeBom = "2025.09.00"
 # Material 3 Expressive components ship only in the 1.5 line; pinned above the BOM.
 material3 = "1.5.0-beta02"
@@ -64,6 +65,7 @@ watchfaceComplicationsDataSourceKtx = "1.2.1"
 material3Version = "1.4.0"
 
 [libraries]
+material-views = { module = "com.google.android.material:material", version.ref = "materialViews" }
 mlkit-translate = { module = "com.google.mlkit:translate", version.ref = "mlkitTranslate" }
 mlkit-language-id = { module = "com.google.mlkit:language-id", version.ref = "mlkitLanguageId" }
 mlkit-genai-summarization = { module = "com.google.mlkit:genai-summarization", version.ref = "mlkitGenaiSummarization" }

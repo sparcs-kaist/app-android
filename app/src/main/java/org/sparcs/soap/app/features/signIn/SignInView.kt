@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -65,7 +65,7 @@ fun SignInView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .navigationBarsPadding()
+            .safeDrawingPadding()
             .padding(16.dp)
             .analyticsScreen("Sign In"),
         verticalArrangement = Arrangement.SpaceBetween,
